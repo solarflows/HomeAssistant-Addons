@@ -13,12 +13,14 @@ arch:
 map:
   - config:rw
   - ssl:ro
+panel_icon: mdi:television-box
 webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 privileged:
   - SYS_ADMIN
   - DAC_READ_SEARCH
 ingress: true
 ingress_port: 4567
+ingress_entry: /#/
 ingress_stream: true
 ports:
   4567/tcp: 4567
