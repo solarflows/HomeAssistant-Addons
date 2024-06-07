@@ -13,8 +13,6 @@ arch:
   - aarch64
   - amd64
   - i386
-services:
-  - redis:need
 webui: "[PROTO:http]://[HOST]:[PORT:8923]"
 ports:
   80/tcp: 8923

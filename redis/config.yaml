@@ -1,0 +1,21 @@
+﻿---
+name: redis
+slug: redis
+version: 7.0.15-alpine
+image: redis
+description: "Redis is an in-memory database that persists on disk. The data model is key-value, but many different kind of values are supported: Strings, Lists, Sets, Sorted Sets, Hashes, Streams, HyperLogLogs, Bitmaps."
+url: https://github.com/docker-library/redis
+init: false
+codenotary: fireflows@cock.li
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+ports:
+  6379/tcp: 6379
+ports_description:
+  6379/tcp: 'Redis database port'
+startup: services
+boot: manual
