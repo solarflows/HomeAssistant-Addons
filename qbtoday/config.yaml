@@ -2,7 +2,7 @@
 name: qdtoday
 slug: qdtoday
 version: 20240210
-image: qdtoday/qd
+image: ghcr.io/solarflows/qd
 description: "QD —— 一个HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server"
 url: https://github.com/qd-today/qd
 init: false
@@ -18,5 +18,11 @@ ports:
   80/tcp: 8923
 ports_description:
   80/tcp: 'QD Web UI port'
+map:
+  - config:rw
+  - ssl:ro
+privileged:
+  - SYS_ADMIN
+  - DAC_READ_SEARCH
 startup: application
 boot: manual
