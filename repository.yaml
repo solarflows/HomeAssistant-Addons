@@ -1,0 +1,4 @@
+﻿name: 'Add-ons by Husky'
+udev: true
+url: 'https://github.com/solarflows/HomeAssistant-Addons'
+maintainer: Husky
