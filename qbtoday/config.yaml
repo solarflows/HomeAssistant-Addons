@@ -1,0 +1,29 @@
+﻿---
+name: qdtoday
+slug: qdtoday
+version: 20240210
+image: qdtoday/qd
+description: "QD —— 一个HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server"
+url: https://github.com/qd-today/qd
+init: false
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+panel_icon: mdi:bell
+# webui: "[PROTO:http]://[HOST]:[PORT:8923]"
+ingress: true
+ingress_port: 80
+ingress_stream: true
+ports:
+  80/tcp: 8923
+ports_description:
+  80/tcp: 'QD Web UI port'
+services:
+  - redis:need
+startup: application
+boot: manual
+environment:
+  - FB_BASEURL:

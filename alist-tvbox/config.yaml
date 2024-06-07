@@ -18,9 +18,6 @@ webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 privileged:
   - SYS_ADMIN
   - DAC_READ_SEARCH
-ingress: true
-ingress_port: 4567
-# ingress_stream: true
 ports:
   4567/tcp: 4567
   80/tcp: 5344
