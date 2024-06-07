@@ -13,6 +13,7 @@ arch:
 map:
   - config:rw
   - ssl:ro
+panel_icon: mdi:television-box
 webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 privileged:
   - SYS_ADMIN
@@ -20,7 +21,6 @@ privileged:
 ingress: true
 ingress_port: 4567
 # ingress_stream: true
-panel_icon: mdi:television-box
 ports:
   4567/tcp: 4567
   80/tcp: 5344
