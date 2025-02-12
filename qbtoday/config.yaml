@@ -21,8 +21,5 @@ ports_description:
 map:
   - config:rw
   - ssl:ro
-privileged:
-  - SYS_ADMIN
-  - DAC_READ_SEARCH
 startup: application
 boot: manual
