@@ -1,0 +1,136 @@
+﻿name: 'Release Alist-tvbox Image To GHCR'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/Release_Alist_tvbox_images.yml'
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时运行一次
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    outputs:
+      should-build: ${{ steps.version-check.outputs.should_build }}
+      new-version: ${{ steps.version-check.outputs.new_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.HASS_TOKEN }}
+
+      - name: Check Version
+        id: check-version
+        run: |
+          # 读取本地版本（去除首尾空白/换行符）
+          version=$(yq eval '.version' alist-tvbox/config.yaml | tr -d "'\n\r ")
+
+          # 获取远程版本（去除空白/换行符，失败时使用本地版本）
+          REMOTE_VERSION=$(curl -fsSL http://d.har01d.cn/app_version | head -n 1 | xargs echo -n || echo "$version")
+          echo "Local Version: '$version'"
+          echo "Remote Version: '$REMOTE_VERSION'"
+
+          # 严格比较版本
+          if [ "$REMOTE_VERSION" != "$version" ]; then
+            echo "New version detected: $REMOTE_VERSION"
+            # 有更新输出版本号到全局变量
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "new_version=$remote_version" >> $GITHUB_OUTPUT
+            yq eval ".version = \"'$remote_version'\"" -i alist-tvbox/config.yaml
+          else
+            echo "Version unchanged: $version"
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes to addons repo
+        if: steps.version-check.outputs.should_build == 'true'
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "alist-tvbox: Bump version to $NEW_VERSION"
+          git push origin main
+
+  docker-build:
+    needs: version-check
+    if: needs.version-check.outputs.should-build == 'true'
+    runs-on: ubuntu-latest
+    env:
+      APP_VERSION: ${{ needs.version-check.outputs.new_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        if: steps.check-version.outputs.changed == 'true'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        if: steps.check-version.outputs.changed == 'true'
+
+      - name: Login to GitHub Container Registry (ghcr)
+        uses: docker/login-action@v2
+        if: steps.check-version.outputs.changed == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.HASS_TOKEN }}
+
+      - name: Build Docker and push to ghcr
+        uses: docker/build-push-action@v5.3.0
+        if: steps.check-version.outputs.changed == 'true'
+        with:
+          context: .
+          file: .github/docker/alist-tvboxDockerfile-xiaoya
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:latest,ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:${{ env.APP_VERSION}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # - name: Build host mode Docker and push to ghcr
+      #   uses: docker/build-push-action@v5.3.0
+      #   with:
+      #     context: .
+      #     file: .github/docker/alist-tvboxDockerfile-host
+      #     platforms: linux/amd64,linux/arm64
+      #     push: true
+      #     tags: ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:hostmode,ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:hostmode-${{ env.APP_VERSION}}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+
+      - name: Build standalone Docker and push to ghcr
+        uses: docker/build-push-action@v5.3.0
+        if: steps.check-version.outputs.changed == 'true'
+        with:
+          context: .
+          file: .github/docker/alist-tvboxDockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/alist-tvbox:latest,ghcr.io/${{ github.repository_owner }}/alist-tvbox:${{ env.APP_VERSION}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # - name: Build native Docker and push to ghcr
+      #   uses: docker/build-push-action@v5.3.0
+      #   with:
+      #     context: .
+      #     file: .github/docker/alist-tvboxDockerfile-native
+      #     platforms: linux/amd64
+      #     push: true
+      #     tags: ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:native,ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:native-${{ env.APP_VERSION}}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+
+      # - name: Build host native Docker and push to ghcr
+      #   uses: docker/build-push-action@v5.3.0
+      #   with:
+      #     context: .
+      #     file: .github/docker/alist-tvboxDockerfile-native-host
+      #     platforms: linux/amd64
+      #     push: true
+      #     tags: ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:native-host,ghcr.io/${{ github.repository_owner }}/xiaoya-tvbox:native-host-${{ env.APP_VERSION}}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
