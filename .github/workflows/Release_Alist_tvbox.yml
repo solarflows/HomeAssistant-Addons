@@ -32,7 +32,7 @@ jobs:
           echo "Remote Version: '$REMOTE_VERSION'"
 
           # 严格比较版本
-          if [ "$REMOTE_VERSION" != "$version" ]; then
+          if [ "$REMOTE_VERSION" != "$version" && "$REMOTE_VERSION" != "" ]; then
             echo "New version detected: $REMOTE_VERSION"
             # 有更新输出版本号到全局变量
             echo "should_build=true" >> $GITHUB_OUTPUT
