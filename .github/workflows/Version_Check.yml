@@ -1,0 +1,76 @@
+﻿name: 'Version Check'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/Version_Check.yml'
+  schedule:
+    - cron: '0 */6 * * *'  # 每6小时运行一次
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should-build: ${{ steps.check-version.outputs.should_build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.HASS_TOKEN }}
+
+      - name: Prepare Environment
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Check AList TVbox Version
+        run: |
+          # 读取本地版本（清理格式）
+          VERSION=$(yq eval '.version' alist-tvbox/config.yaml | tr -d "'\n\r ")
+
+          echo "Start checking version of alist-tvbox"
+
+          # 获取远程内容（第一行为版本号，剩余为更新日志）
+          REMOTE_CONTENT=$(curl -fsSL http://d.har01d.cn/app_version || echo "")  # 失败时返回空
+          REMOTE_VERSION=$(echo "$REMOTE_CONTENT" | head -n 1 | xargs echo -n)  # 取第一行并清理空格
+          REMOTE_CHANGELOG=$(echo "$REMOTE_CONTENT" | tail -n +2 | sed '/^$/d')  # 取剩余行并删除空行
+
+          # 若远程版本无效，回退本地版本
+          [ -z "$REMOTE_VERSION" ] && REMOTE_VERSION="$VERSION"
+
+          echo "Local Version: '$VERSION'"
+          echo "Remote Version: '$REMOTE_VERSION'"
+
+          # 版本比较逻辑
+          if [ -n "$REMOTE_VERSION" ] && [ "$REMOTE_VERSION" != "$VERSION" ]; then
+            echo "New version detected: $REMOTE_VERSION"
+
+            # 更新配置文件版本号
+            yq eval ".version = \"$REMOTE_VERSION\"" -i alist-tvbox/config.yaml
+
+            # 生成带时间戳的更新日志（格式化为Markdown）
+            TIMESTAMP=$(date -u +"%Y-%m-%d")
+            NEW_CHANGELOG="# $REMOTE_VERSION ($TIMESTAMP)\n$REMOTE_CHANGELOG\n\n"
+
+            # 插入到 CHANGELOG.md 前部
+            if [ -f "alist-tvbox/CHANGELOG.md" ]; then
+              echo -e "$NEW_CHANGELOG$(cat alist-tvbox/CHANGELOG.md)" > alist-tvbox/CHANGELOG.md
+            else
+              echo -e "$NEW_CHANGELOG" > alist-tvbox/CHANGELOG.md
+            fi
+
+            # 提交变更
+            git add .
+            git commit -m "alist-tvbox: Bump version to $REMOTE_VERSION."
+
+            # 输出构建标志
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version unchanged: $VERSION"
+          fi
+
+      - name: Push changes to addons repo
+        if: steps.check-version.outputs.should_build == 'true'
+        run: |
+          git push origin main

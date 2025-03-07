@@ -5,59 +5,12 @@ on:
   push:
     paths:
       - '.github/workflows/Release_Alist_tvbox.yml'
-  schedule:
-    - cron: '0 */6 * * *'  # 每6小时运行一次
+      - '.github/docker/alist-tvbox/*'
+      - 'alist-tvbox/config.yaml'
 
 jobs:
-  version-check:
-    runs-on: ubuntu-latest
-    outputs:
-      should-build: ${{ steps.check-version.outputs.should_build }}
-      new-version: ${{ steps.check-version.outputs.new_version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.HASS_TOKEN }}
-
-      - name: Check Version
-        id: check-version
-        run: |
-          # 读取本地版本（去除首尾空白/换行符）
-          version=$(yq eval '.version' alist-tvbox/config.yaml | tr -d "'\n\r ")
-
-          # 获取远程版本（去除空白/换行符，失败时使用本地版本）
-          REMOTE_VERSION=$(curl -fsSL http://d.har01d.cn/app_version | head -n 1 | xargs echo -n || echo "$version")
-          echo "Local Version: '$version'"
-          echo "Remote Version: '$REMOTE_VERSION'"
-
-          # 严格比较版本
-          if [ -n "$REMOTE_VERSION" ] && [ "$REMOTE_VERSION" != "$version" ]; then
-            echo "New version detected: $REMOTE_VERSION"
-            # 有更新输出版本号到全局变量
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "new_version=$REMOTE_VERSION" >> $GITHUB_OUTPUT
-            yq eval ".version = \"$REMOTE_VERSION\"" -i alist-tvbox/config.yaml
-          else
-            echo "Version unchanged: $version"
-            echo "should_build=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit changes to addons repo
-        if: steps.check-version.outputs.should_build == 'true'
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "alist-tvbox: Bump version to ${{ steps.check-version.outputs.new_version }}."
-          git push origin main
-
   docker-build:
-    needs: version-check
-    if: needs.version-check.outputs.should-build == 'true'
     runs-on: ubuntu-latest
-    env:
-      APP_VERSION: ${{ needs.version-check.outputs.new-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -74,6 +27,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.HASS_TOKEN }}
+
+      - name: Set app version
+        run: |
+          # 读取本地版本（去除首尾空白/换行符）
+          version=$(yq eval '.version' alist-tvbox/config.yaml | tr -d "'\n\r ")
+          echo "APP_VERSION=$version" >> $GITHUB_ENV
 
       - name: Build Docker and push to ghcr
         uses: docker/build-push-action@v5.3.0
