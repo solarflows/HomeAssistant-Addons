@@ -11,8 +11,6 @@ on:
 jobs:
   check-version:
     runs-on: ubuntu-latest
-    outputs:
-      should-build: ${{ steps.check-version.outputs.should_build }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,11 +31,15 @@ jobs:
 
           # 获取远程内容（第一行为版本号，剩余为更新日志）
           REMOTE_CONTENT=$(curl -fsSL http://d.har01d.cn/app_version || echo "")  # 失败时返回空
+
+          # 解析版本号（去除非标准前缀和空格）
           REMOTE_VERSION=$(echo "$REMOTE_CONTENT" | head -n 1 | xargs echo -n)  # 取第一行并清理空格
-          REMOTE_CHANGELOG=$(echo "$REMOTE_CONTENT" | tail -n +2 | sed '/^$/d')  # 取剩余行并删除空行
 
           # 若远程版本无效，回退本地版本
           [ -z "$REMOTE_VERSION" ] && REMOTE_VERSION="$VERSION"
+
+          # 解析更新日志（处理换行符和特殊字符）
+          REMOTE_CHANGELOG=$(echo "$REMOTE_CONTENT" | tail -n +2 | sed '/^$/d')  # 取剩余行并删除空行
 
           echo "Local Version: '$VERSION'"
           echo "Remote Version: '$REMOTE_VERSION'"
@@ -45,6 +47,9 @@ jobs:
           # 版本比较逻辑
           if [ -n "$REMOTE_VERSION" ] && [ "$REMOTE_VERSION" != "$VERSION" ]; then
             echo "New version detected: $REMOTE_VERSION"
+
+            # 检测到更新时设置变量
+            echo "should_push=true" >> $GITHUB_ENV
 
             # 更新配置文件版本号
             yq eval ".version = \"$REMOTE_VERSION\"" -i alist-tvbox/config.yaml
@@ -54,12 +59,15 @@ jobs:
             printf "### %s (%s)\n%s\n\n" "$REMOTE_VERSION" "$TIMESTAMP" "$REMOTE_CHANGELOG" > temp_changelog.md
 
             # 合并到 CHANGELOG.md 前部
-            if [ -f "lucky/CHANGELOG.md" ]; then
-              cat temp_changelog.md lucky/CHANGELOG.md > combined_changelog.md
-              mv combined_changelog.md lucky/CHANGELOG.md
+            if [ -f "alist-tvbox/CHANGELOG.md" ]; then
+              cat temp_changelog.md alist-tvbox/CHANGELOG.md > combined_changelog.md
+              mv combined_changelog.md alist-tvbox/CHANGELOG.md
             else
-              echo -e "$NEW_CHANGELOG" > alist-tvbox/CHANGELOG.md
+              mv temp_changelog.md alist-tvbox/CHANGELOG.md
             fi
+
+            # 清理临时文件
+            rm -f temp_changelog.md combined_changelog.md
 
             # 提交变更
             git add .
@@ -70,9 +78,6 @@ jobs:
           else
             echo "Version unchanged: $VERSION"
           fi
-
-          # 清理临时文件
-          rm -f temp_changelog.md combined_changelog.md
 
       - name: Check Lucky Version
         run: |
@@ -98,6 +103,9 @@ jobs:
           if [[ -n "$REMOTE_VERSION" && "$REMOTE_VERSION" != "$VERSION" ]]; then
             echo "New version detected: $REMOTE_VERSION"
 
+            # 检测到更新时设置变量
+            echo "should_push=true" >> $GITHUB_ENV
+
             # 更新配置文件版本号
             yq eval ".version = \"$REMOTE_VERSION\"" -i lucky/config.yaml
 
@@ -114,6 +122,9 @@ jobs:
               mv temp_changelog.md lucky/CHANGELOG.md
             fi
 
+            # 清理临时文件
+            rm -f temp_changelog.md combined_changelog.md
+
             # 提交变更（检查是否有实际修改）
             if git diff --quiet; then
               echo "No changes to commit."
@@ -128,10 +139,7 @@ jobs:
             echo "Version unchanged: $VERSION"
           fi
 
-          # 清理临时文件
-          rm -f temp_changelog.md combined_changelog.md
-
       - name: Push changes to addons repo
-        if: steps.check-version.outputs.should_build == 'true'
+        if: env.should_push == 'true'
         run: |
           git push origin main
