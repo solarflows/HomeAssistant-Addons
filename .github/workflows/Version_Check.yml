@@ -51,11 +51,12 @@ jobs:
 
             # 生成带时间戳的更新日志（格式化为Markdown）
             TIMESTAMP=$(date -u +"%Y-%m-%d")
-            NEW_CHANGELOG="# $REMOTE_VERSION ($TIMESTAMP)\n$REMOTE_CHANGELOG\n\n"
+            printf "### %s (%s)\n%s\n\n" "$REMOTE_VERSION" "$TIMESTAMP" "$REMOTE_CHANGELOG" > temp_changelog.md
 
-            # 插入到 CHANGELOG.md 前部
-            if [ -f "alist-tvbox/CHANGELOG.md" ]; then
-              echo -e "$NEW_CHANGELOG$(cat alist-tvbox/CHANGELOG.md)" > alist-tvbox/CHANGELOG.md
+            # 合并到 CHANGELOG.md 前部
+            if [ -f "lucky/CHANGELOG.md" ]; then
+              cat temp_changelog.md lucky/CHANGELOG.md > combined_changelog.md
+              mv combined_changelog.md lucky/CHANGELOG.md
             else
               echo -e "$NEW_CHANGELOG" > alist-tvbox/CHANGELOG.md
             fi
@@ -69,6 +70,66 @@ jobs:
           else
             echo "Version unchanged: $VERSION"
           fi
+
+          # 清理临时文件
+          rm -f temp_changelog.md combined_changelog.md
+
+      - name: Check Lucky Version
+        run: |
+          # 读取本地版本（清理格式）
+          VERSION=$(yq eval '.version' lucky/config.yaml | tr -d "'\n\r ")
+
+          echo "Start checking version of Lucky"
+
+          # 获取 GitHub Release 信息（带重试和超时）
+          REMOTE_CONTENT=$(wget -qO- -t2 -T10 "https://api.github.com/repos/gdy666/lucky/releases/latest" || echo "")
+
+          # 解析版本号（去除非标准前缀和空格）
+          REMOTE_VERSION=$(echo "$REMOTE_CONTENT" | jq -r '.tag_name // empty' | sed -e 's/^v//' -e 's/[[:space:]]//g')
+          [ -z "$REMOTE_VERSION" ] && REMOTE_VERSION="$VERSION"  # 失败回退
+
+          # 解析更新日志（处理换行符和特殊字符）
+          REMOTE_CHANGELOG=$(echo "$REMOTE_CONTENT" | jq -r '.body // empty' | sed -e 's/\\r\\n/\n/g' -e 's/[[:space:]]*$//' -e 's/_/\\_/g' -e 's/\*/\\*/g')
+
+          echo "Local Version: '$VERSION'"
+          echo "Remote Version: '$REMOTE_VERSION'"
+
+          # 版本比较逻辑
+          if [[ -n "$REMOTE_VERSION" && "$REMOTE_VERSION" != "$VERSION" ]]; then
+            echo "New version detected: $REMOTE_VERSION"
+
+            # 更新配置文件版本号
+            yq eval ".version = \"$REMOTE_VERSION\"" -i lucky/config.yaml
+
+            # 生成带时间戳的更新日志（Markdown 格式化）
+            TIMESTAMP=$(date -u +"%Y-%m-%d")
+            printf "### %s (%s)\n%s\n\n" "$REMOTE_VERSION" "$TIMESTAMP" "$REMOTE_CHANGELOG" > temp_changelog.md
+
+            # 合并到 CHANGELOG.md 前部
+            if [ -f "lucky/CHANGELOG.md" ]; then
+              cat temp_changelog.md lucky/CHANGELOG.md > combined_changelog.md
+              mv combined_changelog.md lucky/CHANGELOG.md
+            else
+              mkdir -p lucky
+              mv temp_changelog.md lucky/CHANGELOG.md
+            fi
+
+            # 提交变更（检查是否有实际修改）
+            if git diff --quiet; then
+              echo "No changes to commit."
+            else
+              git add .
+              git commit -m "Lucky: Bump version to $REMOTE_VERSION."
+            fi
+
+            # 输出构建标志
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version unchanged: $VERSION"
+          fi
+
+          # 清理临时文件
+          rm -f temp_changelog.md combined_changelog.md
 
       - name: Push changes to addons repo
         if: steps.check-version.outputs.should_build == 'true'
