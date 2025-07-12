@@ -1,6 +1,6 @@
 name: alist-tvbox
 slug: alist-tvbox
-version: '925.0906'
+version: '925.1512'
 image: ghcr.io/solarflows/xiaoya-tvbox
 description: "AList proxy server for TvBox, support playlist and search."
 url: https://github.com/solarflows/HomeAssistant-Addons
