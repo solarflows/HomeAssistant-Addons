@@ -1,3 +1,8 @@
+### 1005.2237 (2025-09-30)
+修复Emby搜索 (#941)
+修复Emby搜索
+Emby图片代理：更新Emby站点 -> 开启图片代理
+
 ### 1005.1645 (2025-09-30)
 fix alist站点本地 strm (#938)
 Co-authored-by: huangpingkang <huangpingkang@hrcentury.cn>
