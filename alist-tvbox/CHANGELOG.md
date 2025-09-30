@@ -1,3 +1,8 @@
+### 1005.0940 (2025-09-30)
+alist 站点支持 strm文件 (#936)
+Co-authored-by: huangpingkang <huangpingkang@hrcentury.cn>
+Co-authored-by: huangpingkang <hpkaiq@qq.com>
+
 ### 1002.1111 (2025-09-27)
 优化分享 (#935)
 根据路径重建分享
