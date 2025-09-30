@@ -1,3 +1,8 @@
+### 1005.1645 (2025-09-30)
+fix alist站点本地 strm (#938)
+Co-authored-by: huangpingkang <huangpingkang@hrcentury.cn>
+Co-authored-by: huangpingkang <hpkaiq@qq.com>
+
 ### 1005.0940 (2025-09-30)
 alist 站点支持 strm文件 (#936)
 Co-authored-by: huangpingkang <huangpingkang@hrcentury.cn>
