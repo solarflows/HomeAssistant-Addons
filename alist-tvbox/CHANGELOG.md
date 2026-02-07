@@ -1,3 +1,33 @@
+### 1136.0908 (2026-02-07)
+OpenList STRM生成功能 (#985)
+* feat(strm): implement STRM storage with UI configuration
+Add complete STRM (Stream) storage implementation with comprehensive UI:
+Backend:
+- Add StrmStorage class for STRM storage type (type 11)
+- Implement STRM configuration parsing and validation
+- Support custom path prefix, file type filtering, and encoding options
+- Add local STRM file saving capability with update/overwrite modes
+Frontend:
+- Add STRM configuration form with all options
+- Implement path auto-completion (/data/ prefix for relative paths)
+- Fix STRM config storage (use cookie field instead of folderId)
+- Set encodePath default to false for better compatibility
+- Improve error handling with localized messages
+- Add helper text for local save path configuration
+Configuration options:
+- Path and cookie settings
+- File type filters (download/filter types)
+- URL encoding and signing options
+- Local STRM file saving with customizable path and mode
+fix(web-ui): update ShareInfo interface for STRM support
+* fix(backend): fix STRM config validation error
+* feat(backend): implement STRM import/export with Base64 encoding
+- Export: Encode cookie JSON to Base64 format
+- Import: Decode Base64 back to cookie JSON
+- Format: path 11:STRM <base64_encoded_json>
+- Preserves standard 4-part import format compatibility
+* fix(backend): improve STRM logging and path handling
+
 ### 1134.1938 (2026-02-05)
 
 
