@@ -1,3 +1,6 @@
+### 1143.1722 (2026-02-14)
+更新豆瓣电影数据 (#987)
+
 ### 1136.0908 (2026-02-07)
 OpenList STRM生成功能 (#985)
 * feat(strm): implement STRM storage with UI configuration
