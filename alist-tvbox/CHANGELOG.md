@@ -1,3 +1,12 @@
+### 1175.0951 (2026-03-18)
+修复导入分享按钮验证逻辑 (#993)
+- 添加文本内容验证：导入按钮仅在有内容时可点击
+- 添加文件选择验证：上传导入按钮仅在选择文件后可点击
+- 新增 hasContent 和 hasFile 计算属性进行状态判断
+- 新增 selectedFile 响应式变量跟踪文件选择状态
+- 修复 handleFileChange 和 handleExceed 函数以正确更新文件状态
+Co-authored-by: Claude Sonnet 4.6 <noreply@anthropic.com>
+
 ### 1174.2122 (2026-03-17)
 修复外网访问播放strm文件的问题 (#992)
 - 调整fixHttp方法逻辑顺序，先读取.strm文件内容，再替换地址
