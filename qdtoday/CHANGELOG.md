@@ -1,3 +1,17 @@
+### 20250803 (2026-04-04)
+
+
+### ### Features
+
+1. Feature(Fetcher): 🚀 支持模板内填充代理地址参数 (#606)
+2. Feature(Subscribe): 🚀 为管理员添加公共模板库加速切换功能 (Fixes #605,#581,#566) (#607)
+
+### Changed
+
+1. Change(Subscribe): 默认关闭公共模板加速
+2. Change(Config): 📝 切换加速源为 gh-proxy ()
+
+
 
 ## [20250129] - 2025.01.29 更新
 
