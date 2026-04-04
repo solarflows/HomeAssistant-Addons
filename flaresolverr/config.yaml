@@ -1,6 +1,6 @@
 ---
 name: FlareSolverr for HA
-version: '3.4.6'
+version: 'v3.4.6'
 slug: flaresolverr
 description: "Bypass Cloudflare's anti-bot page, support for Home Assistant."
 url: https://github.com/solarflows/HomeAssistant-Addons
