@@ -214,7 +214,7 @@ jobs:
           REMOTE_CONTENT=$(wget -qO- -t2 -T10 "https://api.github.com/repos/FlareSolverr/FlareSolverr/releases/latest" || echo "")
 
           # 解析版本号（去除非标准前缀和空格）
-          REMOTE_VERSION=$(echo "$REMOTE_CONTENT" | jq -r '.tag_name // empty' | sed -e 's/^v//' -e 's/[[:space:]]//g')
+          REMOTE_VERSION=$(echo "$REMOTE_CONTENT" | jq -r '.tag_name // empty' | sed -e 's/[[:space:]]//g')
           [ -z "$REMOTE_VERSION" ] && REMOTE_VERSION="$VERSION"  # 失败回退
 
           # 解析更新日志（处理换行符和特殊字符）
