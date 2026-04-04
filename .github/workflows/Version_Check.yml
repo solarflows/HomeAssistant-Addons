@@ -268,8 +268,11 @@ jobs:
         run: |
           git push origin main
 
-      - name: Cleanup old workflow runs
-        uses: actions/delete-workflow-runs@v0.5.0
-        with:
-          retain_days: 30
-          token: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Delete workflow runs
+      #   uses: Mattraks/delete-workflow-runs@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     repository: ${{ github.repository }}
+      #     retain_days: 30
+      #     keep_minimum_runs: 6
+
