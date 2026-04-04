@@ -1,0 +1,17 @@
+---
+name: FlareSolverr for HA
+version: 'v3.4.6'
+slug: flaresolverr
+description: "Bypass Cloudflare's anti-bot page, support for Home Assistant."
+url: https://github.com/solarflows/HomeAssistant-Addons
+init: false
+codenotary: fireflows@cock.li
+arch:
+  - aarch64
+  - amd64
+ports_description:
+  8191/tcp: 'FlareSolverr proxy port'
+ports:
+  8191/tcp: 8191
+image: ghcr.io/flaresolverr/flaresolverr
+boot: manual
