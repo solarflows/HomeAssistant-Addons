@@ -15,3 +15,8 @@ ports:
   8191/tcp: 8191
 image: ghcr.io/flaresolverr/flaresolverr
 boot: manual
+cap_add:
+  - SYS_ADMIN
+  - IPC_LOCK
+tmpfs:
+  - /dev/shm:size=256M
