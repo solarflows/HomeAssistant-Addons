@@ -18,5 +18,5 @@ boot: manual
 cap_add:
   - SYS_ADMIN
   - IPC_LOCK
-tmpfs:
-  - /dev/shm:size=256M
+# tmpfs:
+#   - /dev/shm:size=256M
