@@ -1,3 +1,21 @@
+### 1231.1856 (2026-05-13)
+feat: pass playback metadata to plugin filters (#1008)
+* feat: 添加插件过滤器功能支持
+- 新增 PluginFilter 实体类，包含名称、URL、启用状态、排序等字段
+- 创建 PluginFilterRepository 数据访问接口
+- 实现 PluginFilterService 服务，提供创建、更新、删除、刷新等操作
+- 在 SubscriptionService 中集成过滤器功能，构建过滤器配置
+- 添加 PluginFilterController 和 PluginFilterContentController 控制器
+- 创建数据库迁移脚本 V3__Add_plugin_filter_table.sql
+- 修改 Atvp.py 脚本以支持过滤器机制，包括过滤器加载、执行等功能
+- 支持多种过滤阶段：detail、parse、play、player、danmaku、init
+- 实现错误处理策略和过滤器排序功能
+* chore: regenerate native reflect config for plugin filters
+* feat: pass playback metadata to filters
+* chore: add logs for playback filter metadata
+---------
+Co-authored-by: Silent1566 <245409147+Silent1566@users.noreply.github.com>
+
 ### 1231.1529 (2026-05-13)
 修复B站Cookie刷新
 
