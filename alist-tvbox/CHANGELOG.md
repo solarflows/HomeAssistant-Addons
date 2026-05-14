@@ -1,3 +1,6 @@
+### 1232.0756 (2026-05-14)
+禁止移动端拖拽
+
 ### 1231.1856 (2026-05-13)
 feat: pass playback metadata to plugin filters (#1008)
 * feat: 添加插件过滤器功能支持
