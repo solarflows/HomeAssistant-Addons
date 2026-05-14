@@ -1,3 +1,35 @@
+### 1232.2054 (2026-05-14)
+改进过滤器配置交互并支持过滤器自声明配置结构 (#1010)
+* feat: 添加插件过滤器功能支持
+- 新增 PluginFilter 实体类，包含名称、URL、启用状态、排序等字段
+- 创建 PluginFilterRepository 数据访问接口
+- 实现 PluginFilterService 服务，提供创建、更新、删除、刷新等操作
+- 在 SubscriptionService 中集成过滤器功能，构建过滤器配置
+- 添加 PluginFilterController 和 PluginFilterContentController 控制器
+- 创建数据库迁移脚本 V3__Add_plugin_filter_table.sql
+- 修改 Atvp.py 脚本以支持过滤器机制，包括过滤器加载、执行等功能
+- 支持多种过滤阶段：detail、parse、play、player、danmaku、init
+- 实现错误处理策略和过滤器排序功能
+* chore: regenerate native reflect config for plugin filters
+* feat: pass playback metadata to filters
+* chore: add logs for playback filter metadata
+* feat: 支持过滤器按插件作用范围生效
+* feat(plugin-filter): 添加过滤器配置模式支持
+新增 PluginFilterConfigSchema 和 PluginFilterConfigField 模型类，
+用于描述过滤器的配置结构。
+在 PluginFilter 实体中添加 configSchema 临时字段，通过 @transient
+注解标记为运行时不入库，用于前端生成可视化配置表单。
+更新 PluginFilterService 实现配置模式的自动解析：
+- 支持从过滤器脚本中读取声明的配置模式
+- 兼容旧版注释式声明和新版常量声明方式
+- 提供手动 JSON 解析避免额外依赖
+- 在查询、保存、刷新操作中自动应用配置模式
+在 PluginFilterController 中添加新的 API 端点 /{id}/config-schema，
+用于获取指定过滤器的配置模式信息。
+这些改动为前端提供动态生成配置表单的能力，提升用户体验。
+---------
+Co-authored-by: Silent1566 <245409147+Silent1566@users.noreply.github.com>
+
 ### 1232.0756 (2026-05-14)
 禁止移动端拖拽
 
