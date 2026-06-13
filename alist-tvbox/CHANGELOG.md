@@ -1,3 +1,11 @@
+### 1262.1320 (2026-06-13)
+feat: 添加自定义站点支持 JSON 输入
+- 添加「JSON输入」标签页，可直接粘贴完整 JSON 配置
+- 保留原「表单输入」标签页
+- JSON 模式校验格式和 key 必填
+- 示例: {key: Nostr, name: Nostr推荐, type: 3, api: csp_Nostr, homePage: ...}
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
 ### 1261.1914 (2026-06-12)
 修复站点顺序
 
