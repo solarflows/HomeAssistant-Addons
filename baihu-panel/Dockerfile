@@ -56,9 +56,8 @@ RUN apt-get update \
 COPY --from=builder /baihu /usr/local/bin/baihu
 RUN chmod +x /usr/local/bin/baihu
 
-# 复制前端静态文件（如果存在）
-COPY --from=builder /src/web/dist /www/baihu 2>/dev/null || true
-COPY --from=builder /src/configs /app/configs 2>/dev/null || true
+# 复制前端静态文件和配置（构建期如不存在会被跳过）
+RUN --mount=type=bind,from=builder,source=/src,target=/builder-src mkdir -p /www/baihu /app/configs; test -d /builder-src/web/dist && ls /builder-src/web/dist/* >/dev/null 2>&1 && cp -r /builder-src/web/dist/* /www/baihu/ || true; test -d /builder-src/configs && ls /builder-src/configs/* >/dev/null 2>&1 && cp -r /builder-src/configs/* /app/configs/ || true
 
 # 创建数据目录
 RUN mkdir -p /app/data /app/configs /app/envs
