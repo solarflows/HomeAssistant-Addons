@@ -1,8 +1,14 @@
 name: Release Addon Images
 
 on:
-  repository_dispatch:
-    types: [version_update]
+  # 可被 Version_Check 调用
+  workflow_call:
+    inputs:
+      matrix:
+        description: 'JSON matrix of addons to build'
+        required: true
+        type: string
+  # 也可手动触发
   workflow_dispatch:
     inputs:
       matrix:
@@ -10,10 +16,64 @@ on:
         required: false
 
 jobs:
+  # 手动触发时如果没有矩阵，扫描所有 addon
+  scan-all:
+    if: github.event_name == 'workflow_dispatch' && (inputs.matrix == '' || inputs.matrix == '[]')
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.scan.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan all addons
+        id: scan
+        run: |
+          MATRIX="[]"
+          for version_file in */version.yaml; do
+            [ -f "$version_file" ] || continue
+            ADDON_DIR=$(dirname "$version_file")
+            ADDON=$(yq eval '.addon' "$version_file")
+            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
+            IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
+            [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
+
+            PLATFORMS="linux/amd64,linux/arm64"
+            CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
+            CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
+            CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
+            REPO=$(yq eval '.repo' "$version_file")
+            TAG=$(yq eval '.tag_prefix // ""' "$version_file")
+
+            MATRIX=$(echo "$MATRIX" | jq -c \
+              --arg addon "$ADDON" --arg addon_dir "$ADDON_DIR" \
+              --arg version "$VERSION" --arg tag "${TAG}${VERSION}" \
+              --arg image "$IMAGE" --arg dockerfile "${ADDON_DIR}/Dockerfile" \
+              --arg platforms "$PLATFORMS" --arg repo "$REPO" \
+              --arg changelog_source "$CHANGELOG_SOURCE" --arg changelog_mode "$CHANGELOG_MODE" \
+              --arg changelog_file_url "$CHANGELOG_FILE_URL" \
+              '. + [{
+                addon: $addon, addon_dir: $addon_dir,
+                version: $version, tag: $tag,
+                image: $image, dockerfile: $dockerfile,
+                platforms: $platforms, repo: $repo,
+                changelog_source: $changelog_source,
+                changelog_mode: $changelog_mode,
+                changelog_file_url: $changelog_file_url
+              }]')
+          done
+
+          echo "=== Scan Result ==="
+          echo "$MATRIX" | jq .
+          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> $GITHUB_OUTPUT
+
+  # 构建任务
   build:
+    needs: [scan-all]
+    if: always() && (needs.scan-all.result == 'success' || needs.scan-all.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(github.event.client_payload.matrix || inputs.matrix || '[]') }}
+      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || github.event.inputs.matrix || github.event.client_payload.matrix || '[]') }}
       fail-fast: false
       max-parallel: 2
     steps:
@@ -56,6 +116,26 @@ jobs:
           echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
           echo "reason=$REASON" >> $GITHUB_OUTPUT
 
+      - name: Prepare build args
+        id: buildargs
+        run: |
+          ADDON_DIR="${{ steps.prep.outputs.addon_dir }}"
+          VERSION="${{ steps.prep.outputs.version }}"
+          TAG="${{ steps.prep.outputs.tag }}"
+          VERSION_FILE="${ADDON_DIR}/version.yaml"
+
+          # 从 version.yaml 的 build_args 字段动态生成构建参数
+          BUILD_ARGS=""
+          if [ -f "$VERSION_FILE" ]; then
+            BUILD_ARGS=$(yq eval '.build_args // {}' "$VERSION_FILE" | jq -r \
+              --arg v "$VERSION" --arg t "$TAG" \
+              'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"' \
+              | tr '\n' ' ')
+          fi
+
+          echo "build_args=$BUILD_ARGS" >> $GITHUB_OUTPUT
+          echo "Build args: $BUILD_ARGS"
+
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v6
@@ -64,14 +144,7 @@ jobs:
           file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
           push: true
-          build-args: |
-            ${{ matrix.addon == 'alist-tvbox' && format('ALIST_TVBOX_VERSION={0}', matrix.version) || '' }}
-            ${{ matrix.addon == 'alist-tvbox-standalone' && format('ALIST_TVBOX_VERSION={0}', matrix.version) || '' }}
-            ${{ matrix.addon == 'lucky' && format('LUCKY_VERSION={0}', matrix.tag) || '' }}
-            ${{ matrix.addon == 'qdtoday' && format('QD_VERSION={0}', matrix.tag) || '' }}
-            ${{ matrix.addon == 'qinglong' && format('QINGLONG_VERSION={0}', matrix.version) || '' }}
-            ${{ matrix.addon == 'baihu-panel' && format('BAIHU_VERSION={0}', matrix.version) || '' }}
-            ${{ matrix.addon == 'filebrowser-quantum' && format('FILEBROWSER_VERSION={0}', matrix.version) || '' }}
+          build-args: ${{ steps.buildargs.outputs.build_args }}
           tags: |
             ${{ steps.prep.outputs.image }}:latest
             ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.version }}
@@ -93,13 +166,13 @@ jobs:
           CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
-          # 版本变化时更新 config.yaml（底包更新不改版本号）
+          # 版本变化时更新 config.yaml
           if [ "$REASON" = "version_changed" ]; then
             yq eval ".version = \"${VERSION}\"" -i "${ADDON_DIR}/config.yaml"
             echo "Updated ${ADDON_DIR}/config.yaml to version ${VERSION}"
           fi
 
-          # 更新 CHANGELOG.md（底包更新时不更新 changelog）
+          # 更新 CHANGELOG.md
           if [ "$REASON" = "version_changed" ]; then
             if [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
               FILE_CONTENT=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
@@ -147,7 +220,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 统计变更
           CHANGED=$(git diff --name-only)
           if [ -z "$CHANGED" ]; then
             echo "No changes to commit."
@@ -157,8 +229,6 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED"
 
-          # 生成提交信息
-          BUILD_MATRIX='${{ toJson(needs.build.result) }}'
           ADDON_COUNT=$(echo "$CHANGED" | grep -c "config.yaml" || true)
           COMMIT_MSG="chore: update ${ADDON_COUNT} addon(s)"
           if echo "$CHANGED" | grep -q ".debian-base-tag"; then
@@ -169,59 +239,3 @@ jobs:
           git commit -m "$COMMIT_MSG"
           git push origin main
           echo "Committed: $COMMIT_MSG"
-
-  # 手动触发时如果没有矩阵，扫描所有 addon
-  scan-all:
-    if: github.event_name == 'workflow_dispatch' && (inputs.matrix == '' || inputs.matrix == '[]')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Scan all addons
-        id: scan
-        run: |
-          MATRIX="[]"
-          for version_file in */version.yaml; do
-            [ -f "$version_file" ] || continue
-            ADDON_DIR=$(dirname "$version_file")
-            ADDON=$(yq eval '.addon' "$version_file")
-            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
-            IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
-            [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
-
-            PLATFORMS="linux/amd64,linux/arm64"
-            CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
-            CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
-            CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
-            REPO=$(yq eval '.repo' "$version_file")
-            TAG=$(yq eval '.tag_prefix // ""' "$version_file")
-
-            MATRIX=$(echo "$MATRIX" | jq -c \
-              --arg addon "$ADDON" --arg addon_dir "$ADDON_DIR" \
-              --arg version "$VERSION" --arg tag "${TAG}${VERSION}" \
-              --arg image "$IMAGE" --arg dockerfile "${ADDON_DIR}/Dockerfile" \
-              --arg platforms "$PLATFORMS" --arg repo "$REPO" \
-              --arg changelog_source "$CHANGELOG_SOURCE" --arg changelog_mode "$CHANGELOG_MODE" \
-              --arg changelog_file_url "$CHANGELOG_FILE_URL" \
-              '. + [{
-                addon: $addon, addon_dir: $addon_dir,
-                version: $version, tag: $tag,
-                image: $image, dockerfile: $dockerfile,
-                platforms: $platforms, repo: $repo,
-                changelog_source: $changelog_source,
-                changelog_mode: $changelog_mode,
-                changelog_file_url: $changelog_file_url
-              }]')
-          done
-
-          echo "=== Scan Result ==="
-          echo "$MATRIX" | jq .
-          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> $GITHUB_OUTPUT
-
-      - name: Trigger build
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: Release.yml
-          inputs: '{"matrix": "${{ steps.scan.outputs.matrix }}"}'
-          token: ${{ secrets.HASS_TOKEN }}

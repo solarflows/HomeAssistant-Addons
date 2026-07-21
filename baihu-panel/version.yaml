@@ -3,6 +3,8 @@ addon: baihu-panel
 source: github
 repo: engigu/baihu-panel
 tag_prefix: "v"
+build_args:
+  BAIHU_VERSION: "${version}"
 changelog:
   source: release_body  # 上游 release note 既是 changelog
   mode: append

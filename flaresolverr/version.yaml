@@ -3,6 +3,7 @@ addon: flaresolverr
 source: github
 repo: FlareSolverr/FlareSolverr
 tag_prefix: "v"
+build_args: {}           # 无构建参数，直接引用上游镜像
 changelog:
   source: release_body  # release note 包含当前版本变更
   file_url: "https://github.com/FlareSolverr/FlareSolverr/raw/refs/heads/master/CHANGELOG.md"  # 完整 changelog
