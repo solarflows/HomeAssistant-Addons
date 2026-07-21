@@ -76,5 +76,5 @@ VOLUME ["/config", "/usr/src/app/config"]
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
     CMD curl -sf http://127.0.0.1:8923/ || exit 1
 
-# 启动入口
-CMD ["python3", "run.py"]
+# S6 overlay 接管启动，不再依赖 Docker CMD
+# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/qdtoday/run

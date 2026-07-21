@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# QD-Today 启动脚本 (S6 longrun)
+# 在 cont-init.d 完成持久化目录设置后，启动 QD-Today Tornado 应用（前台阻塞）
+# ==============================================================================
+bashio::log.info "Starting QD-Today..."
+cd /usr/src/app
+exec python3 run.py

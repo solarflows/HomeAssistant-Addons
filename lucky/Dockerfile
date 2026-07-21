@@ -65,7 +65,5 @@ VOLUME ["/config"]
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
     CMD curl -sf http://127.0.0.1:16601/ || exit 1
 
-# 启动入口
-# 使用 -c 指定配置文件，需要 host 网络模式才能正常工作
-ENTRYPOINT ["/usr/local/bin/lucky"]
-CMD ["-c", "/etc/lucky/lucky.conf"]
+# S6 overlay 接管启动，不再硬编码 ENTRYPOINT
+# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/lucky/run

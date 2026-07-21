@@ -21,9 +21,6 @@ RUN apk add --no-cache \
 # 复制 HA rootfs
 COPY rootfs /
 
-# 确保脚本可执行
-RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -exec chmod +x {} \; 2>/dev/null || true
-
 # 入口包装脚本（处理时区 + 配置 + 启动）
 RUN printf '#!/bin/bash\nset -e\n\n# Timezone\nif [ -n "$TZ" ] && [ -f "/usr/share/zoneinfo/$TZ" ]; then\n    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime\n    echo "$TZ" > /etc/timezone\nfi\n\n# Ensure config dirs\nmkdir -p /config/filebrowser-quantum /cache\n\n# Locate filebrowser binary\nFB=$(command -v filebrowser 2>/dev/null || find / -name filebrowser -type f -executable 2>/dev/null | head -1)\nif [ -z "$FB" ]; then\n    echo "ERROR: filebrowser binary not found" >&2\n    exit 1\nfi\n\nexec "$FB" --config /config/filebrowser-quantum/config.yaml\n' > /entrypoint.sh \
     && chmod +x /entrypoint.sh

@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# alist-tvbox-standalone 启动脚本 (S6 longrun)
+# 在 cont-init.d 完成持久化目录设置后，进入 /opt/atv 启动 Spring Boot
+# ==============================================================================
+bashio::log.info "Starting AList-TvBox Standalone..."
+cd /opt/atv
+exec /docker/scripts/entrypoint.sh 81 --spring.profiles.active=production,docker

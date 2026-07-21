@@ -12,9 +12,6 @@ USER root
 # 复制 HA rootfs
 COPY rootfs /
 
-# 确保脚本可执行
-RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -exec chmod +x {} \; 2>/dev/null || true
-
 # 环境变量
 ENV TZ=UTC \
     LOG_LEVEL=info
