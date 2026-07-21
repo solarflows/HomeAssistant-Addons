@@ -2,6 +2,12 @@
 
 on:
   workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force rebuild all addons (ignore version check)'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '0 */6 * * *'  # 每6小时运行一次
 
@@ -60,8 +66,13 @@ jobs:
           BASE_TAG="${{ steps.base_check.outputs.remote_tag }}"
 
           # 如果底包更新了，强制标记所有 addon 需要重建
+          FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"
           if [ "$BASE_UPDATED" = "true" ]; then
             echo "=== debian-base updated to $BASE_TAG, triggering all addon rebuilds ==="
+            HAS_CHANGES="true"
+          fi
+          if [ "$FORCE_REBUILD" = "true" ]; then
+            echo "=== Force rebuild enabled, will rebuild all addons ==="
             HAS_CHANGES="true"
           fi
 
@@ -98,10 +109,14 @@ jobs:
 
             echo "  Remote: $REMOTE_VERSION"
 
-            # 判断是否需要加入矩阵：版本变化 或 底包更新
+            # 判断是否需要加入矩阵：版本变化 或 底包更新 或 强制重建
             NEED_BUILD="false"
             REASON=""
-            if [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
+            if [ "$FORCE_REBUILD" = "true" ]; then
+              NEED_BUILD="true"
+              REASON="force_rebuild"
+              echo "  Force rebuild"
+            elif [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
               NEED_BUILD="true"
               REASON="version_changed"
               echo "  New version detected!"
@@ -180,9 +195,10 @@ jobs:
           echo "$MATRIX" | jq .
 
           # 使用 GitHub API 触发 workflow（正确处理 JSON 转义）
+          FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/Release.yml/dispatches" \
-            -d "{\"ref\": \"main\", \"inputs\": {\"matrix\": $(echo "$MATRIX" | jq -c -R .)}}"
+            -d "{\"ref\": \"main\", \"inputs\": {\"matrix\": $(echo "$MATRIX" | jq -c -R .), \"force_rebuild\": $FORCE_REBUILD}}"
 

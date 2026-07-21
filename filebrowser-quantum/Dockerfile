@@ -3,9 +3,11 @@
 #=============================================================================
 # 参考: https://github.com/alexbelgium/hassio-addons/tree/master/filebrowser_quantum
 # 上游: https://github.com/gtsteffaniak/filebrowser
+# Docker: https://hub.docker.com/r/gtstef/filebrowser
 #=============================================================================
 
-FROM gtsteffaniak/filebrowser:stable
+ARG UPSTREAM_TAG=stable
+FROM gtstef/filebrowser:${UPSTREAM_TAG}
 
 USER root
 

@@ -4,7 +4,8 @@
 # 参考: https://github.com/alexbelgium/hassio-addons/tree/master/flaresolverr
 #=============================================================================
 
-FROM flaresolverr/flaresolverr:latest
+ARG UPSTREAM_TAG=latest
+FROM flaresolverr/flaresolverr:${UPSTREAM_TAG}
 
 USER root
 

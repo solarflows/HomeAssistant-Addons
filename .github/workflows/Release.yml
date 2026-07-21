@@ -8,12 +8,22 @@ on:
         description: 'JSON matrix of addons to build'
         required: true
         type: string
+      force_rebuild:
+        description: 'Force rebuild all addons'
+        required: false
+        type: boolean
+        default: false
   # 也可手动触发
   workflow_dispatch:
     inputs:
       matrix:
         description: 'JSON matrix of addons to build (leave empty for all)'
         required: false
+      force_rebuild:
+        description: 'Force rebuild all addons (ignore version check)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -139,6 +149,17 @@ jobs:
               --arg v "$VERSION" --arg t "$TAG" \
               'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"' \
               | tr '\n' ' ')
+
+            # 应用 upstream_tag_transform（用于 Docker tag 格式转换）
+            TRANSFORM=$(yq eval '.upstream_tag_transform // ""' "$VERSION_FILE")
+            if [ -n "$TRANSFORM" ] && [ "$TRANSFORM" != "null" ]; then
+              CURRENT_TAG=$(echo "$BUILD_ARGS" | grep -oP 'UPSTREAM_TAG=\K[^ ]+' || true)
+              if [ -n "$CURRENT_TAG" ]; then
+                NEW_TAG=$(echo "$CURRENT_TAG" | sed -E "$TRANSFORM")
+                BUILD_ARGS=$(echo "$BUILD_ARGS" | sed "s/UPSTREAM_TAG=${CURRENT_TAG}/UPSTREAM_TAG=${NEW_TAG}/")
+                echo "Applied tag transform: ${CURRENT_TAG} → ${NEW_TAG}"
+              fi
+            fi
           fi
 
           echo "build_args=$BUILD_ARGS" >> $GITHUB_OUTPUT
@@ -148,7 +169,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.addon_dir }}
           file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
           push: true

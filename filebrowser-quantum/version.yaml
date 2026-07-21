@@ -4,7 +4,9 @@ source: github
 repo: gtsteffaniak/filebrowser
 tag_prefix: "v"          # tag: v1.4.0-stable → 1.4.0-stable
 build_args:
+  UPSTREAM_TAG: "${version}"  # 先替换为 1.4.0-stable，再经 transform 转为 1.4-stable
   FILEBROWSER_VERSION: "${version}"
+upstream_tag_transform: "s/\\.0-stable/-stable/"  # 1.4.0-stable → 1.4-stable
 changelog:
   source: release_body  # release note 包含当前版本变更
   file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"  # 完整 changelog
