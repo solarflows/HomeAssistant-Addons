@@ -1,0 +1,26 @@
+name: 白虎面板
+slug: baihu-panel
+version: "1.1.21"
+image: ghcr.io/solarflows/baihu-panel
+description: "轻量级定时任务管理系统，支持 Python, Node.js, Go, Rust, PHP 等所有主流语言"
+url: https://github.com/engigu/baihu-panel
+init: false
+codenotary: fireflows@cock.li
+arch:
+  - aarch64
+  - amd64
+webui: "[PROTO:http]://[HOST]:[PORT:8052]"
+ports:
+  8052/tcp: 8052
+ports_description:
+  8052/tcp: 'Baihu Panel Web UI port'
+environment:
+  BH_SERVER_PORT: "8052"
+  BH_SERVER_HOST: "0.0.0.0"
+  TZ: "Asia/Shanghai"
+map:
+  - config:rw
+startup: application
+boot: manual
+ingress: true
+ingress_port: 8052

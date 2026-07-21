@@ -1,0 +1,10 @@
+# qinglong 版本检查配置
+# 注意：qinglong 没有 GitHub Release，只有 tags
+addon: qinglong
+source: github_tags      # 使用 tags API 而非 releases API
+repo: whyour/qinglong
+tag_prefix: "v"
+changelog:
+  source: tag_file       # 从指定 tag 下的文件获取
+  file_path: "CHANGELOG.md"  # tag 下的 version.yaml 即当前版本 changelog
+  mode: replace          # 整个替换 CHANGELOG.md

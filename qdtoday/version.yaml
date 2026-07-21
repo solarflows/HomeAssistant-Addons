@@ -1,0 +1,9 @@
+# qdtoday 版本检查配置
+addon: qdtoday
+source: github
+repo: qd-today/qd
+tag_prefix: ""           # tag: 20250803
+changelog:
+  source: release_body  # release note 包含当前版本变更
+  file_url: "https://github.com/qd-today/qd/raw/refs/heads/master/CHANGELOG.md"  # 完整 changelog
+  mode: replace          # 整个替换 CHANGELOG.md

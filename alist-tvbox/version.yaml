@@ -1,0 +1,8 @@
+# alist-tvbox 版本检查配置
+addon: alist-tvbox
+source: github
+repo: power721/alist-tvbox
+tag_prefix: ""           # 上游 tag 无 v 前缀，如 1.24.0
+changelog:
+  source: release_body  # 上游 release note 既是 changelog
+  mode: append           # 追加模式，保留历史记录

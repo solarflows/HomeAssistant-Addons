@@ -1,0 +1,8 @@
+# baihu-panel 版本检查配置
+addon: baihu-panel
+source: github
+repo: engigu/baihu-panel
+tag_prefix: "v"
+changelog:
+  source: release_body  # 上游 release note 既是 changelog
+  mode: append

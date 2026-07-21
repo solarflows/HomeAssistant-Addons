@@ -1,0 +1,8 @@
+# alist-tvbox-standalone 版本检查配置
+addon: alist-tvbox-standalone
+source: github
+repo: power721/alist-tvbox
+tag_prefix: ""
+changelog:
+  source: release_body  # 上游 release note 既是 changelog
+  mode: append

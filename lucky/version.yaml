@@ -1,0 +1,9 @@
+# lucky 版本检查配置
+addon: lucky
+source: github
+repo: gdy666/lucky
+tag_prefix: "v"          # 上游 tag: v2.27.2 → 2.27.2
+download_url: "https://release.66666.host"  # 优先下载地址
+changelog:
+  source: release_body  # 上游 release note 既是 changelog
+  mode: append

@@ -1,0 +1,226 @@
+name: Release Addon Images
+
+on:
+  repository_dispatch:
+    types: [version_update]
+  workflow_dispatch:
+    inputs:
+      matrix:
+        description: 'JSON matrix of addons to build (leave empty for all)'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(github.event.client_payload.matrix || inputs.matrix || '[]') }}
+      fail-fast: false
+      max-parallel: 2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.HASS_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.HASS_TOKEN }}
+
+      - name: Prepare environment
+        id: prep
+        run: |
+          ADDON="${{ matrix.addon }}"
+          ADDON_DIR="${{ matrix.addon_dir }}"
+          VERSION="${{ matrix.version }}"
+          TAG="${{ matrix.tag }}"
+          IMAGE="${{ matrix.image }}"
+          DOCKERFILE="${{ matrix.dockerfile }}"
+          PLATFORMS="${{ matrix.platforms }}"
+          REASON="${{ matrix.reason || 'version_changed' }}"
+
+          echo "addon=$ADDON" >> $GITHUB_OUTPUT
+          echo "addon_dir=$ADDON_DIR" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
+          echo "reason=$REASON" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ steps.prep.outputs.dockerfile }}
+          platforms: ${{ steps.prep.outputs.platforms }}
+          push: true
+          build-args: |
+            ${{ matrix.addon == 'alist-tvbox' && format('ALIST_TVBOX_VERSION={0}', matrix.version) || '' }}
+            ${{ matrix.addon == 'alist-tvbox-standalone' && format('ALIST_TVBOX_VERSION={0}', matrix.version) || '' }}
+            ${{ matrix.addon == 'lucky' && format('LUCKY_VERSION={0}', matrix.tag) || '' }}
+            ${{ matrix.addon == 'qdtoday' && format('QD_VERSION={0}', matrix.tag) || '' }}
+            ${{ matrix.addon == 'qinglong' && format('QINGLONG_VERSION={0}', matrix.version) || '' }}
+            ${{ matrix.addon == 'baihu-panel' && format('BAIHU_VERSION={0}', matrix.version) || '' }}
+          tags: |
+            ${{ steps.prep.outputs.image }}:latest
+            ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Prepare config updates
+        if: success()
+        id: config
+        run: |
+          ADDON_DIR="${{ steps.prep.outputs.addon_dir }}"
+          ADDON="${{ steps.prep.outputs.addon }}"
+          VERSION="${{ steps.prep.outputs.version }}"
+          TAG="${{ steps.prep.outputs.tag }}"
+          REPO="${{ matrix.repo }}"
+          REASON="${{ steps.prep.outputs.reason }}"
+          CHANGELOG_SOURCE="${{ matrix.changelog_source }}"
+          CHANGELOG_MODE="${{ matrix.changelog_mode }}"
+          CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%d")
+
+          # 版本变化时更新 config.yaml（底包更新不改版本号）
+          if [ "$REASON" = "version_changed" ]; then
+            yq eval ".version = \"${VERSION}\"" -i "${ADDON_DIR}/config.yaml"
+            echo "Updated ${ADDON_DIR}/config.yaml to version ${VERSION}"
+          fi
+
+          # 更新 CHANGELOG.md（底包更新时不更新 changelog）
+          if [ "$REASON" = "version_changed" ]; then
+            if [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
+              FILE_CONTENT=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
+              if [ -n "$FILE_CONTENT" ]; then
+                if [ "$CHANGELOG_MODE" = "replace" ]; then
+                  echo "$FILE_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+                else
+                  printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$FILE_CONTENT" > temp_changelog.md
+                  cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+                  mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+                  rm -f temp_changelog.md combined.md
+                fi
+              fi
+            else
+              RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" \
+                | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
+              [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
+
+              if [ "$CHANGELOG_MODE" = "append" ]; then
+                printf "\n### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" >> "${ADDON_DIR}/CHANGELOG.md"
+              else
+                printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" > temp_changelog.md
+                cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+                mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+                rm -f temp_changelog.md combined.md
+              fi
+            fi
+          fi
+
+          echo "done=true" >> $GITHUB_OUTPUT
+
+  # 所有构建完成后，统一提交一次
+  commit:
+    needs: build
+    if: always() && needs.build.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.HASS_TOKEN }}
+
+      - name: Commit all changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 统计变更
+          CHANGED=$(git diff --name-only)
+          if [ -z "$CHANGED" ]; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          # 生成提交信息
+          BUILD_MATRIX='${{ toJson(needs.build.result) }}'
+          ADDON_COUNT=$(echo "$CHANGED" | grep -c "config.yaml" || true)
+          COMMIT_MSG="chore: update ${ADDON_COUNT} addon(s)"
+          if echo "$CHANGED" | grep -q ".debian-base-tag"; then
+            COMMIT_MSG="chore: rebuild all addons (debian-base updated)"
+          fi
+
+          git add .
+          git commit -m "$COMMIT_MSG"
+          git push origin main
+          echo "Committed: $COMMIT_MSG"
+
+  # 手动触发时如果没有矩阵，扫描所有 addon
+  scan-all:
+    if: github.event_name == 'workflow_dispatch' && (inputs.matrix == '' || inputs.matrix == '[]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan all addons
+        id: scan
+        run: |
+          MATRIX="[]"
+          for version_file in */version.yaml; do
+            [ -f "$version_file" ] || continue
+            ADDON_DIR=$(dirname "$version_file")
+            ADDON=$(yq eval '.addon' "$version_file")
+            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
+            IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
+            [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
+
+            PLATFORMS="linux/amd64,linux/arm64"
+            CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
+            CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
+            CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
+            REPO=$(yq eval '.repo' "$version_file")
+            TAG=$(yq eval '.tag_prefix // ""' "$version_file")
+
+            MATRIX=$(echo "$MATRIX" | jq -c \
+              --arg addon "$ADDON" --arg addon_dir "$ADDON_DIR" \
+              --arg version "$VERSION" --arg tag "${TAG}${VERSION}" \
+              --arg image "$IMAGE" --arg dockerfile "${ADDON_DIR}/Dockerfile" \
+              --arg platforms "$PLATFORMS" --arg repo "$REPO" \
+              --arg changelog_source "$CHANGELOG_SOURCE" --arg changelog_mode "$CHANGELOG_MODE" \
+              --arg changelog_file_url "$CHANGELOG_FILE_URL" \
+              '. + [{
+                addon: $addon, addon_dir: $addon_dir,
+                version: $version, tag: $tag,
+                image: $image, dockerfile: $dockerfile,
+                platforms: $platforms, repo: $repo,
+                changelog_source: $changelog_source,
+                changelog_mode: $changelog_mode,
+                changelog_file_url: $changelog_file_url
+              }]')
+          done
+
+          echo "=== Scan Result ==="
+          echo "$MATRIX" | jq .
+          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> $GITHUB_OUTPUT
+
+      - name: Trigger build
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Release.yml
+          inputs: '{"matrix": "${{ steps.scan.outputs.matrix }}"}'
+          token: ${{ secrets.HASS_TOKEN }}

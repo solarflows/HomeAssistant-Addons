@@ -1,8 +1,8 @@
-name: AList-TvBox
-slug: alist-tvbox
+name: AList-TvBox Standalone
+slug: alist-tvbox-standalone
 version: "1.24.0"
-image: ghcr.io/solarflows/alist-tvbox
-description: "AList proxy server for TvBox, support playlist and search."
+image: ghcr.io/solarflows/alist-tvbox-standalone
+description: "AList-TvBox without embedded AList kernel, connect to external AList instance."
 url: https://github.com/power721/alist-tvbox
 init: false
 codenotary: fireflows@cock.li
@@ -13,14 +13,14 @@ panel_icon: mdi:television-box
 webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 ports:
   4567/tcp: 4567
-  80/tcp: 5344
+  5244/tcp: 5244
 ports_description:
-  4567/tcp: "Manager Web UI port"
-  80/tcp: "Alist Web UI port"
+  4567/tcp: 'Manager Web UI port'
+  5244/tcp: 'Alist port'
 environment:
   no_proxy: "*.aliyundrive.com"
-  ALIST_PORT: "5344"
-  INSTALL: "xiaoya"
+  ALIST_PORT: "5244"
+  INSTALL: "new"
   MEM_OPT: "-Xmx512M"
   TZ: "Asia/Shanghai"
 map:
