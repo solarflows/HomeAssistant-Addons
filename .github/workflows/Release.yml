@@ -186,7 +186,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Prepare config updates
+      - name: Prepare config updates & commit
         if: success()
         id: config
         run: |
@@ -254,40 +254,19 @@ jobs:
             fi
           fi
 
-          echo "done=true" >> $GITHUB_OUTPUT
-
-  # 所有构建完成后，统一提交一次
-  commit:
-    needs: build
-    if: always() && needs.build.result != 'cancelled'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit all changes
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          CHANGED=$(git diff --name-only)
-          if [ -z "$CHANGED" ]; then
-            echo "No changes to commit."
-            exit 0
+          # 独立提交：每个 addon 构建成功后立即 commit+push 自己的更新
+          if git diff --quiet; then
+            echo "No changes for ${ADDON}, skip commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "${ADDON_DIR}/"
+            git commit -m "chore(${ADDON}): update to ${VERSION}"
+            # 重试 push，处理并行构建的竞态
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin main && break
+              echo "Push attempt $i failed, retrying..."
+              sleep 2
+            done
+            echo "Committed ${ADDON} ${VERSION}"
           fi
-
-          echo "Changed files:"
-          echo "$CHANGED"
-
-          ADDON_COUNT=$(echo "$CHANGED" | grep -c "config.yaml" || true)
-          COMMIT_MSG="chore: update ${ADDON_COUNT} addon(s)"
-          if echo "$CHANGED" | grep -q ".debian-base-tag"; then
-            COMMIT_MSG="chore: rebuild all addons (debian-base updated)"
-          fi
-
-          git add .
-          git commit -m "$COMMIT_MSG"
-          git push origin main
-          echo "Committed: $COMMIT_MSG"

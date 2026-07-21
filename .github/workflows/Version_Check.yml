@@ -58,6 +58,15 @@ jobs:
             echo "remote_tag=$LOCAL_TAG" >> $GITHUB_OUTPUT
           fi
 
+      - name: Commit debian-base tag update
+        if: steps.base_check.outputs.debian_base_updated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/.debian-base-tag
+          git commit -m "chore: update debian-base to ${{ steps.base_check.outputs.remote_tag }}"
+          git push origin main
+
       - name: Detect version changes
         id: detect
         run: |
