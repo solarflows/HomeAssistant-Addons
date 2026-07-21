@@ -15,6 +15,10 @@ on:
         description: 'JSON matrix of addons to build (leave empty for all)'
         required: false
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   # 手动触发时如果没有矩阵，扫描所有 addon
   scan-all:
@@ -25,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan all addons
         id: scan
@@ -80,7 +86,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.HASS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -93,7 +99,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.HASS_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare environment
         id: prep
@@ -213,7 +219,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.HASS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit all changes
         run: |

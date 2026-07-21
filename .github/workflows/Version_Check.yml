@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 */6 * * *'  # 每6小时运行一次
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   check-versions:
     runs-on: ubuntu-latest
@@ -15,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.HASS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check debian-base updates
         id: base_check
@@ -168,9 +172,15 @@ jobs:
 
       - name: Trigger Release
         if: steps.detect.outputs.has_changes == 'true'
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: Release.yml
-          inputs: '{"matrix": "${{ steps.detect.outputs.matrix }}"}'
-          token: ${{ secrets.HASS_TOKEN }}
+        run: |
+          MATRIX='${{ steps.detect.outputs.matrix }}'
+          echo "Triggering Release with matrix:"
+          echo "$MATRIX" | jq .
+
+          # 使用 GitHub API 触发 workflow（正确处理 JSON 转义）
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/Release.yml/dispatches" \
+            -d "{\"ref\": \"main\", \"inputs\": {\"matrix\": $(echo "$MATRIX" | jq -c -R .)}}"
 
