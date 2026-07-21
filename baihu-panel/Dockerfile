@@ -6,6 +6,8 @@
 #   Stage 2: HA 底包运行时
 #=============================================================================
 
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+
 # ---- Stage 1: Go builder ----
 FROM --platform=$BUILDPLATFORM golang:1.22 AS builder
 
@@ -31,7 +33,6 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /baihu .
 
 # ---- Stage 2: HA 运行时 ----
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
 # 安装运行时依赖

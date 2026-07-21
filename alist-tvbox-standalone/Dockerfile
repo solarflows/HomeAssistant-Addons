@@ -6,6 +6,8 @@
 #   Stage 2: HA 底包运行时（不含 alist 二进制）
 #=============================================================================
 
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+
 # ---- Stage 1: 提取 Spring Boot 应用层 ----
 FROM eclipse-temurin:21-jre AS app-builder
 
@@ -16,7 +18,6 @@ ADD https://github.com/power721/alist-tvbox/releases/download/${ALIST_TVBOX_VERS
 RUN java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
 
 # ---- Stage 2: HA 运行时 ----
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
 ARG TARGETARCH

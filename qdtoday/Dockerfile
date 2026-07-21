@@ -6,6 +6,8 @@
 #   Stage 2: HA 底包运行时
 #=============================================================================
 
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+
 # ---- Stage 1: Python builder ----
 FROM python:3.11-slim-bookworm AS builder
 
@@ -36,7 +38,6 @@ RUN pip install --no-cache-dir --prefix=/install \
     tornado requests pycryptodome pillow
 
 # ---- Stage 2: HA 运行时 ----
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
 # 安装运行时依赖

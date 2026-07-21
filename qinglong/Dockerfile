@@ -6,6 +6,8 @@
 #   Stage 2: HA 底包运行时
 #=============================================================================
 
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+
 # ---- Stage 1: Node.js builder ----
 FROM node:18-alpine AS builder
 
@@ -30,7 +32,6 @@ RUN pnpm install --frozen-lockfile \
     || true
 
 # ---- Stage 2: HA 运行时 ----
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
 # 安装运行时依赖

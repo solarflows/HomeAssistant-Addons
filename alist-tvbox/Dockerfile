@@ -7,6 +7,8 @@
 #   Stage 3: HA 底包运行时
 #=============================================================================
 
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+
 # ---- Stage 1: 提取 Spring Boot 应用层 ----
 FROM eclipse-temurin:21-jre AS app-builder
 
@@ -20,7 +22,6 @@ RUN java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
 FROM haroldli/alist:latest AS alist-source
 
 # ---- Stage 3: HA 运行时 ----
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
 ARG TARGETARCH
