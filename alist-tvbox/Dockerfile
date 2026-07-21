@@ -46,10 +46,10 @@ RUN apt-get update \
         unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# 从 haroldli/alist 复制干净的 alist 二进制和配置
-COPY --from=alist-source /opt/alist/alist /opt/alist/alist
-COPY --from=alist-source /opt/alist/data/config.json /alist.json
-RUN chmod +x /opt/alist/alist
+# 从 haroldli/alist（基于 PowerList 编译）复制干净的二进制
+# PowerList v4+ 使用 /opt/openlist/ 路径
+COPY --from=alist-source /opt/openlist/alist /opt/alist/alist
+RUN chmod +x /opt/alist/alist && mkdir -p /opt/alist/data
 
 # 复制 Spring Boot 应用层
 COPY --from=app-builder /extracted/dependencies/ /opt/atv/dependencies/

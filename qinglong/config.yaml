@@ -21,6 +21,7 @@ environment:
 map:
   - config:rw
   - share:rw
+startup: application
 boot: manual
 ingress: true
 ingress_port: 5700

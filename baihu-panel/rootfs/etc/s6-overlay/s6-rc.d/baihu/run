@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Baihu Panel 启动脚本 (S6 longrun service)
+# 在 cont-init.d 完成持久化目录设置后，启动白虎面板
+# ==============================================================================
+
+bashio::log.info "Starting Baihu Panel..."
+exec /usr/local/bin/baihu

@@ -23,6 +23,11 @@ RUN git clone --depth 1 --branch "v${BAIHU_VERSION}" \
 
 WORKDIR /src
 
+# 安装 Node.js（用于构建前端）
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
+
 # 构建前端（如果存在）
 RUN if [ -d "web" ] && [ -f "web/package.json" ]; then \
         cd web && npm ci && npm run build && cd ..; \
@@ -75,5 +80,5 @@ VOLUME ["/config", "/app/data", "/app/configs", "/app/envs"]
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
     CMD curl -sf http://127.0.0.1:8052/ || exit 1
 
-# 启动入口
-ENTRYPOINT ["/usr/local/bin/baihu"]
+# S6 overlay 接管启动，不再硬编码 ENTRYPOINT
+# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/baihu/run

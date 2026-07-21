@@ -26,4 +26,5 @@ tmpfs:
   - /dev/shm:size=256M
 map:
   - config:rw
+startup: application
 boot: manual

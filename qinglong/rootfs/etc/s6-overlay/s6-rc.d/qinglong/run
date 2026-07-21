@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Qinglong 启动脚本 (S6 longrun service)
+# 在 cont-init.d 完成持久化目录设置后，启动青龙面板
+# ==============================================================================
+
+bashio::log.info "Starting Qinglong..."
+
+cd /ql
+exec ./docker/docker-entrypoint.sh

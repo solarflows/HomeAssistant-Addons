@@ -79,6 +79,5 @@ VOLUME ["/config", "/ql/data"]
 HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
     CMD curl -sf http://127.0.0.1:5700/api/health || exit 1
 
-# 启动入口
-WORKDIR /ql
-ENTRYPOINT ["./docker/docker-entrypoint.sh"]
+# S6 overlay 接管启动，不再硬编码 ENTRYPOINT
+# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/qinglong/run

@@ -9,11 +9,11 @@ codenotary: fireflows@cock.li
 arch:
   - aarch64
   - amd64
-webui: "[PROTO:http]://[HOST]:[PORT:3001]"
+webui: "[PROTO:http]://[HOST]:[PORT:8080]"
 ports:
-  3001/tcp: 3001
+  8080/tcp: 8080
 ports_description:
-  3001/tcp: 'FileBrowser Quantum Web UI port'
+  8080/tcp: 'FileBrowser Quantum Web UI port'
 environment:
   TZ: "Asia/Shanghai"
 map:
@@ -23,4 +23,4 @@ map:
 startup: application
 boot: manual
 ingress: true
-ingress_port: 3001
+ingress_port: 8080

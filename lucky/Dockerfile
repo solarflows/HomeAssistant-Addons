@@ -22,18 +22,24 @@ RUN apt-get update \
 # 下载 Lucky 二进制
 # 优先从 release.66666.host 下载完整版本（wanji_docker）
 # 回退到 GitHub release
-RUN ARCH=$(case "${TARGETARCH}" in \
+RUN ARCH_PRIMARY=$(case "${TARGETARCH}" in \
         amd64) echo "amd64" ;; \
         arm64) echo "arm64" ;; \
         armhf) echo "armv7" ;; \
         *) echo "${TARGETARCH}" ;; \
     esac) \
-    && DOWNLOAD_URL="https://release.66666.host/v${LUCKY_VERSION}/${LUCKY_VERSION}_wanji_docker/lucky_${LUCKY_VERSION}_Linux_${ARCH}_wanji_docker.tar.gz" \
+    && ARCH_GITHUB=$(case "${TARGETARCH}" in \
+        amd64) echo "x86_64" ;; \
+        arm64) echo "arm64" ;; \
+        armhf) echo "armv7" ;; \
+        *) echo "${TARGETARCH}" ;; \
+    esac) \
+    && DOWNLOAD_URL="https://release.66666.host/v${LUCKY_VERSION}/${LUCKY_VERSION}_wanji_docker/lucky_${LUCKY_VERSION}_Linux_${ARCH_PRIMARY}_wanji_docker.tar.gz" \
     && echo "Trying download from: $DOWNLOAD_URL" \
     && wget -q "$DOWNLOAD_URL" -O /tmp/lucky.tar.gz \
     || { \
         echo "Primary download failed, falling back to GitHub release"; \
-        GITHUB_URL="https://github.com/gdy666/lucky/releases/download/v${LUCKY_VERSION}/lucky_${LUCKY_VERSION}_Linux_${ARCH}.tar.gz"; \
+        GITHUB_URL="https://github.com/gdy666/lucky/releases/download/v${LUCKY_VERSION}/lucky_${LUCKY_VERSION}_Linux_${ARCH_GITHUB}.tar.gz"; \
         wget -q "$GITHUB_URL" -O /tmp/lucky.tar.gz; \
     } \
     && tar -xzf /tmp/lucky.tar.gz -C /usr/local/bin/ \

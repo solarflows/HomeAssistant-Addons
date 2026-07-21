@@ -4,7 +4,7 @@ source: github
 repo: gdy666/lucky
 tag_prefix: "v"          # 上游 tag: v2.27.2 → 2.27.2
 build_args:
-  LUCKY_VERSION: "${tag}"
+  LUCKY_VERSION: "${version}"
 changelog:
   source: release_body  # 上游 release note 既是 changelog
   mode: append

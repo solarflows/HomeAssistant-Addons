@@ -58,6 +58,7 @@ jobs:
             CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
             CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
             CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
+            CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
             REPO=$(yq eval '.repo' "$version_file")
             TAG=$(yq eval '.tag_prefix // ""' "$version_file")
 
@@ -68,6 +69,7 @@ jobs:
               --arg platforms "$PLATFORMS" --arg repo "$REPO" \
               --arg changelog_source "$CHANGELOG_SOURCE" --arg changelog_mode "$CHANGELOG_MODE" \
               --arg changelog_file_url "$CHANGELOG_FILE_URL" \
+              --arg changelog_file_path "$CHANGELOG_FILE_PATH" \
               '. + [{
                 addon: $addon, addon_dir: $addon_dir,
                 version: $version, tag: $tag,
@@ -75,7 +77,8 @@ jobs:
                 platforms: $platforms, repo: $repo,
                 changelog_source: $changelog_source,
                 changelog_mode: $changelog_mode,
-                changelog_file_url: $changelog_file_url
+                changelog_file_url: $changelog_file_url,
+                changelog_file_path: $changelog_file_path
               }]')
           done
 
@@ -91,7 +94,7 @@ jobs:
     if: always() && (needs.scan-all.result == 'success' || needs.scan-all.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || github.event.inputs.matrix || github.event.client_payload.matrix || '{"include":[]}') }}
+      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || inputs.matrix || github.event.inputs.matrix || '{"include":[]}') }}
       fail-fast: false
       max-parallel: 2
     steps:
@@ -147,8 +150,7 @@ jobs:
           if [ -f "$VERSION_FILE" ]; then
             BUILD_ARGS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
               --arg v "$VERSION" --arg t "$TAG" \
-              'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"' \
-              | tr '\n' ' ')
+              'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"')
 
             # 应用 upstream_tag_transform（用于 Docker tag 格式转换）
             TRANSFORM=$(yq eval '.upstream_tag_transform // ""' "$VERSION_FILE")
@@ -162,7 +164,11 @@ jobs:
             fi
           fi
 
-          echo "build_args=$BUILD_ARGS" >> $GITHUB_OUTPUT
+          {
+            echo "build_args<<BUILDARGS_EOF"
+            echo "$BUILD_ARGS"
+            echo "BUILDARGS_EOF"
+          } >> $GITHUB_OUTPUT
           echo "Build args: $BUILD_ARGS"
 
       - name: Build and push Docker image
@@ -193,6 +199,7 @@ jobs:
           CHANGELOG_SOURCE="${{ matrix.changelog_source }}"
           CHANGELOG_MODE="${{ matrix.changelog_mode }}"
           CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
+          CHANGELOG_FILE_PATH="${{ matrix.changelog_file_path }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 版本变化时更新 config.yaml
@@ -203,7 +210,22 @@ jobs:
 
           # 更新 CHANGELOG.md
           if [ "$REASON" = "version_changed" ]; then
-            if [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
+            if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
+              # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
+              CHANGELOG_CONTENT=$(curl -fsSL \
+                -H "Accept: application/vnd.github.raw+json" \
+                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" || echo "")
+              if [ -n "$CHANGELOG_CONTENT" ]; then
+                if [ "$CHANGELOG_MODE" = "replace" ]; then
+                  echo "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+                else
+                  printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+                  cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+                  mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+                  rm -f temp_changelog.md combined.md
+                fi
+              fi
+            elif [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
               FILE_CONTENT=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
               if [ -n "$FILE_CONTENT" ]; then
                 if [ "$CHANGELOG_MODE" = "replace" ]; then
@@ -216,6 +238,7 @@ jobs:
                 fi
               fi
             else
+              # 默认: release_body - 从 GitHub release body 获取
               RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" \
                 | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
