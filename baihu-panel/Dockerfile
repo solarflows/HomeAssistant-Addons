@@ -23,9 +23,11 @@ RUN git clone --depth 1 --branch "v${BAIHU_VERSION}" \
 
 WORKDIR /src
 
-# 安装 Node.js（用于构建前端）
+# 安装 Node.js 22（golang:1.22 内置 Node 18，Vite 需要 ≥20）
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nodejs npm \
+    && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # 构建前端（如果存在）
