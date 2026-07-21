@@ -67,12 +67,12 @@ RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -ex
     && chmod +x /docker/scripts/*.sh 2>/dev/null || true
 
 # 环境变量
-ENV MEM_OPT="-Xmx512M" \
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
+    MEM_OPT="-Xmx512M" \
     ALIST_PORT=5344 \
     INSTALL=new \
-    JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
-    PATH="${JAVA_HOME}/bin:${PATH}" \
     TZ=Asia/Shanghai
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # 端口
 EXPOSE 4567/tcp 5244/tcp
