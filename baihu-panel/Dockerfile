@@ -9,7 +9,7 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
 # ---- Stage 1: Go builder ----
-FROM --platform=$BUILDPLATFORM golang:1.24 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
