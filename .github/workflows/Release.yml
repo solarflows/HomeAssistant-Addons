@@ -69,9 +69,11 @@ jobs:
               }]')
           done
 
+          # 输出为 {include: [...]} 格式，符合 GitHub Actions matrix 要求
+          RESULT=$(echo "$MATRIX" | jq -c '{include: .}')
           echo "=== Scan Result ==="
-          echo "$MATRIX" | jq .
-          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> $GITHUB_OUTPUT
+          echo "$RESULT" | jq .
+          echo "matrix=$RESULT" >> $GITHUB_OUTPUT
 
   # 构建任务
   build:
@@ -79,7 +81,7 @@ jobs:
     if: always() && (needs.scan-all.result == 'success' || needs.scan-all.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || github.event.inputs.matrix || github.event.client_payload.matrix || '[]') }}
+      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || github.event.inputs.matrix || github.event.client_payload.matrix || '{"include":[]}') }}
       fail-fast: false
       max-parallel: 2
     steps:
