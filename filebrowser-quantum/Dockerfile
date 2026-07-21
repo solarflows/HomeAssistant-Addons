@@ -11,13 +11,12 @@ FROM gtstef/filebrowser:${UPSTREAM_TAG}
 
 USER root
 
-# 安装 HA 适配依赖
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+# 安装 HA 适配依赖（Alpine 包管理器）
+RUN apk add --no-cache \
         curl \
         nginx \
         yq \
-    && rm -rf /var/lib/apt/lists/*
+        bash
 
 # 复制 HA rootfs
 COPY rootfs /
@@ -28,15 +27,12 @@ RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -ex
 # 环境变量
 ENV TZ=Asia/Shanghai
 
-# 端口
-EXPOSE 8080/tcp
+# 端口（上游默认 3001）
+EXPOSE 3001/tcp
 
 # 持久化目录
 VOLUME ["/config", "/share"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sf http://127.0.0.1:8080/health || exit 1
-
-# 启动入口
-ENTRYPOINT ["/ha_entrypoint.sh"]
+    CMD curl -sf http://127.0.0.1:3001/health || exit 1

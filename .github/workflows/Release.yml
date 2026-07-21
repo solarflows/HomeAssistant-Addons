@@ -145,7 +145,7 @@ jobs:
           # 从 version.yaml 的 build_args 字段动态生成构建参数
           BUILD_ARGS=""
           if [ -f "$VERSION_FILE" ]; then
-            BUILD_ARGS=$(yq eval '.build_args // {}' "$VERSION_FILE" | jq -r \
+            BUILD_ARGS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
               --arg v "$VERSION" --arg t "$TAG" \
               'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"' \
               | tr '\n' ' ')
