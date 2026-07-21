@@ -1,0 +1,26 @@
+name: FileBrowser Quantum
+slug: filebrowser-quantum
+version: "1.4.0-stable"
+image: ghcr.io/solarflows/filebrowser-quantum
+description: "Modern, responsive web-based file manager with multi-source support and advanced authentication"
+url: https://github.com/gtsteffaniak/filebrowser
+init: false
+codenotary: fireflows@cock.li
+arch:
+  - aarch64
+  - amd64
+webui: "[PROTO:http]://[HOST]:[PORT:8080]"
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: 'FileBrowser Quantum Web UI port'
+environment:
+  TZ: "Asia/Shanghai"
+map:
+  - config:rw
+  - ssl:ro
+  - share:rw
+startup: application
+boot: manual
+ingress: true
+ingress_port: 8080

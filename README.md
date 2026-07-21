@@ -13,6 +13,7 @@ Home Assistant 自定义 Add-on 仓库
 | [QD-Today](qdtoday/) | HTTP请求定时任务自动执行框架 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qdtoday/config.yaml) | [qd-today/qd](https://github.com/qd-today/qd) |
 | [青龙面板](qinglong/) | 定时任务管理平台 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qinglong/config.yaml) | [whyour/qinglong](https://github.com/whyour/qinglong) |
 | [白虎面板](baihu-panel/) | 轻量级定时任务管理系统 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/baihu-panel/config.yaml) | [engigu/baihu-panel](https://github.com/engigu/baihu-panel) |
+| [FileBrowser Quantum](filebrowser-quantum/) | 现代化 Web 文件管理器 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/filebrowser-quantum/config.yaml) | [gtsteffaniak/filebrowser](https://github.com/gtsteffaniak/filebrowser) |
 
 ## 特性
 

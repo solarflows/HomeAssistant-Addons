@@ -1,0 +1,9 @@
+# filebrowser-quantum 版本检查配置
+addon: filebrowser-quantum
+source: github
+repo: gtsteffaniak/filebrowser
+tag_prefix: "v"          # tag: v1.4.0-stable → 1.4.0-stable
+changelog:
+  source: release_body  # release note 包含当前版本变更
+  file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"  # 完整 changelog
+  mode: replace          # 整个替换 CHANGELOG.md
