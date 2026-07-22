@@ -10,6 +10,13 @@ on:
         default: false
   schedule:
     - cron: '0 */6 * * *'  # 每6小时运行一次
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Dockerfile'
+      - '**/rootfs/**'
+      - '.github/workflows/**'
 
 permissions:
   contents: write
@@ -148,15 +155,39 @@ jobs:
           done
 
           # 检测本地文件变更（workflow / Dockerfile / rootfs）
-          # 对比 origin/main 上一次 push 的变更
-          CHANGED_FILES=$(git diff --name-only origin/main~1 origin/main 2>/dev/null || echo "")
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+          # push 事件：对比推送前后的 diff
+          # cron / dispatch：对比上次检查记录的 SHA
+          CHANGED_FILES=""
+          COMMIT_MSG=""
+          LAST_SHA_FILE=".github/.last-checked-sha"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || echo "")
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            echo "=== Push event: diff ${{ github.event.before }}..${{ github.event.after }} ==="
+          else
+            # cron 或 workflow_dispatch：读取上次记录的 SHA
+            if [ -f "$LAST_SHA_FILE" ]; then
+              LAST_SHA=$(cat "$LAST_SHA_FILE" | tr -d "'\n\r ")
+              CHANGED_FILES=$(git diff --name-only "$LAST_SHA" HEAD 2>/dev/null || echo "")
+              echo "=== Cron/dispatch: diff $LAST_SHA..HEAD ==="
+            else
+              # 首次运行，只检查最近一次 commit
+              CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+              echo "=== First run: diff HEAD~1..HEAD ==="
+            fi
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+          fi
 
           if [ -n "$CHANGED_FILES" ]; then
-            echo "=== Recent file changes ==="
+            echo "Recent file changes:"
             echo "$CHANGED_FILES"
 
             for file in $CHANGED_FILES; do
+              # 跳过 .github 下的元数据文件（如 .last-checked-sha, .debian-base-tag）
+              if echo "$file" | grep -qE '^.github/\.(last-checked-sha|debian-base-tag)$'; then
+                continue
+              fi
               # 匹配 .github/workflows/*, */Dockerfile, */rootfs/**
               if echo "$file" | grep -qE '^(.github/workflows/|[^/]+/Dockerfile|[^/]+/rootfs/)'; then
                 ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
@@ -199,12 +230,25 @@ jobs:
             CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
             CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
 
-            # 版本号：version_changed 使用上游远程版本，其他情况保留本地版本
+            # 版本号：
+            # - version_changed：使用上游远程版本（重置 build 计数）
+            # - base_updated / file_changed / force_rebuild：本地版本追加 -build.N 递增标记
             FINAL_VERSION="$VERSION"
             FINAL_TAG="${TAG_PREFIX}${VERSION}"
             if [ "$REASON" = "version_changed" ]; then
               FINAL_VERSION="$REMOTE_VERSION"
               FINAL_TAG="${TAG_PREFIX}${REMOTE_VERSION}"
+            elif [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
+              # 读取当前版本号，追加/递增 -build.N 标记
+              if echo "$VERSION" | grep -qE '\-build\.[0-9]+$'; then
+                BUILD_NUM=$(echo "$VERSION" | sed 's/.*-build\.\([0-9]*\)$/\1/')
+                BUILD_NUM=$((BUILD_NUM + 1))
+                FINAL_VERSION=$(echo "$VERSION" | sed "s/-build\.[0-9]*$/-build.${BUILD_NUM}/")
+              else
+                FINAL_VERSION="${VERSION}-build.1"
+              fi
+              FINAL_TAG="${TAG_PREFIX}${FINAL_VERSION}"
+              echo "  Build suffix: ${FINAL_VERSION}"
             fi
 
             MATRIX=$(echo "$MATRIX" | jq -c \
@@ -243,6 +287,19 @@ jobs:
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
           echo "=== Matrix ==="
           echo "$RESULT" | jq .
+
+      - name: Save last checked SHA
+        if: github.event_name != 'push'
+        run: |
+          CURRENT_SHA=$(git rev-parse HEAD)
+          echo "$CURRENT_SHA" > .github/.last-checked-sha
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet .github/.last-checked-sha; then
+            git add .github/.last-checked-sha
+            git commit -m "chore: 更新文件检查记录点"
+            git push origin main
+          fi
 
   trigger-release:
     needs: check-versions

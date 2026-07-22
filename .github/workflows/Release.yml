@@ -128,10 +128,11 @@ jobs:
           CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
           CHANGELOG_FILE_PATH="${{ matrix.changelog_file_path }}"
           COMMIT_MSG="${{ matrix.commit_msg }}"
+          BASE_TAG="${{ matrix.base_tag }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
-          # 版本变化时更新 config.yaml
-          if [ "$REASON" = "version_changed" ]; then
+          # 更新 config.yaml 版本号（所有含版本号变更的 reason 都需要，以保证 HAOS 识别更新）
+          if [ "$REASON" = "version_changed" ] || [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
             yq eval ".version = \"${VERSION}\"" -i "${ADDON_DIR}/config.yaml"
             echo "Updated ${ADDON_DIR}/config.yaml to version ${VERSION}"
           fi
@@ -148,6 +149,16 @@ jobs:
               printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
             echo "Updated ${ADDON_DIR}/CHANGELOG.md with file change record"
+          elif [ "$REASON" = "base_updated" ]; then
+            # 底包更新：记录 debian-base tag
+            CHANGELOG_CONTENT="底包更新至 ${BASE_TAG}，无功能变更"
+            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
+              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
+              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+            else
+              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+            fi
+            echo "Updated ${ADDON_DIR}/CHANGELOG.md with base image update record"
           elif [ "$REASON" = "version_changed" ]; then
             if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
               # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
@@ -203,6 +214,8 @@ jobs:
             git add "${ADDON_DIR}/"
             if [ "$REASON" = "file_changed" ]; then
               git commit -m "chore(${ADDON}): ${COMMIT_MSG:-update workflow/Dockerfile}"
+            elif [ "$REASON" = "base_updated" ]; then
+              git commit -m "chore(${ADDON}): 底包更新至 ${BASE_TAG}，rebuild ${VERSION}"
             else
               git commit -m "chore(${ADDON}): update to ${VERSION}"
             fi
