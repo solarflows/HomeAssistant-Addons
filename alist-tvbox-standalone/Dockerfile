@@ -17,7 +17,7 @@ RUN test -n "${ALIST_TVBOX_VERSION}" || { echo "ALIST_TVBOX_VERSION is required"
 
 RUN git clone --depth 1 --branch "${ALIST_TVBOX_VERSION}" \
        https://github.com/power721/alist-tvbox.git /src \
-    || git clone --depth 1 https://github.com/power721/alist-tvbox.git /src
+    || { echo "Failed to clone alist-tvbox @ ${ALIST_TVBOX_VERSION}"; exit 1; }
 
 # ---- Stage 2: 提取 Spring Boot 应用层 ----
 FROM eclipse-temurin:21-jre AS app-builder

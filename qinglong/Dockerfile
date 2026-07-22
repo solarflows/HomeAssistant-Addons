@@ -21,8 +21,7 @@ RUN npm i -g pnpm@8.3.1
 RUN apk add --no-cache git \
     && git clone --depth 1 --branch "v${QINGLONG_VERSION}" \
        https://github.com/whyour/qinglong.git /src \
-    || git clone --depth 1 --branch "develop" \
-       https://github.com/whyour/qinglong.git /src
+    || { echo "Failed to clone qinglong @ v${QINGLONG_VERSION}"; exit 1; }
 
 WORKDIR /src
 

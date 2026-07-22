@@ -19,7 +19,7 @@ RUN test -n "${BAIHU_VERSION}" || { echo "BAIHU_VERSION is required"; exit 1; }
 # 克隆源码
 RUN git clone --depth 1 --branch "v${BAIHU_VERSION}" \
        https://github.com/engigu/baihu-panel.git /src \
-    || git clone --depth 1 https://github.com/engigu/baihu-panel.git /src
+    || { echo "Failed to clone baihu-panel @ v${BAIHU_VERSION}"; exit 1; }
 
 WORKDIR /src
 

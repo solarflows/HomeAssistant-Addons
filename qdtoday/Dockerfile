@@ -26,7 +26,7 @@ RUN apt-get update \
 ARG QD_VERSION
 RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
 RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
-    || git clone --depth 1 https://github.com/qd-today/qd.git /src
+    || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
 # 安装 Python 依赖
 WORKDIR /src
