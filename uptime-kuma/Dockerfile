@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
     && curl -fsSL "https://github.com/louislam/uptime-kuma/archive/refs/tags/${UPTIME_KUMA_VERSION}.tar.gz" \
         | tar xzf - --strip-components 1 \
     && npm ci --no-audit --no-fund --no-update-notifier --omit=dev \
+    && npm run download-dist \
     && mkdir ./data \
     && apt-get purge -y curl \
     && rm -rf /var/lib/apt/lists/* /root/.npm /root/.cache /tmp/*
