@@ -2,14 +2,14 @@
 addon: qdtoday
 source: github
 repo: qd-today/qd
-tag_prefix: ""           # tag: 20250803
+tag_prefix: "" # tag: 20250803
 build_args:
   QD_VERSION: "${tag}"
 changelog:
-  source: file           # 从上游获取完整 changelog
+  source: file # 从上游获取完整 changelog
   file_url: "https://github.com/qd-today/qd/raw/refs/heads/master/CHANGELOG.md"
-  mode: prepend          # 添加到开头
+  mode: prepend # 添加到开头
 tracking:
-  base_tag: "9.3.0"     # 上次构建使用的 debian-base 版本
-  file_sha: ""          # 上次文件检查时的 git SHA
-  build_num: 0          # build 计数（version_changed 时重置为 0）
+  base_tag: "v9.3.0" # 上次构建使用的 debian-base 版本
+  file_sha: "05f1f9e98c12e754f873cd7437a7b10c759a7d48" # 上次文件检查时的 git SHA
+  build_num: 1 # build 计数（version_changed 时重置为 0）
