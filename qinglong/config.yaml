@@ -18,6 +18,9 @@ ports_description:
 environment:
   QL_DIR: /ql
   TZ: "Asia/Shanghai"
+options:
+  TZ:
+    description: "时区，影响定时任务执行时间"
 map:
   - config:rw
   - share:rw

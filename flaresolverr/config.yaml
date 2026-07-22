@@ -18,7 +18,44 @@ ports_description:
   8192/tcp: "Prometheus exporter port"
 environment:
   LOG_LEVEL: "info"
+  LOG_FILE: ""
+  HEADLESS: "true"
+  DISABLE_MEDIA: "false"
   TZ: "UTC"
+  LANG: ""
+  PROMETHEUS_ENABLED: "false"
+  PROXY_URL: ""
+  PROXY_USERNAME: ""
+  PROXY_PASSWORD: ""
+options:
+  LOG_LEVEL:
+    description: "日志级别，debug 输出更详细信息"
+  LOG_FILE:
+    description: "日志文件路径，留空则输出到控制台。例：/config/flaresolverr.log"
+  HEADLESS:
+    description: "是否无头模式运行浏览器。设为 false 可调试"
+  DISABLE_MEDIA:
+    description: "是否禁用图片/CSS/字体加载以节省带宽"
+  LANG:
+    description: "浏览器语言。例：zh_CN、en_GB"
+  PROMETHEUS_ENABLED:
+    description: "是否启用 Prometheus 监控指标导出"
+  PROXY_URL:
+    description: "上游代理地址。例：http://127.0.0.1:8080"
+  PROXY_USERNAME:
+    description: "上游代理用户名"
+  PROXY_PASSWORD:
+    description: "上游代理密码"
+schema:
+  LOG_LEVEL: list(info|debug|warn|error)?
+  LOG_FILE: str?
+  HEADLESS: bool?
+  DISABLE_MEDIA: bool?
+  LANG: str?
+  PROMETHEUS_ENABLED: bool?
+  PROXY_URL: str?
+  PROXY_USERNAME: str?
+  PROXY_PASSWORD: password?
 cap_add:
   - SYS_ADMIN
   - IPC_LOCK
