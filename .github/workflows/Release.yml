@@ -129,6 +129,7 @@ jobs:
           CHANGELOG_FILE_PATH="${{ matrix.changelog_file_path }}"
           COMMIT_MSG="${{ matrix.commit_msg }}"
           BASE_TAG="${{ matrix.base_tag }}"
+          BUILD_NUM="${{ matrix.build_num }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（所有含版本号变更的 reason 都需要，以保证 HAOS 识别更新）
@@ -204,6 +205,18 @@ jobs:
               fi
             fi
           fi
+
+          # 更新 version.yaml 中的 tracking 字段
+          VERSION_FILE="${ADDON_DIR}/version.yaml"
+          CURRENT_SHA=$(git rev-parse HEAD)
+          yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
+          yq eval ".tracking.build_num = ${BUILD_NUM}" -i "$VERSION_FILE"
+          # 仅 debian-base 系 addon 更新 base_tag
+          ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // "null"' "$VERSION_FILE")
+          if [ "$ADDON_BASE_TAG" != "null" ] && [ "$ADDON_BASE_TAG" != "" ]; then
+            yq eval ".tracking.base_tag = \"${BASE_TAG}\"" -i "$VERSION_FILE"
+          fi
+          echo "Updated tracking in $VERSION_FILE"
 
           # 独立提交：每个 addon 构建成功后立即 commit+push 自己的更新
           if git diff --quiet; then

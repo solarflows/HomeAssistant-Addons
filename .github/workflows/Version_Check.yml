@@ -35,65 +35,58 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check debian-base updates
-        id: base_check
-        run: |
-          # 获取 debian-base 最新 tag
-          # 使用 GitHub API 查询 ghcr.io 包的最新版本
-          REMOTE_TAG=$(curl -fsSL \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/hassio-addons/addon-debian-base/releases/latest" \
-            | jq -r '.tag_name // empty')
-
-          [ -z "$REMOTE_TAG" ] && REMOTE_TAG="unknown"
-
-          # 读取上次记录的 tag
-          LOCAL_TAG_FILE=".github/.debian-base-tag"
-          LOCAL_TAG="none"
-          [ -f "$LOCAL_TAG_FILE" ] && LOCAL_TAG=$(cat "$LOCAL_TAG_FILE" | tr -d "'\n\r ")
-
-          echo "debian-base local=$LOCAL_TAG remote=$REMOTE_TAG"
-
-          if [ "$REMOTE_TAG" != "$LOCAL_TAG" ] && [ "$REMOTE_TAG" != "unknown" ]; then
-            echo "debian_base_updated=true" >> $GITHUB_OUTPUT
-            echo "remote_tag=$REMOTE_TAG" >> $GITHUB_OUTPUT
-            # 保存新 tag
-            mkdir -p .github
-            echo "$REMOTE_TAG" > "$LOCAL_TAG_FILE"
-          else
-            echo "debian_base_updated=false" >> $GITHUB_OUTPUT
-            echo "remote_tag=$LOCAL_TAG" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit debian-base tag update
-        if: steps.base_check.outputs.debian_base_updated == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/.debian-base-tag
-          git commit -m "chore: update debian-base to ${{ steps.base_check.outputs.remote_tag }}"
-          git push origin main
-
       - name: Detect version changes
         id: detect
         run: |
           MATRIX="[]"
           HAS_CHANGES="false"
-          BASE_UPDATED="${{ steps.base_check.outputs.debian_base_updated }}"
-          BASE_TAG="${{ steps.base_check.outputs.remote_tag }}"
 
-          # 如果底包更新了，强制标记所有 addon 需要重建
+          # ============================================================
+          # 1. 获取 debian-base 最新 tag
+          # ============================================================
+          REMOTE_BASE_TAG=$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/hassio-addons/addon-debian-base/releases/latest" \
+            | jq -r '.tag_name // empty')
+          [ -z "$REMOTE_BASE_TAG" ] && REMOTE_BASE_TAG="unknown"
+          echo "debian-base remote: $REMOTE_BASE_TAG"
+
           FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"
-          if [ "$BASE_UPDATED" = "true" ]; then
-            echo "=== debian-base updated to $BASE_TAG, triggering all addon rebuilds ==="
-            HAS_CHANGES="true"
-          fi
           if [ "$FORCE_REBUILD" = "true" ]; then
-            echo "=== Force rebuild enabled, will rebuild all addons ==="
-            HAS_CHANGES="true"
+            echo "=== Force rebuild enabled ==="
           fi
 
-          # 收集所有需要构建的 addon（去重用关联数组）
+          # ============================================================
+          # 2. 检测文件变更（push / cron / dispatch）
+          # ============================================================
+          CHANGED_FILES=""
+          COMMIT_MSG=""
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || echo "")
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            echo "=== Push event: diff ${{ github.event.before }}..${{ github.event.after }} ==="
+          else
+            # 从任意一个 addon 的 tracking.file_sha 取上次检查点
+            LAST_SHA=""
+            for vf in */version.yaml; do
+              [ -f "$vf" ] || continue
+              LAST_SHA=$(yq eval '.tracking.file_sha // ""' "$vf")
+              [ -n "$LAST_SHA" ] && break
+            done
+            if [ -n "$LAST_SHA" ]; then
+              CHANGED_FILES=$(git diff --name-only "$LAST_SHA" HEAD 2>/dev/null || echo "")
+              echo "=== Cron/dispatch: diff $LAST_SHA..HEAD ==="
+            else
+              CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+              echo "=== First run: diff HEAD~1..HEAD ==="
+            fi
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+          fi
+
+          # ============================================================
+          # 3. 遍历 addon，检测上游版本和底包变更
+          # ============================================================
           declare -A ADDON_MATRIX
           declare -A ADDON_REASON
           declare -A ADDON_REMOTE_VERSION
@@ -106,13 +99,12 @@ jobs:
             REPO=$(yq eval '.repo' "$version_file")
             TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$version_file")
 
-            # 读取本地版本
             LOCAL_VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
             [ -z "$LOCAL_VERSION" ] && continue
 
             echo "Checking $ADDON: local=$LOCAL_VERSION"
 
-            # 获取远程版本
+            # --- 获取远程版本 ---
             if [ "$SOURCE" = "github_tags" ]; then
               REMOTE_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/tags?per_page=1" \
                 | jq -r '.[0].name // empty' | head -1)
@@ -120,18 +112,15 @@ jobs:
               REMOTE_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
                 | jq -r '.tag_name // empty')
             fi
-
             [ -z "$REMOTE_TAG" ] && { echo "  Failed to get remote version, skipping"; continue; }
 
-            # 去除 tag 前缀
             REMOTE_VERSION="$REMOTE_TAG"
             if [ -n "$TAG_PREFIX" ] && [ "$TAG_PREFIX" != "null" ]; then
               REMOTE_VERSION=$(echo "$REMOTE_VERSION" | sed "s/^${TAG_PREFIX}//")
             fi
-
             echo "  Remote: $REMOTE_VERSION"
 
-            # 判断是否需要加入矩阵：版本变化 或 底包更新 或 强制重建
+            # --- 判断 reason ---
             REASON=""
             if [ "$FORCE_REBUILD" = "true" ]; then
               REASON="force_rebuild"
@@ -139,14 +128,18 @@ jobs:
             elif [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
               REASON="version_changed"
               echo "  New version detected!"
-            elif [ "$BASE_UPDATED" = "true" ]; then
-              REASON="base_updated"
-              echo "  Rebuild due to debian-base update"
+            else
+              # 检查底包更新（仅 debian-base 系 addon）
+              ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // ""' "$version_file")
+              if [ -n "$ADDON_BASE_TAG" ] && [ "$ADDON_BASE_TAG" != "$REMOTE_BASE_TAG" ] && [ "$REMOTE_BASE_TAG" != "unknown" ]; then
+                REASON="base_updated"
+                echo "  Base image: $ADDON_BASE_TAG → $REMOTE_BASE_TAG"
+              fi
             fi
 
             if [ -n "$REASON" ]; then
               HAS_CHANGES="true"
-              ADDON_MATRIX["$ADDON_DIR"]="$(yq eval '.addon' "$version_file")"
+              ADDON_MATRIX["$ADDON_DIR"]="$ADDON"
               ADDON_REASON["$ADDON_DIR"]="$REASON"
               ADDON_REMOTE_VERSION["$ADDON_DIR"]="$REMOTE_VERSION"
             else
@@ -154,47 +147,19 @@ jobs:
             fi
           done
 
-          # 检测本地文件变更（workflow / Dockerfile / rootfs）
-          # push 事件：对比推送前后的 diff
-          # cron / dispatch：对比上次检查记录的 SHA
-          CHANGED_FILES=""
-          COMMIT_MSG=""
-          LAST_SHA_FILE=".github/.last-checked-sha"
-
-          if [ "${{ github.event_name }}" = "push" ]; then
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || echo "")
-            COMMIT_MSG="${{ github.event.head_commit.message }}"
-            echo "=== Push event: diff ${{ github.event.before }}..${{ github.event.after }} ==="
-          else
-            # cron 或 workflow_dispatch：读取上次记录的 SHA
-            if [ -f "$LAST_SHA_FILE" ]; then
-              LAST_SHA=$(cat "$LAST_SHA_FILE" | tr -d "'\n\r ")
-              CHANGED_FILES=$(git diff --name-only "$LAST_SHA" HEAD 2>/dev/null || echo "")
-              echo "=== Cron/dispatch: diff $LAST_SHA..HEAD ==="
-            else
-              # 首次运行，只检查最近一次 commit
-              CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-              echo "=== First run: diff HEAD~1..HEAD ==="
-            fi
-            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
-          fi
-
+          # ============================================================
+          # 4. 匹配文件变更到 addon
+          # ============================================================
           if [ -n "$CHANGED_FILES" ]; then
-            echo "Recent file changes:"
+            echo "=== File changes ==="
             echo "$CHANGED_FILES"
 
             for file in $CHANGED_FILES; do
-              # 跳过 .github 下的元数据文件（如 .last-checked-sha, .debian-base-tag）
-              if echo "$file" | grep -qE '^.github/\.(last-checked-sha|debian-base-tag)$'; then
-                continue
-              fi
-              # 匹配 .github/workflows/*, */Dockerfile, */rootfs/**
               if echo "$file" | grep -qE '^(.github/workflows/|[^/]+/Dockerfile|[^/]+/rootfs/)'; then
                 ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
                 if [ -f "${ADDON_DIR}/version.yaml" ]; then
-                  # 跳过已在矩阵中的（优先级更高的 reason）
                   if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
-                    echo "  File change detected: $file → addon $ADDON_DIR"
+                    echo "  File change: $file → addon $ADDON_DIR"
                     HAS_CHANGES="true"
                     ADDON_MATRIX["$ADDON_DIR"]="$(yq eval '.addon' "${ADDON_DIR}/version.yaml")"
                     ADDON_REASON["$ADDON_DIR"]="file_changed"
@@ -204,7 +169,9 @@ jobs:
             done
           fi
 
-          # 构建最终 matrix
+          # ============================================================
+          # 5. 构建 matrix
+          # ============================================================
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
             ADDON="${ADDON_MATRIX[$ADDON_DIR]}"
             REASON="${ADDON_REASON[$ADDON_DIR]}"
@@ -231,22 +198,19 @@ jobs:
             CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
 
             # 版本号：
-            # - version_changed：使用上游远程版本（重置 build 计数）
-            # - base_updated / file_changed / force_rebuild：本地版本追加 -build.N 递增标记
+            # - version_changed：使用上游远程版本
+            # - 其他：从 tracking.build_num 递增
             FINAL_VERSION="$VERSION"
             FINAL_TAG="${TAG_PREFIX}${VERSION}"
+            NEW_BUILD_NUM=0
             if [ "$REASON" = "version_changed" ]; then
               FINAL_VERSION="$REMOTE_VERSION"
               FINAL_TAG="${TAG_PREFIX}${REMOTE_VERSION}"
+              NEW_BUILD_NUM=0
             elif [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
-              # 读取当前版本号，追加/递增 -build.N 标记
-              if echo "$VERSION" | grep -qE '\-build\.[0-9]+$'; then
-                BUILD_NUM=$(echo "$VERSION" | sed 's/.*-build\.\([0-9]*\)$/\1/')
-                BUILD_NUM=$((BUILD_NUM + 1))
-                FINAL_VERSION=$(echo "$VERSION" | sed "s/-build\.[0-9]*$/-build.${BUILD_NUM}/")
-              else
-                FINAL_VERSION="${VERSION}-build.1"
-              fi
+              BUILD_NUM=$(yq eval '.tracking.build_num // 0' "$version_file")
+              NEW_BUILD_NUM=$((BUILD_NUM + 1))
+              FINAL_VERSION="${VERSION}-build.${NEW_BUILD_NUM}"
               FINAL_TAG="${TAG_PREFIX}${FINAL_VERSION}"
               echo "  Build suffix: ${FINAL_VERSION}"
             fi
@@ -265,8 +229,9 @@ jobs:
               --arg changelog_file_url "$CHANGELOG_FILE_URL" \
               --arg changelog_file_path "$CHANGELOG_FILE_PATH" \
               --arg reason "$REASON" \
-              --arg base_tag "$BASE_TAG" \
+              --arg base_tag "$REMOTE_BASE_TAG" \
               --arg commit_msg "$COMMIT_MSG" \
+              --arg build_num "$NEW_BUILD_NUM" \
               '. + [{
                 addon: $addon, addon_dir: $addon_dir,
                 version: $version, tag: $tag,
@@ -277,29 +242,15 @@ jobs:
                 changelog_file_url: $changelog_file_url,
                 changelog_file_path: $changelog_file_path,
                 reason: $reason, base_tag: $base_tag,
-                commit_msg: $commit_msg
+                commit_msg: $commit_msg, build_num: $build_num
               }]')
           done
 
-          # 输出为 {include: [...]} 格式，符合 GitHub Actions matrix 要求
           RESULT=$(echo "$MATRIX" | jq -c '{include: .}')
           echo "matrix=$RESULT" >> $GITHUB_OUTPUT
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
           echo "=== Matrix ==="
           echo "$RESULT" | jq .
-
-      - name: Save last checked SHA
-        if: github.event_name != 'push'
-        run: |
-          CURRENT_SHA=$(git rev-parse HEAD)
-          echo "$CURRENT_SHA" > .github/.last-checked-sha
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet .github/.last-checked-sha; then
-            git add .github/.last-checked-sha
-            git commit -m "chore: 更新文件检查记录点"
-            git push origin main
-          fi
 
   trigger-release:
     needs: check-versions

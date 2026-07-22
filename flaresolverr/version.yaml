@@ -9,3 +9,7 @@ changelog:
   source: file           # 从上游获取完整 changelog
   file_url: "https://github.com/FlareSolverr/FlareSolverr/raw/refs/heads/master/CHANGELOG.md"
   mode: prepend          # 添加到开头
+tracking:
+  base_tag: ""           # 非 debian-base 镜像，无需追踪
+  file_sha: ""          # 上次文件检查时的 git SHA
+  build_num: 0          # build 计数（version_changed 时重置为 0）
