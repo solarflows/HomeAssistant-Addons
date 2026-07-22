@@ -112,8 +112,6 @@ jobs:
           tags: |
             ${{ steps.prep.outputs.image }}:latest
             ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Prepare config updates & commit
         if: success()
