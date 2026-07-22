@@ -118,9 +118,14 @@ jobs:
 
             # --- 判断 reason ---
             REASON=""
+            FILE_SHA=$(yq eval '.tracking.file_sha // ""' "$version_file")
             if [ "$FORCE_REBUILD" = "true" ]; then
               REASON="force_rebuild"
               echo "  Force rebuild"
+            elif [ -z "$FILE_SHA" ] || [ "$FILE_SHA" = "null" ]; then
+              # 首次构建：tracking 为空代表新 addon 从未被构建过
+              REASON="version_changed"
+              echo "  First build detected (empty tracking)"
             elif [ "$REMOTE_VERSION" != "$VERSION" ]; then
               REASON="version_changed"
               echo "  New version detected!"
