@@ -99,7 +99,7 @@ jobs:
             REPO=$(yq eval '.repo' "$version_file")
             TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$version_file")
 
-            LOCAL_VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
+            LOCAL_VERSION=$(yq eval '.tracking.upstream_version // ""' "$version_file")
             [ -z "$LOCAL_VERSION" ] && continue
 
             echo "Checking $ADDON: local=$LOCAL_VERSION"
@@ -177,7 +177,7 @@ jobs:
             REASON="${ADDON_REASON[$ADDON_DIR]}"
             version_file="${ADDON_DIR}/version.yaml"
 
-            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
+            VERSION=$(yq eval '.tracking.upstream_version // ""' "$version_file")
             REMOTE_VERSION="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
             SOURCE=$(yq eval '.source' "$version_file")
             REPO=$(yq eval '.repo' "$version_file")
@@ -197,28 +197,29 @@ jobs:
             CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
             CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
 
-            # 版本号：
-            # - version_changed：使用上游远程版本
-            # - 其他：从 tracking.build_num 递增
-            FINAL_VERSION="$VERSION"
+            # 版本号：version 始终为清洁版本（用于 build_args 拉取上游源码）
+            # build_version 带 -build.N 后缀（用于 config.yaml + Docker tag + HAOS 识别）
+            BUILD_VERSION="$VERSION"
             FINAL_TAG="${TAG_PREFIX}${VERSION}"
             NEW_BUILD_NUM=0
             if [ "$REASON" = "version_changed" ]; then
-              FINAL_VERSION="$REMOTE_VERSION"
+              VERSION="$REMOTE_VERSION"
+              BUILD_VERSION="$REMOTE_VERSION"
               FINAL_TAG="${TAG_PREFIX}${REMOTE_VERSION}"
               NEW_BUILD_NUM=0
             elif [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
               BUILD_NUM=$(yq eval '.tracking.build_num // 0' "$version_file")
               NEW_BUILD_NUM=$((BUILD_NUM + 1))
-              FINAL_VERSION="${VERSION}-build.${NEW_BUILD_NUM}"
-              FINAL_TAG="${TAG_PREFIX}${FINAL_VERSION}"
-              echo "  Build suffix: ${FINAL_VERSION}"
+              BUILD_VERSION="${VERSION}-build.${NEW_BUILD_NUM}"
+              FINAL_TAG="${TAG_PREFIX}${BUILD_VERSION}"
+              echo "  Build suffix: ${BUILD_VERSION}"
             fi
 
             MATRIX=$(echo "$MATRIX" | jq -c \
               --arg addon "$ADDON" \
               --arg addon_dir "$ADDON_DIR" \
-              --arg version "$FINAL_VERSION" \
+              --arg version "$VERSION" \
+              --arg build_version "$BUILD_VERSION" \
               --arg tag "$FINAL_TAG" \
               --arg image "$IMAGE" \
               --arg dockerfile "$DOCKERFILE" \
@@ -234,7 +235,7 @@ jobs:
               --arg build_num "$NEW_BUILD_NUM" \
               '. + [{
                 addon: $addon, addon_dir: $addon_dir,
-                version: $version, tag: $tag,
+                version: $version, build_version: $build_version, tag: $tag,
                 image: $image, dockerfile: $dockerfile,
                 platforms: $platforms, repo: $repo,
                 changelog_source: $changelog_source,

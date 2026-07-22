@@ -49,6 +49,7 @@ jobs:
           ADDON="${{ matrix.addon }}"
           ADDON_DIR="${{ matrix.addon_dir }}"
           VERSION="${{ matrix.version }}"
+          BUILD_VERSION="${{ matrix.build_version }}"
           TAG="${{ matrix.tag }}"
           IMAGE="${{ matrix.image }}"
           DOCKERFILE="${{ matrix.dockerfile }}"
@@ -58,6 +59,7 @@ jobs:
           echo "addon=$ADDON" >> $GITHUB_OUTPUT
           echo "addon_dir=$ADDON_DIR" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_version=$BUILD_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
@@ -109,7 +111,7 @@ jobs:
           build-args: ${{ steps.buildargs.outputs.build_args }}
           tags: |
             ${{ steps.prep.outputs.image }}:latest
-            ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.version }}
+            ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -120,6 +122,7 @@ jobs:
           ADDON_DIR="${{ steps.prep.outputs.addon_dir }}"
           ADDON="${{ steps.prep.outputs.addon }}"
           VERSION="${{ steps.prep.outputs.version }}"
+          BUILD_VERSION="${{ steps.prep.outputs.build_version }}"
           TAG="${{ steps.prep.outputs.tag }}"
           REPO="${{ matrix.repo }}"
           REASON="${{ steps.prep.outputs.reason }}"
@@ -132,10 +135,10 @@ jobs:
           BUILD_NUM="${{ matrix.build_num }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
-          # 更新 config.yaml 版本号（所有含版本号变更的 reason 都需要，以保证 HAOS 识别更新）
+          # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
           if [ "$REASON" = "version_changed" ] || [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
-            yq eval ".version = \"${VERSION}\"" -i "${ADDON_DIR}/config.yaml"
-            echo "Updated ${ADDON_DIR}/config.yaml to version ${VERSION}"
+            yq eval ".version = \"${BUILD_VERSION}\"" -i "${ADDON_DIR}/config.yaml"
+            echo "Updated ${ADDON_DIR}/config.yaml to version ${BUILD_VERSION}"
           fi
 
           # 更新 CHANGELOG.md
@@ -211,6 +214,10 @@ jobs:
           CURRENT_SHA=$(git rev-parse HEAD)
           yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
           yq eval ".tracking.build_num = ${BUILD_NUM}" -i "$VERSION_FILE"
+          # version_changed 时更新 upstream_version（清洁版本号，用于下次比较基准）
+          if [ "$REASON" = "version_changed" ]; then
+            yq eval ".tracking.upstream_version = \"${VERSION}\"" -i "$VERSION_FILE"
+          fi
           # 仅 debian-base 系 addon 更新 base_tag
           ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // "null"' "$VERSION_FILE")
           if [ "$ADDON_BASE_TAG" != "null" ] && [ "$ADDON_BASE_TAG" != "" ]; then
@@ -228,9 +235,9 @@ jobs:
             if [ "$REASON" = "file_changed" ]; then
               git commit -m "chore(${ADDON}): ${COMMIT_MSG:-update workflow/Dockerfile}"
             elif [ "$REASON" = "base_updated" ]; then
-              git commit -m "chore(${ADDON}): 底包更新至 ${BASE_TAG}，rebuild ${VERSION}"
+              git commit -m "chore(${ADDON}): 底包更新至 ${BASE_TAG}，rebuild ${BUILD_VERSION}"
             else
-              git commit -m "chore(${ADDON}): update to ${VERSION}"
+              git commit -m "chore(${ADDON}): update to ${BUILD_VERSION}"
             fi
             # 重试 push，处理并行构建的竞态
             for i in 1 2 3; do

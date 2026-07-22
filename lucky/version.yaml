@@ -9,6 +9,7 @@ changelog:
   source: release_body  # 上游 release note 既是 changelog
   mode: prepend         # 添加到开头
 tracking:
-  base_tag: "9.3.0"     # 上次构建使用的 debian-base 版本
-  file_sha: ""          # 上次文件检查时的 git SHA
-  build_num: 0          # build 计数（version_changed 时重置为 0）
+  upstream_version: "2.27.2"  # 上游清洁版本号（无 -build.N 后缀，用于 build_args）
+  base_tag: "9.3.0"           # 上次构建使用的 debian-base 版本
+  file_sha: ""                # 上次文件检查时的 git SHA
+  build_num: 0                # build 计数（version_changed 时重置为 0）

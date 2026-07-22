@@ -10,6 +10,7 @@ changelog:
   file_url: "https://github.com/FlareSolverr/FlareSolverr/raw/refs/heads/master/CHANGELOG.md"
   mode: prepend          # 添加到开头
 tracking:
-  base_tag: ""           # 非 debian-base 镜像，无需追踪
-  file_sha: ""          # 上次文件检查时的 git SHA
-  build_num: 0          # build 计数（version_changed 时重置为 0）
+  upstream_version: "3.5.0"  # 上游清洁版本号（无 -build.N 后缀，用于 build_args）
+  base_tag: ""               # 非 debian-base 镜像，无需追踪
+  file_sha: ""                # 上次文件检查时的 git SHA
+  build_num: 0                # build 计数（version_changed 时重置为 0）
