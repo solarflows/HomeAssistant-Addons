@@ -49,6 +49,8 @@ jobs:
             "https://api.github.com/repos/hassio-addons/addon-debian-base/releases/latest" \
             | jq -r '.tag_name // empty')
           [ -z "$REMOTE_BASE_TAG" ] && REMOTE_BASE_TAG="unknown"
+          # debian-base tag 为 v9.3.0 格式，统一去 v
+          REMOTE_BASE_TAG=$(echo "$REMOTE_BASE_TAG" | sed 's/^v//')
           echo "debian-base remote: $REMOTE_BASE_TAG"
 
           FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"

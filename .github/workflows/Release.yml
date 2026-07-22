@@ -227,10 +227,10 @@ jobs:
             else
               # 默认: release_body - 从 GitHub release body 获取
               RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" \
-                | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
+                | jq -r '.body // empty')
               # fallback: some repos don't use v prefix (e.g. uptime-kuma)
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
-                | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
+                | jq -r '.body // empty')
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
 
               if [ "$CHANGELOG_MODE" = "replace" ]; then
@@ -278,10 +278,15 @@ jobs:
               git commit -m "chore(${ADDON}): update to ${BUILD_VERSION}"
             fi
             # 重试 push，处理并行构建的竞态
+            PUSH_OK=false
             for i in 1 2 3; do
-              git pull --rebase origin main && git push origin main && break
+              git pull --rebase origin main && git push origin main && { PUSH_OK=true; break; }
               echo "Push attempt $i failed, retrying..."
               sleep 2
             done
+            if [ "$PUSH_OK" = "false" ]; then
+              echo "ERROR: Push failed after 3 attempts for ${ADDON}"
+              exit 1
+            fi
             echo "Committed ${ADDON} ${VERSION}"
           fi
