@@ -9,19 +9,7 @@
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: Apprise .deb 下载 (上游最新) ----
-FROM node:22-bookworm-slim AS download-apprise
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl jq \
-    && APPRISE_URL=$(curl -sS https://api.github.com/repos/caronc/apprise/releases/latest \
-        | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' \
-        | head -1) \
-    && echo "Downloading Apprise from: $APPRISE_URL" \
-    && curl -fsSL "$APPRISE_URL" -o /apprise.deb \
-    && ls -lh /apprise.deb \
-    && apt-get purge -y curl jq \
-    && rm -rf /var/lib/apt/lists/*
-
-# ---- Stage 2: Node.js 源码构建 ----
+# ---- Stage 1: Node.js 源码构建 ----
 FROM node:22-bookworm-slim AS builder
 
 ARG UPTIME_KUMA_VERSION
@@ -40,13 +28,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
     && apt-get purge -y curl \
     && rm -rf /var/lib/apt/lists/* /root/.npm /root/.cache /tmp/*
 
-# ---- Stage 3: HA 运行时 (完整 base2 等价) ----
+# ---- Stage 2: HA 运行时 (完整 base2 等价) ----
 FROM ${BUILD_FROM}
 
 #===========================================================================
 # 依赖对照上游 debian-base.dockerfile (base2-slim + base2):
 #   base2-slim: dumb-init / nscd / cloudflared / apprise / python3-paho-mqtt
 #   base2:      chromium / fonts-indic / fonts-noto / fonts-noto-cjk / mariadb
+#   Apprise 改用 pip 安装（上游已停止发布 .deb, 仅 .whl + .tar.gz）
 #===========================================================================
 
 RUN apt-get update \
@@ -84,12 +73,10 @@ RUN apt-get update \
         | tee /etc/apt/sources.list.d/cloudflared.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends cloudflared \
-    && cloudflared version
-
-# ---- Apprise (从 Stage 1 复制的 .deb 最新版) ----
-COPY --from=download-apprise /apprise.deb /tmp/apprise.deb
-RUN apt-get install -y --no-install-recommends /tmp/apprise.deb \
-    && rm -f /tmp/apprise.deb \
+    && cloudflared version \
+    \
+    # ---- Apprise (pip 安装最新版，上游已不再发布 .deb) ----
+    && pip3 install --break-system-packages --no-cache-dir apprise \
     \
     # ---- 清理 (保留 curl 给 HEALTHCHECK 用) ----
     && apt-get purge -y gnupg \
