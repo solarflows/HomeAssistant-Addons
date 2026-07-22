@@ -1,47 +1,40 @@
-# FileBrowser Quantum HA Addon
+# FileBrowser Quantum
 
-## 概述
+现代化响应式 Web 文件管理器，支持多源文件浏览、高级认证和实时索引。
 
-FileBrowser Quantum 是一个现代化、响应式的 Web 文件管理器，支持多源文件浏览、高级认证选项和实时索引。
+## 上游
 
-上游项目: [gtsteffaniak/filebrowser](https://github.com/gtsteffaniak/filebrowser)
+[gtsteffaniak/filebrowser](https://github.com/gtsteffaniak/filebrowser)
 
-## 功能特性
+## 支持架构
 
-- ✅ 现代化响应式 UI
-- ✅ 多源文件支持（本地、S3、WebDAV、FTP）
-- ✅ 实时搜索和索引
-- ✅ 多种认证方式（密码、OIDC、LDAP、JWT、代理）
-- ✅ 文件预览（PDF、Markdown、Office、视频、音频）
-- ✅ 文件共享和权限管理
-- ✅ 目录级访问控制
-- ✅ API 支持（Swagger 文档）
-
-## 默认凭据
-
-- 用户名: `admin`
-- 密码: `admin`
-
-**重要**: 首次登录后请立即修改默认密码！
-
-## 配置选项
-
-| 选项 | 类型 | 默认值 | 描述 |
-|------|------|--------|------|
-| `auth_method` | string | `password` | 认证方式 (password/noauth/proxy/oidc) |
-| `default_user_scope` | string | `/` | 默认用户文件浏览根目录 |
-| `localdisks` | string | | 本地磁盘挂载 (如 sda1,sdb1) |
-| `networkdisks` | string | | SMB 共享挂载 (如 //SERVER/SHARE) |
-
-## 持久化数据
-
-- `/config` - 配置文件和数据库
-- `/share` - 共享文件目录
+- `aarch64` (ARM64)
+- `amd64` (x86_64)
 
 ## 端口
 
-- `8080` - Web UI 端口
+| 端口 | 说明 |
+|---|---|
+| `8080/tcp` | FileBrowser Quantum Web UI |
 
-## Ingress
+## 配置项
 
-支持 HA Ingress，可通过侧边栏直接访问。
+| 配置项 | 默认值 | 说明 |
+|---|---|---|
+| `TZ` | `Asia/Shanghai` | 时区 |
+
+## 数据映射
+
+| 路径 | 说明 |
+|---|---|
+| `/config` | 持久化配置（数据库、配置文件） |
+| `/ssl` | SSL 证书（只读） |
+| `/share` | Home Assistant 共享目录（读写） |
+
+## 特色功能
+
+- 📁 多源文件浏览（本地 / S3 / WebDAV / SFTP 等）
+- 🔐 高级认证（OAuth2 / OIDC / 双因素）
+- 🔍 实时全文索引
+- 🎨 现代化 UI，移动端适配
+- 📤 拖拽上传 / 批量操作

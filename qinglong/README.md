@@ -1,25 +1,34 @@
-# 冬瓜甄选addons：青龙面板 for HA
+# 青龙面板
 
-## 关于
+支持 Python3、JavaScript、Shell、TypeScript 的定时任务管理平台，Node.js 实现，功能强大。
 
-支持 Python3、JavaScript、Shell、Typescript 的定时任务管理平台
+## 上游
 
-### 功能
+[whyour/qinglong](https://github.com/whyour/qinglong)
 
-- 支持多种脚本语言（python3、javaScript、shell、typescript）
+## 支持架构
 
-- 支持在线管理脚本、环境变量、配置文件
+- `aarch64` (ARM64)
+- `amd64` (x86_64)
 
-- 支持在线查看任务日志
+## 端口
 
-- 支持秒级任务设置
+| 端口 | 说明 |
+|---|---|
+| `5700/tcp` | 青龙面板 Web UI 端口 |
 
-- 支持系统级通知
+## 配置项
 
-- 支持暗黑模式
+| 配置项 | 默认值 | 说明 |
+|---|---|---|
+| `QL_DIR` | `/ql` | 青龙数据目录 |
+| `TZ` | `Asia/Shanghai` | 时区 |
 
-- 支持手机端操作
+## 特色功能
 
-## 来源
-
-https://github.com/whyour/qinglong
+- 多语言脚本支持（Python3 / JS / Shell / TypeScript）
+- 在线管理脚本、环境变量、配置文件
+- 在线查看任务日志
+- 秒级定时任务
+- 系统级通知（Bark / Server 酱 / Telegram 等）
+- 暗黑模式 + 移动端适配
