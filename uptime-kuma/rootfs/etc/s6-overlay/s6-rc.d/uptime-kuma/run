@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Uptime Kuma 启动脚本 (S6 longrun)
+# ==============================================================================
+bashio::log.info "Starting Uptime Kuma..."
+
+cd /opt/uptime-kuma || exit 1
+exec node server/server.js

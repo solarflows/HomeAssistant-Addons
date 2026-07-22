@@ -1,0 +1,15 @@
+# uptime-kuma 版本检查配置
+addon: uptime-kuma
+source: github
+repo: louislam/uptime-kuma
+tag_prefix: ""            # tag: 2.4.0 → 2.4.0
+build_args:
+  UPTIME_KUMA_VERSION: "${version}"  # 2.4.0
+changelog:
+  source: release_body    # 从 GitHub Release body 提取 changelog
+  mode: prepend
+tracking:
+  upstream_version: "2.4.0"  # 上游清洁版本号
+  base_tag: "9.3.0"          # debian-base 版本
+  file_sha: ""               # 上次文件检查时的 git SHA
+  build_num: 0               # build 计数（version_changed 时重置为 0）
