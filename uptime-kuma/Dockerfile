@@ -13,7 +13,7 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM node:22-bookworm-slim AS download-apprise
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl jq \
     && APPRISE_URL=$(curl -sS https://api.github.com/repos/caronc/apprise/releases/latest \
-        | jq -r '.assets[] | select(.name | test("_all\\\\.deb$")) | .browser_download_url' \
+        | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' \
         | head -1) \
     && echo "Downloading Apprise from: $APPRISE_URL" \
     && curl -fsSL "$APPRISE_URL" -o /apprise.deb \
