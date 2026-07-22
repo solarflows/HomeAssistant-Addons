@@ -24,3 +24,9 @@ startup: application
 boot: manual
 ingress: true
 ingress_port: 8080
+options:
+  auth_method: password
+  default_user_scope: /
+schema:
+  auth_method: list(password|noauth|proxy|oidc)
+  default_user_scope: str

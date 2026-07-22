@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# FileBrowser Quantum 启动脚本 (S6 longrun)
+# ==============================================================================
+bashio::log.info "Starting FileBrowser Quantum..."
+exec /usr/local/bin/filebrowser --config /config/filebrowser-quantum/config.yaml

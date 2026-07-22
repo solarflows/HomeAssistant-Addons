@@ -1,2 +1,0 @@
-# 本 addon 基于上游官方镜像，无需 HA rootfs 覆盖
-# 启动逻辑已在 Dockerfile ENTRYPOINT 中处理

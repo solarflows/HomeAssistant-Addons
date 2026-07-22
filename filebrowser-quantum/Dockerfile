@@ -1,43 +1,48 @@
 #=============================================================================
-# FileBrowser Quantum HA Addon - 引用上游镜像 + HA 适配层
+# FileBrowser Quantum HA Addon - debian-base + S6 overlay
 #=============================================================================
-# 参考: https://github.com/alexbelgium/hassio-addons/tree/master/filebrowser_quantum
 # 上游: https://github.com/gtsteffaniak/filebrowser
-# Docker: https://hub.docker.com/r/gtstef/filebrowser
+# 参考: alexbelgium/hassio-addons/filebrowser_quantum
 #=============================================================================
 
-ARG UPSTREAM_TAG=stable
-FROM gtstef/filebrowser:${UPSTREAM_TAG}
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
+FROM ${BUILD_FROM}
 
-USER root
+ARG TARGETARCH
+ARG FILEBROWSER_VERSION
+RUN test -n "${FILEBROWSER_VERSION}" || { echo "FILEBROWSER_VERSION is required"; exit 1; }
 
-# 安装 HA 适配依赖（Alpine 包管理器）
-RUN apk add --no-cache \
-        curl \
-        nginx \
-        yq \
-        bash
+# 安装依赖 (curl=健康检查, yq=配置读写)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# 复制 HA rootfs
+# 架构映射
+RUN ARCH=$(case "${TARGETARCH}" in \
+        amd64) echo "amd64" ;; \
+        arm64) echo "arm64" ;; \
+        *) echo "${TARGETARCH}" ;; \
+    esac) \
+    && echo "Target arch: ${ARCH}" \
+    \
+    # 下载 filebrowser 二进制
+    && FB_URL="https://github.com/gtsteffaniak/filebrowser/releases/download/v${FILEBROWSER_VERSION}/linux-${ARCH}-filebrowser" \
+    && echo "Downloading filebrowser from: ${FB_URL}" \
+    && curl -fsSL "${FB_URL}" -o /usr/local/bin/filebrowser \
+    && chmod +x /usr/local/bin/filebrowser \
+    \
+    # 下载 yq (用于配置读写)
+    && YQ_URL="https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_${ARCH}" \
+    && echo "Downloading yq from: ${YQ_URL}" \
+    && curl -fsSL "${YQ_URL}" -o /usr/local/bin/yq \
+    && chmod +x /usr/local/bin/yq
+
+# 复制 HA rootfs (S6 overlay)
 COPY rootfs /
 
-# 入口包装脚本（处理时区 + 配置 + 启动）
-RUN printf '#!/bin/bash\nset -e\n\n# Timezone\nif [ -n "$TZ" ] && [ -f "/usr/share/zoneinfo/$TZ" ]; then\n    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime\n    echo "$TZ" > /etc/timezone\nfi\n\n# Ensure config dirs\nmkdir -p /config/filebrowser-quantum /cache\n\n# Locate filebrowser binary\nFB=$(command -v filebrowser 2>/dev/null || find / -name filebrowser -type f -executable 2>/dev/null | head -1)\nif [ -z "$FB" ]; then\n    echo "ERROR: filebrowser binary not found" >&2\n    exit 1\nfi\n\nexec "$FB" --config /config/filebrowser-quantum/config.yaml\n' > /entrypoint.sh \
-    && chmod +x /entrypoint.sh
-
-# 环境变量
-ENV TZ=Asia/Shanghai
-
-# 端口（上游默认 8080）
+# 端口
 EXPOSE 8080/tcp
-
-# 持久化目录
-# 持久化目录（/config、/share 由 HAOS Supervisor 自动挂载，/data 用于上游容器标准卷）
-VOLUME ["/data"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
     CMD curl -sf http://127.0.0.1:8080/health || exit 1
-
-# 使用入口包装脚本
-ENTRYPOINT ["/entrypoint.sh"]
