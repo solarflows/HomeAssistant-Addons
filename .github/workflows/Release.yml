@@ -47,24 +47,60 @@ jobs:
         id: prep
         run: |
           ADDON="${{ matrix.addon }}"
-          ADDON_DIR="${{ matrix.addon_dir }}"
+          ADDON_DIR="$ADDON"
           VERSION="${{ matrix.version }}"
           BUILD_VERSION="${{ matrix.build_version }}"
-          TAG="${{ matrix.tag }}"
-          IMAGE="${{ matrix.image }}"
-          DOCKERFILE="${{ matrix.dockerfile }}"
-          PLATFORMS="${{ matrix.platforms }}"
           REASON="${{ matrix.reason || 'version_changed' }}"
+          BASE_TAG="${{ matrix.base_tag }}"
+          BUILD_NUM="${{ matrix.build_num }}"
+          VERSION_FILE="${ADDON_DIR}/version.yaml"
+          CONFIG_FILE="${ADDON_DIR}/config.yaml"
+
+          # 从 filesystem 推导参数
+          IMAGE=$(yq eval '.image // ""' "$CONFIG_FILE")
+          [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
+
+          DOCKERFILE="${ADDON_DIR}/Dockerfile"
+
+          ARCHS=$(yq eval '.arch | join(",")' "$CONFIG_FILE")
+          [ -z "$ARCHS" ] || [ "$ARCHS" = "null" ] && ARCHS="aarch64,amd64"
+          PLATFORMS=$(echo "$ARCHS" | sed 's/aarch64/arm64/g; s/amd64/amd64/g; s/armhf/arm\/v7/g; s/armv7/arm\/v7/g; s/i386/386/g' | sed 's/\([^,]*\)/linux\/\1/g')
+
+          TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$VERSION_FILE")
+          [ "$TAG_PREFIX" = "null" ] && TAG_PREFIX=""
+          TAG="${TAG_PREFIX}${BUILD_VERSION}"
+
+          REPO=$(yq eval '.repo' "$VERSION_FILE")
+
+          CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$VERSION_FILE")
+          CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$VERSION_FILE")
+          CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$VERSION_FILE")
+          CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$VERSION_FILE")
+
+          # file_changed 时取最近的 commit message
+          if [ "$REASON" = "file_changed" ]; then
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          else
+            COMMIT_MSG=""
+          fi
 
           echo "addon=$ADDON" >> $GITHUB_OUTPUT
           echo "addon_dir=$ADDON_DIR" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "build_version=$BUILD_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
           echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
           echo "reason=$REASON" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "repo=$REPO" >> $GITHUB_OUTPUT
+          echo "changelog_source=$CHANGELOG_SOURCE" >> $GITHUB_OUTPUT
+          echo "changelog_mode=$CHANGELOG_MODE" >> $GITHUB_OUTPUT
+          echo "changelog_file_url=$CHANGELOG_FILE_URL" >> $GITHUB_OUTPUT
+          echo "changelog_file_path=$CHANGELOG_FILE_PATH" >> $GITHUB_OUTPUT
+          echo "base_tag=$BASE_TAG" >> $GITHUB_OUTPUT
+          echo "build_num=$BUILD_NUM" >> $GITHUB_OUTPUT
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
 
       - name: Prepare build args
         id: buildargs
@@ -104,7 +140,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.addon_dir }}
+          context: ${{ steps.prep.outputs.addon_dir }}
           file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
           push: true
@@ -122,15 +158,15 @@ jobs:
           VERSION="${{ steps.prep.outputs.version }}"
           BUILD_VERSION="${{ steps.prep.outputs.build_version }}"
           TAG="${{ steps.prep.outputs.tag }}"
-          REPO="${{ matrix.repo }}"
+          REPO="${{ steps.prep.outputs.repo }}"
           REASON="${{ steps.prep.outputs.reason }}"
-          CHANGELOG_SOURCE="${{ matrix.changelog_source }}"
-          CHANGELOG_MODE="${{ matrix.changelog_mode }}"
-          CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
-          CHANGELOG_FILE_PATH="${{ matrix.changelog_file_path }}"
-          COMMIT_MSG="${{ matrix.commit_msg }}"
-          BASE_TAG="${{ matrix.base_tag }}"
-          BUILD_NUM="${{ matrix.build_num }}"
+          CHANGELOG_SOURCE="${{ steps.prep.outputs.changelog_source }}"
+          CHANGELOG_MODE="${{ steps.prep.outputs.changelog_mode }}"
+          CHANGELOG_FILE_URL="${{ steps.prep.outputs.changelog_file_url }}"
+          CHANGELOG_FILE_PATH="${{ steps.prep.outputs.changelog_file_path }}"
+          COMMIT_MSG="${{ steps.prep.outputs.commit_msg }}"
+          BASE_TAG="${{ steps.prep.outputs.base_tag }}"
+          BUILD_NUM="${{ steps.prep.outputs.build_num }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
