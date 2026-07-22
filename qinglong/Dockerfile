@@ -50,8 +50,9 @@ RUN apt-get update \
     && npm i -g pnpm@8.3.1 \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制构建产物
+# 复制构建产物（前端在 /ql/dist，删除 alpine node_modules 避免 glibc 冗余层）
 COPY --from=builder /src /ql
+RUN rm -rf /ql/node_modules
 WORKDIR /ql
 
 # 安装生产依赖
