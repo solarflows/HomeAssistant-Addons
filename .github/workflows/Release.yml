@@ -66,9 +66,8 @@ jobs:
           [ -z "$ARCHS" ] || [ "$ARCHS" = "null" ] && ARCHS="aarch64,amd64"
           PLATFORMS=$(echo "$ARCHS" | sed 's/aarch64/arm64/g; s/amd64/amd64/g; s/armhf/arm\/v7/g; s/armv7/arm\/v7/g; s/i386/386/g' | sed 's/\([^,]*\)/linux\/\1/g')
 
-          TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$VERSION_FILE")
-          [ "$TAG_PREFIX" = "null" ] && TAG_PREFIX=""
-          TAG="${TAG_PREFIX}${BUILD_VERSION}"
+          # TAG 用于 GitHub API (changelog 获取)，大多数上游 tag 带 v 前缀
+          TAG="v${VERSION}"
 
           REPO=$(yq eval '.repo' "$VERSION_FILE")
 
@@ -116,17 +115,6 @@ jobs:
             BUILD_ARGS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
               --arg v "$VERSION" --arg t "$TAG" \
               'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"')
-
-            # 应用 upstream_tag_transform（用于 Docker tag 格式转换）
-            TRANSFORM=$(yq eval '.upstream_tag_transform // ""' "$VERSION_FILE")
-            if [ -n "$TRANSFORM" ] && [ "$TRANSFORM" != "null" ]; then
-              CURRENT_TAG=$(echo "$BUILD_ARGS" | grep -oP 'UPSTREAM_TAG=\K[^ ]+' || true)
-              if [ -n "$CURRENT_TAG" ]; then
-                NEW_TAG=$(echo "$CURRENT_TAG" | sed -E "$TRANSFORM")
-                BUILD_ARGS=$(echo "$BUILD_ARGS" | sed "s/UPSTREAM_TAG=${CURRENT_TAG}/UPSTREAM_TAG=${NEW_TAG}/")
-                echo "Applied tag transform: ${CURRENT_TAG} → ${NEW_TAG}"
-              fi
-            fi
           fi
 
           {
@@ -210,7 +198,10 @@ jobs:
               # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
               CHANGELOG_CONTENT=$(curl -fsSL \
                 -H "Accept: application/vnd.github.raw+json" \
-                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" || echo "")
+                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" 2>/dev/null || \
+                curl -fsSL \
+                -H "Accept: application/vnd.github.raw+json" \
+                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${VERSION}" || echo "")
               if [ -n "$CHANGELOG_CONTENT" ]; then
                 if [ "$CHANGELOG_MODE" = "replace" ]; then
                   echo "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
@@ -237,6 +228,9 @@ jobs:
               # 默认: release_body - 从 GitHub release body 获取
               RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" \
                 | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
+              # fallback: some repos don't use v prefix (e.g. uptime-kuma)
+              [ -z "$RELEASE_BODY" ] && RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
+                | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
 
               if [ "$CHANGELOG_MODE" = "replace" ]; then
@@ -256,9 +250,9 @@ jobs:
           CURRENT_SHA=$(git rev-parse HEAD)
           yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
           yq eval ".tracking.build_num = ${BUILD_NUM}" -i "$VERSION_FILE"
-          # version_changed 时更新 upstream_version（清洁版本号，用于下次比较基准）
+          # version_changed 时更新版本号（清洁版本号，用于下次比较基准）
           if [ "$REASON" = "version_changed" ]; then
-            yq eval ".tracking.upstream_version = \"${VERSION}\"" -i "$VERSION_FILE"
+            yq eval ".version = \"${VERSION}\"" -i "$VERSION_FILE"
           fi
           # 仅 debian-base 系 addon 更新 base_tag
           ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // "null"' "$VERSION_FILE")

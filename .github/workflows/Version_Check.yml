@@ -94,15 +94,13 @@ jobs:
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
             ADDON_DIR=$(dirname "$version_file")
-            ADDON=$(yq eval '.addon' "$version_file")
             SOURCE=$(yq eval '.source' "$version_file")
             REPO=$(yq eval '.repo' "$version_file")
-            TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$version_file")
 
-            LOCAL_VERSION=$(yq eval '.tracking.upstream_version // ""' "$version_file")
-            [ -z "$LOCAL_VERSION" ] && continue
+            VERSION=$(yq eval '.version // ""' "$version_file")
+            [ -z "$VERSION" ] && continue
 
-            echo "Checking $ADDON: local=$LOCAL_VERSION"
+            echo "Checking $ADDON_DIR: local=$VERSION"
 
             # --- 获取远程版本 ---
             if [ "$SOURCE" = "github_tags" ]; then
@@ -114,10 +112,8 @@ jobs:
             fi
             [ -z "$REMOTE_TAG" ] && { echo "  Failed to get remote version, skipping"; continue; }
 
-            REMOTE_VERSION="$REMOTE_TAG"
-            if [ -n "$TAG_PREFIX" ] && [ "$TAG_PREFIX" != "null" ]; then
-              REMOTE_VERSION=$(echo "$REMOTE_VERSION" | sed "s/^${TAG_PREFIX}//")
-            fi
+            # 统一去除 v 前缀
+            REMOTE_VERSION=$(echo "$REMOTE_TAG" | sed 's/^v//')
             echo "  Remote: $REMOTE_VERSION"
 
             # --- 判断 reason ---
@@ -125,7 +121,7 @@ jobs:
             if [ "$FORCE_REBUILD" = "true" ]; then
               REASON="force_rebuild"
               echo "  Force rebuild"
-            elif [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
+            elif [ "$REMOTE_VERSION" != "$VERSION" ]; then
               REASON="version_changed"
               echo "  New version detected!"
             else
@@ -139,7 +135,7 @@ jobs:
 
             if [ -n "$REASON" ]; then
               HAS_CHANGES="true"
-              ADDON_MATRIX["$ADDON_DIR"]="$ADDON"
+              ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
               ADDON_REASON["$ADDON_DIR"]="$REASON"
               ADDON_REMOTE_VERSION["$ADDON_DIR"]="$REMOTE_VERSION"
             else
@@ -161,7 +157,7 @@ jobs:
                   if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
                     echo "  File change: $file → addon $ADDON_DIR"
                     HAS_CHANGES="true"
-                    ADDON_MATRIX["$ADDON_DIR"]="$(yq eval '.addon' "${ADDON_DIR}/version.yaml")"
+                    ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
                     ADDON_REASON["$ADDON_DIR"]="file_changed"
                   fi
                 fi
@@ -173,11 +169,10 @@ jobs:
           # 5. 构建 matrix
           # ============================================================
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
-            ADDON="${ADDON_MATRIX[$ADDON_DIR]}"
             REASON="${ADDON_REASON[$ADDON_DIR]}"
             version_file="${ADDON_DIR}/version.yaml"
 
-            VERSION=$(yq eval '.tracking.upstream_version // ""' "$version_file")
+            VERSION=$(yq eval '.version // ""' "$version_file")
             REMOTE_VERSION="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
 
             # 版本号：version 始终为清洁版本（用于 build_args 拉取上游源码）
@@ -196,7 +191,7 @@ jobs:
             fi
 
             MATRIX=$(echo "$MATRIX" | jq -c \
-              --arg addon "$ADDON" \
+              --arg addon "$ADDON_DIR" \
               --arg version "$VERSION" \
               --arg build_version "$BUILD_VERSION" \
               --arg reason "$REASON" \

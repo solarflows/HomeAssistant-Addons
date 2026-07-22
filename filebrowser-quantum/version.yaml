@@ -1,16 +1,14 @@
 # filebrowser-quantum 版本检查配置
-addon: filebrowser-quantum
+version: "1.5.0-stable"
 source: github
 repo: gtsteffaniak/filebrowser
-tag_prefix: "v"          # tag: v1.5.0-stable → 1.5.0-stable
 build_args:
-  FILEBROWSER_VERSION: "${version}"  # 1.5.0-stable → 下载 v1.5.0-stable 二进制
+  FILEBROWSER_VERSION: "${version}"
 changelog:
-  source: file           # 从上游获取完整 changelog
+  source: file
   file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"
-  mode: prepend          # 添加到开头
+  mode: prepend
 tracking:
-  upstream_version: "1.5.0-stable"  # 上游清洁版本号
-  base_tag: "9.3.0"                 # debian-base 版本
-  file_sha: ""                      # 上次文件检查时的 git SHA
-  build_num: 0                      # build 计数（version_changed 时重置为 0）
+  base_tag: "9.3.0"
+  file_sha: ""
+  build_num: 0
