@@ -4,7 +4,7 @@ source: github
 repo: qd-today/qd
 tag_prefix: ""           # tag: 20250803
 build_args:
-  QD_VERSION: "${tag}"
+  QD_VERSION: "${version}"
 changelog:
   source: file           # 从上游获取完整 changelog
   file_url: "https://github.com/qd-today/qd/raw/refs/heads/master/CHANGELOG.md"
