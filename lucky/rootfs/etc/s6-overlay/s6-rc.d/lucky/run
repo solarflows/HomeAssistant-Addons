@@ -5,4 +5,4 @@
 # 在 cont-init.d 完成持久化目录设置后，启动 Lucky（前台阻塞运行）
 # ==============================================================================
 bashio::log.info "Starting Lucky..."
-exec /usr/local/bin/lucky -c /etc/lucky/lucky.conf
+exec /usr/local/bin/lucky -c /config/luckyconf/lucky.conf

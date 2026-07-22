@@ -7,5 +7,6 @@
 
 bashio::log.info "Starting Qinglong..."
 
+export QL_DATA_DIR=/config/qinglong/data
 cd /ql
 exec ./docker/docker-entrypoint.sh
