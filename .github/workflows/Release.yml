@@ -1,7 +1,6 @@
 name: Release Addon Images
 
 on:
-  # 可被 Version_Check 调用
   workflow_call:
     inputs:
       matrix:
@@ -13,88 +12,16 @@ on:
         required: false
         type: boolean
         default: false
-  # 也可手动触发
-  workflow_dispatch:
-    inputs:
-      matrix:
-        description: 'JSON matrix of addons to build (leave empty for all)'
-        required: false
-      force_rebuild:
-        description: 'Force rebuild all addons (ignore version check)'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  # 手动触发时如果没有矩阵，扫描所有 addon
-  scan-all:
-    if: github.event_name == 'workflow_dispatch' && (inputs.matrix == '' || inputs.matrix == '[]')
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.scan.outputs.matrix }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Scan all addons
-        id: scan
-        run: |
-          MATRIX="[]"
-          for version_file in */version.yaml; do
-            [ -f "$version_file" ] || continue
-            ADDON_DIR=$(dirname "$version_file")
-            ADDON=$(yq eval '.addon' "$version_file")
-            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
-            IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
-            [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
-
-            PLATFORMS="linux/amd64,linux/arm64"
-            CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
-            CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
-            CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
-            CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
-            REPO=$(yq eval '.repo' "$version_file")
-            TAG=$(yq eval '.tag_prefix // ""' "$version_file")
-
-            MATRIX=$(echo "$MATRIX" | jq -c \
-              --arg addon "$ADDON" --arg addon_dir "$ADDON_DIR" \
-              --arg version "$VERSION" --arg tag "${TAG}${VERSION}" \
-              --arg image "$IMAGE" --arg dockerfile "${ADDON_DIR}/Dockerfile" \
-              --arg platforms "$PLATFORMS" --arg repo "$REPO" \
-              --arg changelog_source "$CHANGELOG_SOURCE" --arg changelog_mode "$CHANGELOG_MODE" \
-              --arg changelog_file_url "$CHANGELOG_FILE_URL" \
-              --arg changelog_file_path "$CHANGELOG_FILE_PATH" \
-              '. + [{
-                addon: $addon, addon_dir: $addon_dir,
-                version: $version, tag: $tag,
-                image: $image, dockerfile: $dockerfile,
-                platforms: $platforms, repo: $repo,
-                changelog_source: $changelog_source,
-                changelog_mode: $changelog_mode,
-                changelog_file_url: $changelog_file_url,
-                changelog_file_path: $changelog_file_path
-              }]')
-          done
-
-          # 输出为 {include: [...]} 格式，符合 GitHub Actions matrix 要求
-          RESULT=$(echo "$MATRIX" | jq -c '{include: .}')
-          echo "=== Scan Result ==="
-          echo "$RESULT" | jq .
-          echo "matrix=$RESULT" >> $GITHUB_OUTPUT
-
-  # 构建任务
   build:
-    needs: [scan-all]
-    if: always() && (needs.scan-all.result == 'success' || needs.scan-all.result == 'skipped')
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.scan-all.outputs.matrix || inputs.matrix || github.event.inputs.matrix || '{"include":[]}') }}
+      matrix: ${{ fromJson(inputs.matrix || '{"include":[]}') }}
       fail-fast: false
       max-parallel: 2
     steps:
@@ -200,6 +127,7 @@ jobs:
           CHANGELOG_MODE="${{ matrix.changelog_mode }}"
           CHANGELOG_FILE_URL="${{ matrix.changelog_file_url }}"
           CHANGELOG_FILE_PATH="${{ matrix.changelog_file_path }}"
+          COMMIT_MSG="${{ matrix.commit_msg }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 版本变化时更新 config.yaml
@@ -209,7 +137,18 @@ jobs:
           fi
 
           # 更新 CHANGELOG.md
-          if [ "$REASON" = "version_changed" ]; then
+          if [ "$REASON" = "file_changed" ]; then
+            # 文件变更：使用 commit message 作为 changelog
+            CHANGELOG_CONTENT="${COMMIT_MSG:-chore: update workflow/Dockerfile}"
+            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
+              # prepend: 添加到开头
+              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
+              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+            else
+              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+            fi
+            echo "Updated ${ADDON_DIR}/CHANGELOG.md with file change record"
+          elif [ "$REASON" = "version_changed" ]; then
             if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
               # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
               CHANGELOG_CONTENT=$(curl -fsSL \
@@ -243,9 +182,10 @@ jobs:
                 | jq -r '.body // empty' | sed 's/\\r\\n/\n/g')
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
 
-              if [ "$CHANGELOG_MODE" = "append" ]; then
-                printf "\n### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" >> "${ADDON_DIR}/CHANGELOG.md"
+              if [ "$CHANGELOG_MODE" = "replace" ]; then
+                printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" > "${ADDON_DIR}/CHANGELOG.md"
               else
+                # prepend: 新条目添加到开头
                 printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" > temp_changelog.md
                 cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
                 mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
@@ -261,7 +201,11 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add "${ADDON_DIR}/"
-            git commit -m "chore(${ADDON}): update to ${VERSION}"
+            if [ "$REASON" = "file_changed" ]; then
+              git commit -m "chore(${ADDON}): ${COMMIT_MSG:-update workflow/Dockerfile}"
+            else
+              git commit -m "chore(${ADDON}): update to ${VERSION}"
+            fi
             # 重试 push，处理并行构建的竞态
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && break

@@ -86,6 +86,11 @@ jobs:
             HAS_CHANGES="true"
           fi
 
+          # 收集所有需要构建的 addon（去重用关联数组）
+          declare -A ADDON_MATRIX
+          declare -A ADDON_REASON
+          declare -A ADDON_REMOTE_VERSION
+
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
             ADDON_DIR=$(dirname "$version_file")
@@ -120,77 +125,116 @@ jobs:
             echo "  Remote: $REMOTE_VERSION"
 
             # 判断是否需要加入矩阵：版本变化 或 底包更新 或 强制重建
-            NEED_BUILD="false"
             REASON=""
             if [ "$FORCE_REBUILD" = "true" ]; then
-              NEED_BUILD="true"
               REASON="force_rebuild"
               echo "  Force rebuild"
             elif [ "$REMOTE_VERSION" != "$LOCAL_VERSION" ]; then
-              NEED_BUILD="true"
               REASON="version_changed"
               echo "  New version detected!"
             elif [ "$BASE_UPDATED" = "true" ]; then
-              NEED_BUILD="true"
               REASON="base_updated"
               echo "  Rebuild due to debian-base update"
             fi
 
-            if [ "$NEED_BUILD" = "true" ]; then
+            if [ -n "$REASON" ]; then
               HAS_CHANGES="true"
-
-              DOCKERFILE="${ADDON_DIR}/Dockerfile"
-              [ ! -f "$DOCKERFILE" ] && { echo "  Warning: Dockerfile not found"; continue; }
-
-              IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
-              [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
-
-              ARCHS=$(yq eval '.arch | join(",")' "${ADDON_DIR}/config.yaml")
-              [ -z "$ARCHS" ] || [ "$ARCHS" = "null" ] && ARCHS="aarch64,amd64"
-              PLATFORMS=$(echo "$ARCHS" | sed 's/aarch64/arm64/g; s/amd64/amd64/g; s/armhf/arm\/v7/g; s/armv7/arm\/v7/g; s/i386/386/g' | sed 's/\([^,]*\)/linux\/\1/g')
-
-              CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
-              CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
-              CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
-              CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
-
-              # 底包更新时版本号不变
-              FINAL_VERSION="$REMOTE_VERSION"
-              FINAL_TAG="$REMOTE_TAG"
-              if [ "$REASON" = "base_updated" ]; then
-                FINAL_VERSION="$LOCAL_VERSION"
-                FINAL_TAG="${TAG_PREFIX}${LOCAL_VERSION}"
-              fi
-
-              MATRIX=$(echo "$MATRIX" | jq -c \
-                --arg addon "$ADDON" \
-                --arg addon_dir "$ADDON_DIR" \
-                --arg version "$FINAL_VERSION" \
-                --arg tag "$FINAL_TAG" \
-                --arg image "$IMAGE" \
-                --arg dockerfile "$DOCKERFILE" \
-                --arg platforms "$PLATFORMS" \
-                --arg repo "$REPO" \
-                --arg changelog_source "$CHANGELOG_SOURCE" \
-                --arg changelog_mode "$CHANGELOG_MODE" \
-                --arg changelog_file_url "$CHANGELOG_FILE_URL" \
-                --arg changelog_file_path "$CHANGELOG_FILE_PATH" \
-                --arg reason "$REASON" \
-                --arg base_tag "$BASE_TAG" \
-                '. + [{
-                  addon: $addon, addon_dir: $addon_dir,
-                  version: $version, tag: $tag,
-                  image: $image, dockerfile: $dockerfile,
-                  platforms: $platforms, repo: $repo,
-                  changelog_source: $changelog_source,
-                  changelog_mode: $changelog_mode,
-                  changelog_file_url: $changelog_file_url,
-                  changelog_file_path: $changelog_file_path,
-                  reason: $reason, base_tag: $base_tag
-                }]')
+              ADDON_MATRIX["$ADDON_DIR"]="$(yq eval '.addon' "$version_file")"
+              ADDON_REASON["$ADDON_DIR"]="$REASON"
+              ADDON_REMOTE_VERSION["$ADDON_DIR"]="$REMOTE_VERSION"
             else
               echo "  Version unchanged"
             fi
+          done
+
+          # 检测本地文件变更（workflow / Dockerfile / rootfs）
+          # 对比 origin/main 上一次 push 的变更
+          CHANGED_FILES=$(git diff --name-only origin/main~1 origin/main 2>/dev/null || echo "")
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "=== Recent file changes ==="
+            echo "$CHANGED_FILES"
+
+            for file in $CHANGED_FILES; do
+              # 匹配 .github/workflows/*, */Dockerfile, */rootfs/**
+              if echo "$file" | grep -qE '^(.github/workflows/|[^/]+/Dockerfile|[^/]+/rootfs/)'; then
+                ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
+                if [ -f "${ADDON_DIR}/version.yaml" ]; then
+                  # 跳过已在矩阵中的（优先级更高的 reason）
+                  if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
+                    echo "  File change detected: $file → addon $ADDON_DIR"
+                    HAS_CHANGES="true"
+                    ADDON_MATRIX["$ADDON_DIR"]="$(yq eval '.addon' "${ADDON_DIR}/version.yaml")"
+                    ADDON_REASON["$ADDON_DIR"]="file_changed"
+                  fi
+                fi
+              fi
+            done
+          fi
+
+          # 构建最终 matrix
+          for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
+            ADDON="${ADDON_MATRIX[$ADDON_DIR]}"
+            REASON="${ADDON_REASON[$ADDON_DIR]}"
+            version_file="${ADDON_DIR}/version.yaml"
+
+            VERSION=$(yq eval '.version' "${ADDON_DIR}/config.yaml" | tr -d "'\n\r ")
+            REMOTE_VERSION="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
+            SOURCE=$(yq eval '.source' "$version_file")
+            REPO=$(yq eval '.repo' "$version_file")
+            TAG_PREFIX=$(yq eval '.tag_prefix // ""' "$version_file")
+            IMAGE=$(yq eval '.image // ""' "${ADDON_DIR}/config.yaml")
+            [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
+
+            DOCKERFILE="${ADDON_DIR}/Dockerfile"
+            [ ! -f "$DOCKERFILE" ] && { echo "  Warning: Dockerfile not found for $ADDON"; continue; }
+
+            ARCHS=$(yq eval '.arch | join(",")' "${ADDON_DIR}/config.yaml")
+            [ -z "$ARCHS" ] || [ "$ARCHS" = "null" ] && ARCHS="aarch64,amd64"
+            PLATFORMS=$(echo "$ARCHS" | sed 's/aarch64/arm64/g; s/amd64/amd64/g; s/armhf/arm\/v7/g; s/armv7/arm\/v7/g; s/i386/386/g' | sed 's/\([^,]*\)/linux\/\1/g')
+
+            CHANGELOG_SOURCE=$(yq eval '.changelog.source // "release_body"' "$version_file")
+            CHANGELOG_MODE=$(yq eval '.changelog.mode // "prepend"' "$version_file")
+            CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$version_file")
+            CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$version_file")
+
+            # 版本号：version_changed 使用上游远程版本，其他情况保留本地版本
+            FINAL_VERSION="$VERSION"
+            FINAL_TAG="${TAG_PREFIX}${VERSION}"
+            if [ "$REASON" = "version_changed" ]; then
+              FINAL_VERSION="$REMOTE_VERSION"
+              FINAL_TAG="${TAG_PREFIX}${REMOTE_VERSION}"
+            fi
+
+            MATRIX=$(echo "$MATRIX" | jq -c \
+              --arg addon "$ADDON" \
+              --arg addon_dir "$ADDON_DIR" \
+              --arg version "$FINAL_VERSION" \
+              --arg tag "$FINAL_TAG" \
+              --arg image "$IMAGE" \
+              --arg dockerfile "$DOCKERFILE" \
+              --arg platforms "$PLATFORMS" \
+              --arg repo "$REPO" \
+              --arg changelog_source "$CHANGELOG_SOURCE" \
+              --arg changelog_mode "$CHANGELOG_MODE" \
+              --arg changelog_file_url "$CHANGELOG_FILE_URL" \
+              --arg changelog_file_path "$CHANGELOG_FILE_PATH" \
+              --arg reason "$REASON" \
+              --arg base_tag "$BASE_TAG" \
+              --arg commit_msg "$COMMIT_MSG" \
+              '. + [{
+                addon: $addon, addon_dir: $addon_dir,
+                version: $version, tag: $tag,
+                image: $image, dockerfile: $dockerfile,
+                platforms: $platforms, repo: $repo,
+                changelog_source: $changelog_source,
+                changelog_mode: $changelog_mode,
+                changelog_file_url: $changelog_file_url,
+                changelog_file_path: $changelog_file_path,
+                reason: $reason, base_tag: $base_tag,
+                commit_msg: $commit_msg
+              }]')
           done
 
           # 输出为 {include: [...]} 格式，符合 GitHub Actions matrix 要求
@@ -200,7 +244,6 @@ jobs:
           echo "=== Matrix ==="
           echo "$RESULT" | jq .
 
-  # 使用 reusable workflow 直接调用 Release（无需 REST API）
   trigger-release:
     needs: check-versions
     if: needs.check-versions.outputs.has_changes == 'true'
