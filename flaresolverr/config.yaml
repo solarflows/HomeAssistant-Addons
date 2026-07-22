@@ -45,7 +45,7 @@ schema:
   DISABLE_MEDIA: bool
   LANG: str?
   PROMETHEUS_ENABLED: bool
-  PROXY_URL: str?
+  PROXY_URL: url?
   PROXY_USERNAME: str?
   PROXY_PASSWORD: password?
 cap_add:

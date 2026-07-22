@@ -6,34 +6,44 @@
 # ==============================================================================
 bashio::log.info "Starting QD-Today..."
 
-# 仅在用户显式设置配置项时导出对应环境变量，留空则由 QD 使用内置默认值
-_set_if_configured() {
+# 导出所有配置项为环境变量
+# - bool/int 类型: 始终导出（options 默认值即 QD 默认值）
+# - str 类型: 仅非空时导出，空字符串由 QD 使用自身内置默认值
+_export_str() {
   local key="$1"
-  if bashio::config.has_value "${key}"; then
-    local val
-    val="$(bashio::config "${key}")"
+  local val
+  val="$(bashio::config "${key}")"
+  if [ -n "${val}" ]; then
     export "${key}=${val}"
     bashio::log.debug "Configured: ${key}=${val}"
   fi
 }
 
-_set_if_configured "QD_DEBUG"
-_set_if_configured "AES_KEY"
-_set_if_configured "COOKIE_SECRET"
-_set_if_configured "DOMAIN"
-_set_if_configured "USE_PYCURL"
-_set_if_configured "DNS_SERVER"
-_set_if_configured "TRACEBACK_PRINT"
-_set_if_configured "PUSH_BATCH_SW"
-_set_if_configured "PROXIES"
-_set_if_configured "MAIL_SMTP"
-_set_if_configured "MAIL_PORT"
-_set_if_configured "MAIL_SSL"
-_set_if_configured "MAIL_USER"
-_set_if_configured "MAIL_PASSWORD"
-_set_if_configured "TASK_REQUEST_LIMIT"
-_set_if_configured "TASK_WHILE_LOOP_TIMEOUT"
-_set_if_configured "NEW_TASK_DELAY"
+_export_val() {
+  local key="$1"
+  local val
+  val="$(bashio::config "${key}")"
+  export "${key}=${val}"
+  bashio::log.debug "Configured: ${key}=${val}"
+}
+
+_export_val "QD_DEBUG"
+_export_str "AES_KEY"
+_export_str "COOKIE_SECRET"
+_export_str "DOMAIN"
+_export_val "USE_PYCURL"
+_export_str "DNS_SERVER"
+_export_val "TRACEBACK_PRINT"
+_export_val "PUSH_BATCH_SW"
+_export_str "PROXIES"
+_export_str "MAIL_SMTP"
+_export_val "MAIL_PORT"
+_export_val "MAIL_SSL"
+_export_str "MAIL_USER"
+_export_str "MAIL_PASSWORD"
+_export_val "TASK_REQUEST_LIMIT"
+_export_val "TASK_WHILE_LOOP_TIMEOUT"
+_export_val "NEW_TASK_DELAY"
 
 cd /usr/src/app
 exec python3 run.py
