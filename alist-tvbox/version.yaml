@@ -7,4 +7,4 @@ build_args:
   ALIST_TVBOX_VERSION: "${version}"
 changelog:
   source: release_body  # 上游 release note 既是 changelog
-  mode: append           # 追加模式，保留历史记录
+  mode: prepend         # 添加到开头

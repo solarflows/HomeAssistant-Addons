@@ -6,6 +6,6 @@ tag_prefix: "v"
 build_args:
   UPSTREAM_TAG: "v${version}"  # Docker tag 格式: v3.4.0
 changelog:
-  source: release_body  # release note 包含当前版本变更
-  file_url: "https://github.com/FlareSolverr/FlareSolverr/raw/refs/heads/master/CHANGELOG.md"  # 完整 changelog
-  mode: replace          # 整个替换 CHANGELOG.md
+  source: file           # 从上游获取完整 changelog
+  file_url: "https://github.com/FlareSolverr/FlareSolverr/raw/refs/heads/master/CHANGELOG.md"
+  mode: prepend          # 添加到开头

@@ -7,6 +7,6 @@ build_args:
   UPSTREAM_TAG: "${version}"  # 先替换为 1.4.0-stable，再经 transform 转为 1.4-stable
 upstream_tag_transform: "s/\\.0-stable/-stable/"  # 1.4.0-stable → 1.4-stable
 changelog:
-  source: release_body  # release note 包含当前版本变更
-  file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"  # 完整 changelog
-  mode: replace          # 整个替换 CHANGELOG.md
+  source: file           # 从上游获取完整 changelog
+  file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"
+  mode: prepend          # 添加到开头
