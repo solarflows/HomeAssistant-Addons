@@ -72,8 +72,7 @@ ENV QL_DIR=/ql \
 # 端口
 EXPOSE 5700/tcp
 
-# 持久化目录
-VOLUME ["/config", "/ql/data"]
+# 持久化目录（/config、/ql/data 由 HAOS Supervisor + QL_DATA_DIR 接管）
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \

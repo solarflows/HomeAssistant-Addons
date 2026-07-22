@@ -77,8 +77,8 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # 端口
 EXPOSE 4567/tcp 5244/tcp
 
-# 持久化目录
-VOLUME ["/config", "/data", "/www/static"]
+# 持久化目录（/config、/data 由 HAOS Supervisor 自动挂载）
+VOLUME ["/www/static"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \

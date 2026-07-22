@@ -69,8 +69,7 @@ ENV PORT=8923 \
 # 端口
 EXPOSE 8923/tcp
 
-# 持久化目录
-VOLUME ["/config", "/usr/src/app/config"]
+# 持久化目录（/config 由 HAOS Supervisor 自动挂载，/usr/src/app/config 经 init 脚本 symlink）
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \

@@ -3,26 +3,20 @@
 # ==============================================================================
 # alist-tvbox 初始化脚本
 # ==============================================================================
-# 上游 entrypoint 将 Spring Boot 数据写入 /data/，symlink 到持久化目录
+# /config、/data 由 HAOS Supervisor 自动挂载（/data 持久但不在备份中）
+# /config → 用户可见配置；/data → 数据库等内部状态
 
 bashio::log.info "Initializing alist-tvbox..."
 
 # 创建持久化目录
-mkdir -p /config/data
 mkdir -p /config/atv/config
 mkdir -p /data/log
 
-# symlink /opt/alist/data → /config/data（alist 内核数据）
-if [ -d /config/data ]; then
-    rm -rf /opt/alist/data
-    ln -sf /config/data /opt/alist/data 2>/dev/null || true
-fi
+# Alist 内核数据 → /data/alist（HAOS 持久化）
+rm -rf /opt/alist/data
+ln -sf /data/alist /opt/alist/data
 
-# symlink /data → /config/data（Spring Boot atv 数据：atv.mv.db 等）
-if [ ! -L /data/store ]; then
-    mkdir -p /config/data/store
-    rm -rf /data/store
-    ln -sf /config/data/store /data/store 2>/dev/null || true
-fi
+# Spring Boot atv 数据直接写入 /data/store
+mkdir -p /data/store
 
 bashio::log.info "alist-tvbox initialization completed"

@@ -58,8 +58,7 @@ ENV TZ=Asia/Shanghai
 # 端口（host 模式下这些端口会直接映射到宿主机）
 EXPOSE 16601/tcp
 
-# 持久化目录
-VOLUME ["/config"]
+# 持久化目录（/config 由 HAOS Supervisor 自动挂载）
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \

@@ -19,8 +19,8 @@ ENV TZ=UTC \
 # 端口
 EXPOSE 8191/tcp 8192/tcp
 
-# 持久化目录
-VOLUME ["/config"]
+# 持久化目录（/config 由 HAOS Supervisor 自动挂载，/data 用于上游容器标准卷）
+VOLUME ["/data"]
 
 # Healthcheck (参考 alexbelgium)
 HEALTHCHECK --interval=30s --start-period=30s --timeout=25s --retries=5 \

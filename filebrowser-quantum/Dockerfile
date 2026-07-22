@@ -32,7 +32,8 @@ ENV TZ=Asia/Shanghai
 EXPOSE 8080/tcp
 
 # 持久化目录
-VOLUME ["/config", "/share"]
+# 持久化目录（/config、/share 由 HAOS Supervisor 自动挂载，/data 用于上游容器标准卷）
+VOLUME ["/data"]
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \

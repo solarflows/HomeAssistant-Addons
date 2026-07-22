@@ -16,6 +16,73 @@ ports_description:
   8923/tcp: "QD Web UI port"
 environment:
   TZ: "Asia/Shanghai"
+  QD_DEBUG: "False"
+  AES_KEY: "binux"
+  COOKIE_SECRET: "binux"
+  DOMAIN: ""
+  USE_PYCURL: "True"
+  DNS_SERVER: ""
+  TRACEBACK_PRINT: "False"
+  PUSH_BATCH_SW: "True"
+  PROXIES: ""
+  MAIL_SMTP: ""
+  MAIL_PORT: "465"
+  MAIL_SSL: "True"
+  MAIL_USER: ""
+  MAIL_PASSWORD: ""
+  TASK_REQUEST_LIMIT: "1500"
+  TASK_WHILE_LOOP_TIMEOUT: "900"
+  NEW_TASK_DELAY: "1"
+options:
+  AES_KEY:
+    description: "AES加密密钥（强烈建议修改）"
+  COOKIE_SECRET:
+    description: "Cookie加密密钥（强烈建议修改）"
+  DOMAIN:
+    description: "指定访问域名，否则邮件重置密码功能无效"
+  USE_PYCURL:
+    description: "是否启用Pycurl模组加速HTTP请求"
+  DNS_SERVER:
+    description: "通过Curl使用指定DNS（仅Pycurl环境），如 8.8.8.8"
+  TRACEBACK_PRINT:
+    description: "是否在控制台打印异常TraceBack信息"
+  PUSH_BATCH_SW:
+    description: "是否允许定期推送QD任务日志"
+  PROXIES:
+    description: "全局代理域名列表，多个用|分隔，格式 scheme://user:pass@host:port"
+  MAIL_SMTP:
+    description: "邮箱SMTP服务器地址"
+  MAIL_PORT:
+    description: "邮箱SMTP服务器端口"
+  MAIL_SSL:
+    description: "是否启用SSL加密收发邮件"
+  MAIL_USER:
+    description: "邮箱用户名"
+  MAIL_PASSWORD:
+    description: "邮箱密码（敏感信息，请妥善保管）"
+  TASK_REQUEST_LIMIT:
+    description: "单个任务最大请求次数，默认1500"
+  TASK_WHILE_LOOP_TIMEOUT:
+    description: "单个While循环最大运行时间(秒)，默认900(15分钟)"
+  NEW_TASK_DELAY:
+    description: "新建任务后准备时间(秒)，默认1"
+schema:
+  AES_KEY: str?
+  COOKIE_SECRET: str?
+  DOMAIN: str?
+  USE_PYCURL: bool?
+  DNS_SERVER: str?
+  TRACEBACK_PRINT: bool?
+  PUSH_BATCH_SW: bool?
+  PROXIES: str?
+  MAIL_SMTP: str?
+  MAIL_PORT: int?
+  MAIL_SSL: bool?
+  MAIL_USER: str?
+  MAIL_PASSWORD: password?
+  TASK_REQUEST_LIMIT: int?
+  TASK_WHILE_LOOP_TIMEOUT: int?
+  NEW_TASK_DELAY: int?
 map:
   - config:rw
   - ssl:ro

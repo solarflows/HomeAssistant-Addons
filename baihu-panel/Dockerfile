@@ -68,14 +68,13 @@ COPY rootfs /
 # 环境变量
 ENV BH_SERVER_PORT=8052 \
     BH_SERVER_HOST=0.0.0.0 \
-    BH_DB_PATH=/app/data/baihu.db \
+    BH_DB_PATH=/config/baihu/data/baihu.db \
     TZ=Asia/Shanghai
 
 # 端口
 EXPOSE 8052/tcp
 
-# 持久化目录
-VOLUME ["/config", "/app/data", "/app/configs", "/app/envs"]
+# 持久化目录（/config 由 HAOS Supervisor 自动挂载，子目录经 init 脚本 symlink）
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
