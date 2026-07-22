@@ -1,0 +1,6 @@
+---
+configuration:
+  TZ:
+    name: Timezone
+    description: >-
+      Timezone for the Qinglong panel, affects scheduled task execution times.

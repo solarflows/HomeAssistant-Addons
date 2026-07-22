@@ -1,0 +1,39 @@
+---
+configuration:
+  LOG_LEVEL:
+    name: 日志级别
+    description: >-
+      控制日志详细程度。设为 `debug` 可输出更详细的信息。
+  LOG_FILE:
+    name: 日志文件路径
+    description: >-
+      日志文件路径，留空则输出到控制台。
+      例：/config/flaresolverr.log
+  HEADLESS:
+    name: 无头模式
+    description: >-
+      无头模式运行浏览器。设为 false 可打开可见浏览器窗口用于调试。
+  DISABLE_MEDIA:
+    name: 禁用媒体加载
+    description: >-
+      禁用图片、CSS 和字体加载以节省带宽。
+  LANG:
+    name: 浏览器语言
+    description: >-
+      浏览器语言设置。例：zh_CN、en_GB。
+  PROMETHEUS_ENABLED:
+    name: Prometheus 监控
+    description: >-
+      在 8192 端口启用 Prometheus 监控指标导出。
+  PROXY_URL:
+    name: 上游代理地址
+    description: >-
+      上游代理地址。例：http://127.0.0.1:8080
+  PROXY_USERNAME:
+    name: 代理用户名
+    description: >-
+      上游代理认证用户名。
+  PROXY_PASSWORD:
+    name: 代理密码
+    description: >-
+      上游代理认证密码，请妥善保管。

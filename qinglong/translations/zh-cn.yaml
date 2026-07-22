@@ -1,0 +1,6 @@
+---
+configuration:
+  TZ:
+    name: 时区
+    description: >-
+      青龙面板时区设置，影响定时任务的执行时间。

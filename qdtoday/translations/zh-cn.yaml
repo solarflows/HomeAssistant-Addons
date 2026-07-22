@@ -1,0 +1,70 @@
+---
+configuration:
+  QD_DEBUG:
+    name: Debug 模式
+    description: >-
+      开启 Debug 日志。留空使用 QD 默认值（false）。
+  AES_KEY:
+    name: AES 加密密钥
+    description: >-
+      数据加密密钥，强烈建议修改默认值。留空使用 QD 默认值。
+  COOKIE_SECRET:
+    name: Cookie 签名密钥
+    description: >-
+      Cookie 签名密钥，强烈建议修改默认值。留空使用 QD 默认值。
+  DOMAIN:
+    name: 站点域名
+    description: >-
+      QD 实例的公开域名，邮件重置密码功能依赖此项。留空不启用。
+  USE_PYCURL:
+    name: 启用 PycURL
+    description: >-
+      启用 PycURL 模块加速 HTTP 请求。留空使用 QD 默认值（true）。
+  DNS_SERVER:
+    name: DNS 服务器
+    description: >-
+      为 Curl 指定 DNS 服务器（仅 PycURL 环境生效）。例：8.8.8.8。留空使用系统 DNS。
+  TRACEBACK_PRINT:
+    name: 打印异常堆栈
+    description: >-
+      在控制台输出异常 TraceBack 信息。留空使用 QD 默认值（false）。
+  PUSH_BATCH_SW:
+    name: 批量推送开关
+    description: >-
+      允许定期推送 QD 任务日志。留空使用 QD 默认值（true）。
+  PROXIES:
+    name: 全局代理列表
+    description: >-
+      全局代理域名列表，多个用 `|` 分隔。格式：scheme://user:pass@host:port
+  MAIL_SMTP:
+    name: SMTP 服务器
+    description: >-
+      发送邮件通知的 SMTP 服务器地址。留空禁用邮件功能。
+  MAIL_PORT:
+    name: SMTP 端口
+    description: >-
+      SMTP 服务器端口。留空使用 QD 默认值（465）。
+  MAIL_SSL:
+    name: SMTP SSL 加密
+    description: >-
+      启用 SMTP 连接的 SSL/TLS 加密。留空使用 QD 默认值（true）。
+  MAIL_USER:
+    name: SMTP 用户名
+    description: >-
+      SMTP 认证用户名。留空不启用。
+  MAIL_PASSWORD:
+    name: SMTP 密码
+    description: >-
+      SMTP 认证密码，请妥善保管。
+  TASK_REQUEST_LIMIT:
+    name: 任务请求上限
+    description: >-
+      单个任务最大 HTTP 请求次数。留空使用 QD 默认值（1500）。
+  TASK_WHILE_LOOP_TIMEOUT:
+    name: While 循环超时
+    description: >-
+      单个 While 循环最大运行时间（秒）。留空使用 QD 默认值（900）。
+  NEW_TASK_DELAY:
+    name: 新任务延迟
+    description: >-
+      新建任务后等待时间（秒）。留空使用 QD 默认值（1）。

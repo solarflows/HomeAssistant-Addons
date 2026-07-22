@@ -1,0 +1,83 @@
+---
+configuration:
+  QD_DEBUG:
+    name: Debug mode
+    description: >-
+      Enable debug logging. Leave empty to use QD default (false).
+  AES_KEY:
+    name: AES encryption key
+    description: >-
+      AES key for data encryption. Strongly recommend changing from default.
+      Leave empty to use QD default.
+  COOKIE_SECRET:
+    name: Cookie secret
+    description: >-
+      Secret key for cookie signing. Strongly recommend changing from default.
+      Leave empty to use QD default.
+  DOMAIN:
+    name: Site domain
+    description: >-
+      Public domain for the QD instance. Required for the password reset
+      email feature to work. Leave empty if not needed.
+  USE_PYCURL:
+    name: Use PycURL
+    description: >-
+      Enable PycURL module to accelerate HTTP requests.
+      Leave empty to use QD default (true).
+  DNS_SERVER:
+    name: DNS server
+    description: >-
+      DNS server for Curl resolution (PycURL only). Example: 8.8.8.8.
+      Leave empty to use system DNS.
+  TRACEBACK_PRINT:
+    name: Print traceback
+    description: >-
+      Print exception traceback info to the console.
+      Leave empty to use QD default (false).
+  PUSH_BATCH_SW:
+    name: Batch push switch
+    description: >-
+      Enable periodic push of QD task logs.
+      Leave empty to use QD default (true).
+  PROXIES:
+    name: Global proxy list
+    description: >-
+      List of global proxy domains, separated by `|`.
+      Format: scheme://user:pass@host:port
+  MAIL_SMTP:
+    name: SMTP server
+    description: >-
+      SMTP server address for sending email notifications.
+      Leave empty to disable email features.
+  MAIL_PORT:
+    name: SMTP port
+    description: >-
+      SMTP server port. Leave empty to use QD default (465).
+  MAIL_SSL:
+    name: SMTP SSL
+    description: >-
+      Enable SSL/TLS encryption for SMTP connections.
+      Leave empty to use QD default (true).
+  MAIL_USER:
+    name: SMTP username
+    description: >-
+      Username for SMTP authentication. Leave empty if not needed.
+  MAIL_PASSWORD:
+    name: SMTP password
+    description: >-
+      Password for SMTP authentication. Keep this confidential.
+  TASK_REQUEST_LIMIT:
+    name: Task request limit
+    description: >-
+      Maximum number of HTTP requests per task.
+      Leave empty to use QD default (1500).
+  TASK_WHILE_LOOP_TIMEOUT:
+    name: While loop timeout
+    description: >-
+      Maximum runtime in seconds for a single while loop.
+      Leave empty to use QD default (900).
+  NEW_TASK_DELAY:
+    name: New task delay
+    description: >-
+      Delay in seconds after creating a new task before it starts.
+      Leave empty to use QD default (1).

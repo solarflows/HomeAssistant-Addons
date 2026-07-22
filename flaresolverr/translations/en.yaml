@@ -1,0 +1,39 @@
+---
+configuration:
+  LOG_LEVEL:
+    name: Log level
+    description: >-
+      Controls the level of log details. Set to `debug` for verbose output.
+  LOG_FILE:
+    name: Log file path
+    description: >-
+      Path to log file. Leave empty to output logs to stdout.
+      Example: /config/flaresolverr.log
+  HEADLESS:
+    name: Headless mode
+    description: >-
+      Run the browser in headless mode. Set to false to open a visible browser window for debugging.
+  DISABLE_MEDIA:
+    name: Disable media loading
+    description: >-
+      Disable loading of images, CSS and fonts to save bandwidth.
+  LANG:
+    name: Browser language
+    description: >-
+      Language for the browser. Examples: zh_CN, en_GB.
+  PROMETHEUS_ENABLED:
+    name: Prometheus metrics
+    description: >-
+      Enable Prometheus metrics exporter on port 8192.
+  PROXY_URL:
+    name: Upstream proxy URL
+    description: >-
+      Upstream proxy address. Example: http://127.0.0.1:8080
+  PROXY_USERNAME:
+    name: Proxy username
+    description: >-
+      Username for upstream proxy authentication.
+  PROXY_PASSWORD:
+    name: Proxy password
+    description: >-
+      Password for upstream proxy authentication. Keep this confidential.
