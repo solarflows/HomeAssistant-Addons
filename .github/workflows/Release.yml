@@ -197,6 +197,14 @@ jobs:
               printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
             echo "Updated ${ADDON_DIR}/CHANGELOG.md with base image update record"
+          elif [ "$REASON" = "force_rebuild" ]; then
+            CHANGELOG_CONTENT="手动触发强制重建"
+            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
+              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
+              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+            else
+              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+            fi
           elif [ "$REASON" = "version_changed" ]; then
             if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
               # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
@@ -270,6 +278,8 @@ jobs:
               git commit -m "chore(${ADDON}): ${COMMIT_MSG:-update workflow/Dockerfile}"
             elif [ "$REASON" = "base_updated" ]; then
               git commit -m "chore(${ADDON}): 底包更新至 ${BASE_TAG}，rebuild ${BUILD_VERSION}"
+            elif [ "$REASON" = "force_rebuild" ]; then
+              git commit -m "chore(${ADDON}): 手动强制重建 ${BUILD_VERSION}"
             else
               git commit -m "chore(${ADDON}): update to ${BUILD_VERSION}"
             fi
