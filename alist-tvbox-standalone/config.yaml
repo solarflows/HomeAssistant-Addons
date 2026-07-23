@@ -1,6 +1,6 @@
 name: AList-TvBox Standalone
 slug: alist-tvbox-standalone
-version: "1.26.0-build.5"
+version: "1.26.0-build.6"
 image: ghcr.io/solarflows/alist-tvbox-standalone
 description: "AList-TvBox without embedded AList kernel, connect to external AList instance."
 url: https://github.com/power721/alist-tvbox
