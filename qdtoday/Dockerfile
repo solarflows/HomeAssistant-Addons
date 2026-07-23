@@ -29,6 +29,9 @@ RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
 RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
+# Patch: Python 3.12+ 新增 TO_BOOL opcode，safe_eval 沙箱未收录
+RUN sed -i "/'BUILD_STRING'/a \    'TO_BOOL'," /src/libs/safe_eval.py
+
 # 全量安装 Python 依赖（编译失败即终止，不做降级）
 WORKDIR /src
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
