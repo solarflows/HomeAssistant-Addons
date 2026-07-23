@@ -5,4 +5,19 @@
 # 在 cont-init.d 完成持久化目录设置后，启动 Lucky（前台阻塞运行）
 # ==============================================================================
 bashio::log.info "Starting Lucky..."
-exec /usr/local/bin/lucky -c /config/luckyconf/lucky.conf
+
+/usr/local/bin/lucky -c /config/luckyconf/lucky.conf &
+APP_PID=$!
+bashio::log.info "Waiting for Lucky to become ready..."
+for i in $(seq 1 60); do
+    if curl -sf http://127.0.0.1:16601/ 2>/dev/null; then
+        bashio::log.info "Lucky is ready (${i}s)"
+        printf '\n' >&3
+        wait $APP_PID
+        exit $?
+    fi
+    sleep 1
+done
+bashio::log.error "Lucky failed to start within 60s"
+kill $APP_PID 2>/dev/null
+exit 1

@@ -48,8 +48,15 @@ RUN apt-get update \
         openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-# 拷贝预编译的 site-packages (Stage 1 产物, python:3.13-slim)
+# 拷贝预编译包 + 桥接 Debian dist-packages ← python 官方 site-packages
+# Debian Python 只扫 /usr/local/lib/python3.X/dist-packages/，忽略 site-packages/
 COPY --from=builder /install /usr/local
+RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) && \
+    DST_DIR=$(dirname "$SRC") && DST="$DST_DIR/dist-packages" && \
+    if [ -n "$SRC" ] && [ ! -L "$DST" ]; then \
+        rm -rf "$DST" && ln -s site-packages "$DST"; \
+        echo "Bridge: $SRC → $DST"; \
+    fi
 
 # 拷贝源码
 COPY --from=builder /src /usr/src/app

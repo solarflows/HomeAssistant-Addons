@@ -9,4 +9,18 @@ bashio::log.info "Starting Qinglong..."
 
 export QL_DATA_DIR=/config/qinglong/data
 cd /ql
-exec ./docker/docker-entrypoint.sh
+./docker/docker-entrypoint.sh &
+APP_PID=$!
+bashio::log.info "Waiting for Qinglong to become ready..."
+for i in $(seq 1 120); do
+    if curl -sf http://127.0.0.1:5700/api/health 2>/dev/null; then
+        bashio::log.info "Qinglong is ready (${i}s)"
+        printf '\n' >&3
+        wait $APP_PID
+        exit $?
+    fi
+    sleep 1
+done
+bashio::log.error "Qinglong failed to start within 120s"
+kill $APP_PID 2>/dev/null
+exit 1

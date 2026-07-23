@@ -4,4 +4,19 @@
 # FileBrowser Quantum 启动脚本 (S6 longrun)
 # ==============================================================================
 bashio::log.info "Starting FileBrowser Quantum..."
-exec /usr/local/bin/filebrowser --config /config/filebrowser-quantum/config.yaml
+
+/usr/local/bin/filebrowser --config /config/filebrowser-quantum/config.yaml &
+APP_PID=$!
+bashio::log.info "Waiting for FileBrowser Quantum to become ready..."
+for i in $(seq 1 60); do
+    if curl -sf http://127.0.0.1:8080/ 2>/dev/null; then
+        bashio::log.info "FileBrowser Quantum is ready (${i}s)"
+        printf '\n' >&3
+        wait $APP_PID
+        exit $?
+    fi
+    sleep 1
+done
+bashio::log.error "FileBrowser Quantum failed to start within 60s"
+kill $APP_PID 2>/dev/null
+exit 1
