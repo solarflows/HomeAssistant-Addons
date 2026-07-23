@@ -5,7 +5,6 @@ image: ghcr.io/solarflows/qdtoday
 description: "QD - HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server"
 url: https://github.com/qd-today/qd
 init: false
-codenotary: fireflows@cock.li
 arch:
   - aarch64
   - amd64

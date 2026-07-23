@@ -7,7 +7,7 @@
 
 bashio::log.info "Initializing Lucky..."
 
-# 创建持久化目录
+# 创建持久化目录（lucky 首次运行会自动生成 lucky.conf）
 mkdir -p /config/luckyconf
 
 bashio::log.info "Lucky initialization completed"

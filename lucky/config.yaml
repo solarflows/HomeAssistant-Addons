@@ -4,7 +4,6 @@ version: "2.27.2-build.2"
 image: ghcr.io/solarflows/lucky
 description: "替代socat,IPv6 tcp/udp 转发内网IPv4,动态域名服务"
 url: https://github.com/gdy666/lucky
-codenotary: wghaos@163.com
 init: false
 boot: manual
 arch:
@@ -16,7 +15,7 @@ ports_description:
   16601/tcp: "Lucky Web UI port"
 ingress: true
 ingress_port: 16601
-panel_icon: "mdi:server-network"
+icon: "mdi:server-network"
 host_network: true
 map:
   - config:rw

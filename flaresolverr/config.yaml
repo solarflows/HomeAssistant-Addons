@@ -6,7 +6,6 @@ image: ghcr.io/solarflows/flaresolverr
 description: "Bypass Cloudflare anti-bot page, support for Home Assistant."
 url: https://github.com/FlareSolverr/FlareSolverr
 init: false
-codenotary: fireflows@cock.li
 arch:
   - aarch64
   - amd64
@@ -50,8 +49,7 @@ schema:
 cap_add:
   - SYS_ADMIN
   - IPC_LOCK
-tmpfs:
-  - /dev/shm:size=256M
+tmpfs: true
 map:
   - config:rw
 startup: application

@@ -5,11 +5,10 @@ image: ghcr.io/solarflows/alist-tvbox-standalone
 description: "AList-TvBox without embedded AList kernel, connect to external AList instance."
 url: https://github.com/power721/alist-tvbox
 init: false
-codenotary: fireflows@cock.li
 arch:
   - aarch64
   - amd64
-panel_icon: mdi:television-box
+icon: mdi:television-box
 webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 ports:
   4567/tcp: 4567
