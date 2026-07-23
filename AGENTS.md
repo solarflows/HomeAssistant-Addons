@@ -149,3 +149,8 @@ Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon bui
 - `yq eval` defaults YAML; add `-o=json` for jq
 - `needs.<job>` must be declared in `needs:` list
 - Action versions: use `@v4` (`@v7`/`@v8` may not exist)
+
+## Skills reference
+- **ha-addon-conventions**: schema type reference, per-addon build specifics, bashio patterns, CI version detection details → `.github/skills/ha-addon-conventions/SKILL.md`
+- **create-addon**: scaffold new addon directory → `.github/skills/create-addon/SKILL.md`
+- **fix-ci**: debug CI/CD failures → `.github/skills/fix-ci/SKILL.md`
