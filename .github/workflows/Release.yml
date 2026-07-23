@@ -343,6 +343,7 @@ jobs:
             PUSH_OK=false
             for i in 1 2 3; do
               git pull --rebase origin main && git push origin main && { PUSH_OK=true; break; }
+              git rebase --abort 2>/dev/null || true
               echo "Push attempt $i failed, retrying..."
               sleep 2
             done
@@ -353,71 +354,9 @@ jobs:
             echo "Committed ${ADDON} ${VERSION}"
           fi
 
-  cache-summary:
-    needs: build
-    if: always()
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      packages: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Login to GHCR
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install regctl
+      - name: Build summary
+        if: success()
         run: |
-          curl -fsSL https://github.com/regclient/regclient/releases/download/v0.8.2/regctl-linux-amd64 -o /usr/local/bin/regctl
-          chmod +x /usr/local/bin/regctl
-
-      - name: Show build cache summary
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo '### Build Cache Summary'
-          TOTAL=$(gh cache list --repo "${{ github.repository }}" --limit 200 \
-            --json sizeInBytes 2>/dev/null \
-            | jq '[.[].sizeInBytes] | add // 0')
-          COUNT=$(gh cache list --repo "${{ github.repository }}" --limit 200 \
-            --json key 2>/dev/null | jq 'length')
-          TOTAL_MB=$(echo "scale=1; $TOTAL / 1048576" | bc)
-          echo "**${COUNT} entries, ${TOTAL_MB} MB total**"
-
-      - name: Show image sizes from GHCR
-        run: |
-          echo ''
-          echo '### GHCR Image Sizes (compressed)'
-          echo ''
-          printf '| %-30s | %10s | %10s |\n' 'Addon' 'amd64' 'arm64'
-          printf '| %-30s | %10s | %10s |\n' ':---' '---:' '---:'
-          OWNER="${{ github.repository_owner }}"
-          for dir in */; do
-            [ -f "${dir}version.yaml" ] || continue
-            slug="${dir%/}"
-            IMAGE="ghcr.io/${OWNER}/${slug}:latest"
-            # 逐平台查询压缩大小（公开仓库无需登录）
-            AMD64=$(regctl manifest get "$IMAGE" --platform linux/amd64 --format '{{.GetSize}}' 2>/dev/null)
-            ARM64=$(regctl manifest get "$IMAGE" --platform linux/arm64 --format '{{.GetSize}}' 2>/dev/null)
-            if [ -n "$AMD64" ]; then
-              AMD64=$(echo "scale=1; $AMD64 / 1048576" | bc)
-              AMD64="${AMD64} MB"
-            else
-              AMD64="-"
-            fi
-            if [ -n "$ARM64" ]; then
-              ARM64=$(echo "scale=1; $ARM64 / 1048576" | bc)
-              ARM64="${ARM64} MB"
-            else
-              ARM64="-"
-            fi
-            printf '| %-30s | %10s | %10s |\n' "$slug" "$AMD64" "$ARM64"
-          done
+          IMAGE="${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}"
+          SIZE=$(docker buildx imagetools inspect "$IMAGE" --format '{{range .Manifest.Manifests}}{{printf "%.1f MB" (div .Size 1048576)}}{{end}}' 2>/dev/null || echo "N/A")
+          echo "### ${{ matrix.addon }}  \`${IMAGE}\` — ${SIZE}" >> $GITHUB_STEP_SUMMARY
