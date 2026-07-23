@@ -1,3 +1,7 @@
+### 2.27.2-build.12 (2026-07-23)
+Dockerfile 变更
+feat: S6_STAGE2_HOOK for all S6 addons
+
 ### 2.27.2-build.11 (2026-07-23)
 config.yaml/version.yaml 变更
 build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.8
