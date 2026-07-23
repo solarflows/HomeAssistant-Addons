@@ -30,9 +30,21 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# 构建前端（如果存在）
+# 构建前端（如果存在），确保产出目录不为空
 RUN if [ -d "web" ] && [ -f "web/package.json" ]; then \
         cd web && npm ci && npm run build && cd ..; \
+    fi \
+    && mkdir -p /www/baihu \
+    && if [ -d "web/dist" ]; then \
+        cp -r web/dist/* /www/baihu/; \
+    else \
+        touch /www/baihu/.gitkeep; \
+    fi \
+    && mkdir -p /app/configs \
+    && if [ -d "configs" ] && ls configs/* >/dev/null 2>&1; then \
+        cp -r configs/* /app/configs/; \
+    else \
+        touch /app/configs/.gitkeep; \
     fi
 
 # 构建后端
@@ -55,8 +67,9 @@ RUN apt-get update \
 COPY --from=builder /baihu /usr/local/bin/baihu
 RUN chmod +x /usr/local/bin/baihu
 
-# 复制前端静态文件和配置（构建期如不存在会被跳过）
-RUN --mount=type=bind,from=builder,source=/src,target=/builder-src mkdir -p /www/baihu /app/configs; test -d /builder-src/web/dist && ls /builder-src/web/dist/* >/dev/null 2>&1 && cp -r /builder-src/web/dist/* /www/baihu/ || true; test -d /builder-src/configs && ls /builder-src/configs/* >/dev/null 2>&1 && cp -r /builder-src/configs/* /app/configs/ || true
+# 复制前端静态文件和配置（Stage 1 已确保目录非空）
+COPY --from=builder /www/baihu /www/baihu
+COPY --from=builder /app/configs /app/configs
 
 # 创建数据目录
 RUN mkdir -p /app/data /app/configs /app/envs

@@ -25,10 +25,9 @@ RUN apk add --no-cache git \
 
 WORKDIR /src
 
-# 安装依赖并构建
+# 安装依赖并构建（失败即终止，不做降级）
 RUN pnpm install --frozen-lockfile \
-    && npm run build \
-    || true
+    && npm run build
 
 # ---- Stage 2: HA 运行时 ----
 FROM ${BUILD_FROM}
@@ -54,8 +53,8 @@ COPY --from=builder /src /ql
 RUN rm -rf /ql/node_modules
 WORKDIR /ql
 
-# 安装生产依赖
-RUN pnpm install --prod --frozen-lockfile 2>/dev/null || true
+# 安装生产依赖（失败即终止）
+RUN pnpm install --prod --frozen-lockfile
 
 # 创建数据目录
 RUN mkdir -p /ql/data
