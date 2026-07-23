@@ -110,3 +110,5 @@ case "$AUTH_METHOD" in
 esac
 
 bashio::log.info "FileBrowser Quantum initialization completed"
+
+rm -f /run/service/filebrowser-quantum/down 2>/dev/null

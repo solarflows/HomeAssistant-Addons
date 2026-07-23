@@ -27,3 +27,5 @@ if [ ! -L /app/envs ]; then
 fi
 
 bashio::log.info "Baihu Panel initialization completed"
+
+rm -f /run/service/baihu/down 2>/dev/null

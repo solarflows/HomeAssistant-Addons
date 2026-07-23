@@ -11,3 +11,5 @@ bashio::log.info "Initializing Lucky..."
 mkdir -p /config/luckyconf
 
 bashio::log.info "Lucky initialization completed"
+
+rm -f /run/service/lucky/down 2>/dev/null

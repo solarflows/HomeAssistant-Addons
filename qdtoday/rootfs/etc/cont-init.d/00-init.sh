@@ -26,3 +26,5 @@ if [ ! -L /usr/src/app/config ]; then
 fi
 
 bashio::log.info "QD-Today initialization completed"
+
+rm -f /run/service/qdtoday/down 2>/dev/null

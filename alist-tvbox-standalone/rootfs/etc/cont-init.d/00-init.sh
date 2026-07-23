@@ -15,3 +15,5 @@ mkdir -p /data/log
 mkdir -p /data/store
 
 bashio::log.info "alist-tvbox-standalone initialization completed"
+
+rm -f /run/service/atv-standalone/down 2>/dev/null

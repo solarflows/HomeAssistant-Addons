@@ -20,3 +20,6 @@ ln -sf /data/alist /opt/alist/data
 mkdir -p /data/store
 
 bashio::log.info "alist-tvbox initialization completed"
+
+# 确保 legacy-services 自动启动（debian-base 默认加 down 标记）
+rm -f /run/service/alist-tvbox/down 2>/dev/null
