@@ -1,3 +1,6 @@
+### 3.5.0-build.6 (2026-07-23)
+CI 工作流变更\nMerge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+
 ### 2026-07-23 - config.yaml/version.yaml 变更: build(lucky): CI 工作流变更 → 2.27.2-build.6
 
 ### 2026-07-23 - CI 工作流变更: docs(skills): ha-addon-conventions 精简为英文核心模式 (220→110行)
