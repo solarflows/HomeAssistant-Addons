@@ -1,3 +1,7 @@
+### 20250803-build.10 (2026-07-23)
+CI 工作流变更
+fix(s6): cont-init 末尾 rm down 文件，修复 legacy-services 不自动启动
+
 ### 20250803-build.9 (2026-07-23)
 CI 工作流变更\nMerge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
 
