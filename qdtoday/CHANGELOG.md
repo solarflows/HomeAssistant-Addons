@@ -1,3 +1,7 @@
+### 20250803-build.15 (2026-07-23)
+Dockerfile 变更
+build(qdtoday): Dockerfile 变更 → 20250803-build.14
+
 ### 20250803-build.14 (2026-07-23)
 Dockerfile 变更
 fix(qdtoday): safe_eval 补丁 — 添加 Python 3.12+ 新增的 TO_BOOL opcode
