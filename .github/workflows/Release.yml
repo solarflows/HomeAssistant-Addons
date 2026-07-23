@@ -50,11 +50,18 @@ jobs:
           ADDON="${{ matrix.addon }}"
           REASON="${{ matrix.reason || 'version_changed' }}"
           NEW_VER="${{ matrix.new_ver || '' }}"
+
+          # 文件触发类型统一标记（dockerfile|rootfs|config|workflow|file_changed）
+          case "$REASON" in
+            dockerfile|rootfs|config|workflow|file_changed) IS_FILE_TRIGGER=true ;;
+            *) IS_FILE_TRIGGER=false ;;
+          esac
           VERSION_FILE="${ADDON}/version.yaml"
           CONFIG_FILE="${ADDON}/config.yaml"
 
           # ---- 计算 version / build_version / build_num ----
           VERSION=$(yq eval '.version // ""' "$VERSION_FILE")
+          OLD_VERSION="$VERSION"  # 保存旧版本号用于 commit 消息
           BUILD_NUM_CUR=$(yq eval '.tracking.build_num // 0' "$VERSION_FILE")
 
           if [ "$REASON" = "version_changed" ]; then
@@ -91,7 +98,7 @@ jobs:
           CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$VERSION_FILE")
           CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$VERSION_FILE")
 
-          if [ "$REASON" = "file_changed" ]; then
+          if [ "$IS_FILE_TRIGGER" = "true" ]; then
             COMMIT_MSG=$(git log -1 --pretty=format:"%s")
           else
             COMMIT_MSG=""
@@ -105,6 +112,7 @@ jobs:
           echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
           echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
           echo "reason=$REASON" >> $GITHUB_OUTPUT
+          echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "repo=$REPO" >> $GITHUB_OUTPUT
           echo "changelog_source=$CHANGELOG_SOURCE" >> $GITHUB_OUTPUT
@@ -114,6 +122,7 @@ jobs:
           echo "base_tag=$BASE_TAG" >> $GITHUB_OUTPUT
           echo "build_num=$BUILD_NUM" >> $GITHUB_OUTPUT
           echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "is_file_trigger=$IS_FILE_TRIGGER" >> $GITHUB_OUTPUT
 
       - name: Prepare build args
         id: buildargs
@@ -171,18 +180,27 @@ jobs:
           COMMIT_MSG="${{ steps.prep.outputs.commit_msg }}"
           BASE_TAG="${{ steps.prep.outputs.base_tag }}"
           BUILD_NUM="${{ steps.prep.outputs.build_num }}"
+          IS_FILE_TRIGGER="${{ steps.prep.outputs.is_file_trigger || 'false' }}"
+          OLD_VERSION="${{ steps.prep.outputs.old_version || '' }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
-          if [ "$REASON" = "version_changed" ] || [ "$REASON" = "base_updated" ] || [ "$REASON" = "file_changed" ] || [ "$REASON" = "force_rebuild" ]; then
+          if [ "$REASON" = "version_changed" ] || [ "$REASON" = "base_updated" ] || [ "$IS_FILE_TRIGGER" = "true" ] || [ "$REASON" = "force_rebuild" ]; then
             yq eval ".version = \"${BUILD_VERSION}\"" -i "${ADDON_DIR}/config.yaml"
             echo "Updated ${ADDON_DIR}/config.yaml to version ${BUILD_VERSION}"
           fi
 
           # 更新 CHANGELOG.md
-          if [ "$REASON" = "file_changed" ]; then
-            # 文件变更：使用 commit message 作为 changelog
-            CHANGELOG_CONTENT="${COMMIT_MSG:-chore: update workflow/Dockerfile}"
+          if [ "$IS_FILE_TRIGGER" = "true" ]; then
+            # 文件变更：标记触发原因
+            case "$REASON" in
+              dockerfile)  CHANGELOG_TAG="Dockerfile 变更" ;;
+              rootfs)      CHANGELOG_TAG="rootfs 脚本/配置变更" ;;
+              config)      CHANGELOG_TAG="config.yaml/version.yaml 变更" ;;
+              workflow)    CHANGELOG_TAG="CI 工作流变更" ;;
+              *)           CHANGELOG_TAG="文件变更" ;;
+            esac
+            CHANGELOG_CONTENT="${CHANGELOG_TAG}: ${COMMIT_MSG:-无提交信息}"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
               # prepend: 添加到开头
               printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
@@ -284,14 +302,37 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add "${ADDON_DIR}/"
-            if [ "$REASON" = "file_changed" ]; then
-              git commit -m "chore(${ADDON}): ${COMMIT_MSG:-update workflow/Dockerfile}"
+            if [ "$IS_FILE_TRIGGER" = "true" ]; then
+              # 文件变更：标注触发原因 + commit message
+              case "$REASON" in
+                dockerfile) git commit -m "build(${ADDON}): Dockerfile 变更 → ${BUILD_VERSION}" \
+                                   -m "${COMMIT_MSG:-Dockerfile updated}" ;;
+                rootfs)     git commit -m "build(${ADDON}): rootfs 脚本/配置变更 → ${BUILD_VERSION}" \
+                                   -m "${COMMIT_MSG:-rootfs updated}" ;;
+                config)     git commit -m "build(${ADDON}): config.yaml/version.yaml 变更 → ${BUILD_VERSION}" \
+                                   -m "${COMMIT_MSG:-config updated}" ;;
+                workflow)   git commit -m "build(${ADDON}): CI 工作流变更 → ${BUILD_VERSION}" \
+                                   -m "${COMMIT_MSG:-CI workflow updated}" ;;
+                *)          git commit -m "build(${ADDON}): 文件变更 → ${BUILD_VERSION}" \
+                                   -m "${COMMIT_MSG}" ;;
+              esac
             elif [ "$REASON" = "base_updated" ]; then
-              git commit -m "chore(${ADDON}): 底包更新至 ${BASE_TAG}，rebuild ${BUILD_VERSION}"
+              ADDON_OLD_BASE=$(yq eval '.tracking.base_tag // "?"' "$VERSION_FILE")
+              git commit -m "build(${ADDON}): debian-base ${ADDON_OLD_BASE} → ${BASE_TAG}，${BUILD_VERSION}" \
+                         -m "底包 ${ADDON_OLD_BASE} → ${BASE_TAG}，重建以适配新系统层"
             elif [ "$REASON" = "force_rebuild" ]; then
-              git commit -m "chore(${ADDON}): 手动强制重建 ${BUILD_VERSION}"
+              git commit -m "build(${ADDON}): 手动强制重建 → ${BUILD_VERSION}" \
+                         -m "force_rebuild by ${{ github.actor }} on ${TIMESTAMP}"
             else
-              git commit -m "chore(${ADDON}): update to ${BUILD_VERSION}"
+              # version_changed：标注版本跃迁
+              if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$VERSION" ]; then
+                VER_DESC="${OLD_VERSION} → ${VERSION}"
+              else
+                VER_DESC="${VERSION}"
+              fi
+              RELEASE_TITLE=$(echo "$RELEASE_BODY" | head -3 | tr '\n' ' ' | cut -c1-200)
+              git commit -m "chore(${ADDON}): upstream ${VER_DESC}" \
+                         -m "${RELEASE_TITLE:-Upstream release ${VERSION}}"
             fi
             # 重试 push，处理并行构建的竞态
             PUSH_OK=false

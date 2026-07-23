@@ -182,21 +182,29 @@ jobs:
                 if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
                   HAS_CHANGES="true"
                   ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
-                  ADDON_REASON["$ADDON_DIR"]="file_changed"
+                  ADDON_REASON["$ADDON_DIR"]="workflow"
                 fi
               done
             else
-              # 非工作流变更 → 按文件路径匹配到对应 addon
+              # 非工作流变更 → 按文件路径匹配到对应 addon，区分子原因
               for file in $CHANGED_FILES; do
                 if echo "$file" | grep -qE '^[^/]+/(Dockerfile|rootfs/|version\.yaml|config\.yaml)'; then
                   ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
-                  if [ -f "${ADDON_DIR}/version.yaml" ]; then
-                    if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
-                      echo "  File change: $file → addon $ADDON_DIR"
-                      HAS_CHANGES="true"
-                      ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
-                      ADDON_REASON["$ADDON_DIR"]="file_changed"
-                    fi
+                  [ -f "${ADDON_DIR}/version.yaml" ] || continue
+
+                  # 确定子原因（优先级：Dockerfile > rootfs > config）
+                  case "$file" in
+                    */Dockerfile)    TRIG="dockerfile" ;;
+                    */rootfs/*)      TRIG="rootfs" ;;
+                    *version.yaml|*config.yaml) TRIG="config" ;;
+                    *)               TRIG="file_changed" ;;
+                  esac
+
+                  if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
+                    echo "  File change ($TRIG): $file → addon $ADDON_DIR"
+                    HAS_CHANGES="true"
+                    ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
+                    ADDON_REASON["$ADDON_DIR"]="$TRIG"
                   fi
                 fi
               done
@@ -207,7 +215,7 @@ jobs:
           # 5. 构建 matrix（精简 3 字段，Release 自行计算其余参数）
           # ============================================================
           # addon   = 目录名
-          # reason  = version_changed | base_updated | file_changed | force_rebuild
+          # reason  = version_changed | base_updated | dockerfile | rootfs | config | workflow | force_rebuild
           # new_ver = 仅 reason=version_changed 时有效的新上游版本号
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
             REASON="${ADDON_REASON[$ADDON_DIR]}"
