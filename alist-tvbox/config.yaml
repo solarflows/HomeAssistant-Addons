@@ -22,7 +22,6 @@ environment:
   ALIST_PORT: "5344"
   INSTALL: "xiaoya"
   MEM_OPT: "-Xmx512M"
-  TZ: "Asia/Shanghai"
 map:
   - config:rw
 startup: application

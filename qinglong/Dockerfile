@@ -46,7 +46,6 @@ RUN apt-get update \
         jq \
         openssl \
         procps \
-        tzdata \
     && npm i -g pnpm@8.3.1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -64,9 +63,11 @@ RUN mkdir -p /ql/data
 # 复制 HA rootfs
 COPY rootfs /
 
+# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run
+
 # 环境变量
 ENV QL_DIR=/ql \
-    TZ=Asia/Shanghai \
     NODE_ENV=production
 
 # 端口

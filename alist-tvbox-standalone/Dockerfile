@@ -70,8 +70,7 @@ RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -ex
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
     MEM_OPT="-Xmx512M" \
     ALIST_PORT=5344 \
-    INSTALL=new \
-    TZ=Asia/Shanghai
+    INSTALL=new
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # 端口

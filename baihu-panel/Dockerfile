@@ -49,7 +49,6 @@ RUN apt-get update \
         wget \
         git \
         ca-certificates \
-        tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制 Go 二进制
@@ -65,11 +64,13 @@ RUN mkdir -p /app/data /app/configs /app/envs
 # 复制 HA rootfs
 COPY rootfs /
 
+# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run
+
 # 环境变量
 ENV BH_SERVER_PORT=8052 \
     BH_SERVER_HOST=0.0.0.0 \
-    BH_DB_PATH=/config/baihu/data/baihu.db \
-    TZ=Asia/Shanghai
+    BH_DB_PATH=/config/baihu/data/baihu.db
 
 # 端口
 EXPOSE 8052/tcp

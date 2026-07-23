@@ -9,6 +9,7 @@ bashio::log.info "Starting QD-Today..."
 # 导出所有配置项为环境变量
 # - bool/int 类型: 始终导出（options 默认值即 QD 默认值）
 # - str 类型: 仅非空时导出，空字符串由 QD 使用自身内置默认值
+# - 高级配置（UI隐藏）: 通过 $2 填默认值，用户手动写入 YAML 时覆盖
 _export_str() {
   local key="$1"
   local val
@@ -20,9 +21,9 @@ _export_str() {
 }
 
 _export_val() {
-  local key="$1"
+  local key="$1" default="${2:-}"
   local val
-  val="$(bashio::config "${key}")"
+  val="$(bashio::config "${key}" "${default}")"
   export "${key}=${val}"
   bashio::log.debug "Configured: ${key}=${val}"
 }
@@ -31,19 +32,19 @@ _export_val "QD_DEBUG"
 _export_str "AES_KEY"
 _export_str "COOKIE_SECRET"
 _export_str "DOMAIN"
-_export_val "USE_PYCURL"
+_export_val "USE_PYCURL" "true"
 _export_str "DNS_SERVER"
-_export_val "TRACEBACK_PRINT"
-_export_val "PUSH_BATCH_SW"
+_export_val "TRACEBACK_PRINT" "false"
+_export_val "PUSH_BATCH_SW" "true"
 _export_str "PROXIES"
 _export_str "MAIL_SMTP"
 _export_val "MAIL_PORT"
-_export_val "MAIL_SSL"
+_export_val "MAIL_SSL" "true"
 _export_str "MAIL_USER"
 _export_str "MAIL_PASSWORD"
-_export_val "TASK_REQUEST_LIMIT"
-_export_val "TASK_WHILE_LOOP_TIMEOUT"
-_export_val "NEW_TASK_DELAY"
+_export_val "TASK_REQUEST_LIMIT" "1500"
+_export_val "TASK_WHILE_LOOP_TIMEOUT" "900"
+_export_val "NEW_TASK_DELAY" "1"
 
 cd /usr/src/app
 exec python3 run.py

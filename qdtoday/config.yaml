@@ -14,43 +14,33 @@ ports:
   8923/tcp: 8923
 ports_description:
   8923/tcp: "QD Web UI port"
-environment:
-  TZ: "Asia/Shanghai"
 # 可选配置项：修改后保存即可生效，无需重启整个 addon。
-# 留空（不填）时 QD-Today 将使用自身内置默认值，无需重复声明。
+# 常用配置在 UI 中可见；高级配置可手动写入 YAML（见下方 schema）。
 options:
   QD_DEBUG: false
   AES_KEY: ""
   COOKIE_SECRET: ""
   DOMAIN: ""
-  USE_PYCURL: true
-  DNS_SERVER: ""
-  TRACEBACK_PRINT: false
-  PUSH_BATCH_SW: true
-  PROXIES: ""
   MAIL_SMTP: ""
   MAIL_PORT: 465
-  MAIL_SSL: true
   MAIL_USER: ""
   MAIL_PASSWORD: ""
-  TASK_REQUEST_LIMIT: 1500
-  TASK_WHILE_LOOP_TIMEOUT: 900
-  NEW_TASK_DELAY: 1
 schema:
   QD_DEBUG: bool?
   AES_KEY: str?
   COOKIE_SECRET: str?
   DOMAIN: str?
+  MAIL_SMTP: str?
+  MAIL_PORT: int?
+  MAIL_USER: str?
+  MAIL_PASSWORD: password?
+  # 高级配置（UI 中隐藏，手动写入 YAML 生效）
   USE_PYCURL: bool?
   DNS_SERVER: str?
   TRACEBACK_PRINT: bool?
   PUSH_BATCH_SW: bool?
   PROXIES: str?
-  MAIL_SMTP: str?
-  MAIL_PORT: int?
   MAIL_SSL: bool?
-  MAIL_USER: str?
-  MAIL_PASSWORD: password?
   TASK_REQUEST_LIMIT: int?
   TASK_WHILE_LOOP_TIMEOUT: int?
   NEW_TASK_DELAY: int?

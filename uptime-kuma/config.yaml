@@ -14,8 +14,6 @@ ports:
   3001/tcp: 3001
 ports_description:
   3001/tcp: 'Uptime Kuma Web UI port'
-environment:
-  TZ: "Asia/Shanghai"
 map:
   - config:rw
   - share:rw

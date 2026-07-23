@@ -13,18 +13,6 @@ bashio::log.info "Initializing FileBrowser Quantum..."
 mkdir -p /config/filebrowser-quantum /cache
 
 ################
-# TIMEZONE     #
-################
-if bashio::config.has_value 'TZ'; then
-    TZ=$(bashio::config 'TZ')
-    if [ -f "/usr/share/zoneinfo/${TZ}" ]; then
-        ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
-        echo "${TZ}" > /etc/timezone
-        bashio::log.info "Timezone set to ${TZ}"
-    fi
-fi
-
-################
 # CONFIG FILE  #
 ################
 FILEBROWSER_CONFIG="/config/filebrowser-quantum/config.yaml"

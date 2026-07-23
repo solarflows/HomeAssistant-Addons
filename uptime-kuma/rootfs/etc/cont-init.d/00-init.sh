@@ -54,16 +54,4 @@ if [ -x /usr/sbin/nscd ]; then
     /usr/sbin/nscd -f /etc/nscd.conf || bashio::log.warning "Failed to start nscd"
 fi
 
-################
-# TIMEZONE     #
-################
-if bashio::config.has_value 'TZ'; then
-    TZ=$(bashio::config 'TZ')
-    if [ -f "/usr/share/zoneinfo/${TZ}" ]; then
-        ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
-        echo "${TZ}" > /etc/timezone
-        bashio::log.info "Timezone set to ${TZ}"
-    fi
-fi
-
 bashio::log.info "Uptime Kuma initialization completed"

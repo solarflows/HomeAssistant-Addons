@@ -21,7 +21,6 @@ environment:
   LOG_FILE: ""
   HEADLESS: "true"
   DISABLE_MEDIA: "false"
-  TZ: "UTC"
   LANG: ""
   PROMETHEUS_ENABLED: "false"
   PROXY_URL: ""

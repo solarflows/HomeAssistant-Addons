@@ -40,6 +40,9 @@ RUN ARCH=$(case "${TARGETARCH}" in \
 # 复制 HA rootfs (S6 overlay)
 COPY rootfs /
 
+# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run
+
 # 端口
 EXPOSE 8080/tcp
 

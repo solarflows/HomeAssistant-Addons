@@ -17,11 +17,6 @@ ports_description:
   5700/tcp: "Web UI port"
 environment:
   QL_DIR: /ql
-  TZ: "Asia/Shanghai"
-options:
-  TZ: "Asia/Shanghai"
-schema:
-  TZ: str?
 map:
   - config:rw
   - share:rw

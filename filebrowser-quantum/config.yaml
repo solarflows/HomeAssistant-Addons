@@ -14,8 +14,6 @@ ports:
   8080/tcp: 8080
 ports_description:
   8080/tcp: 'FileBrowser Quantum Web UI port'
-environment:
-  TZ: "Asia/Shanghai"
 map:
   - config:rw
   - ssl:ro

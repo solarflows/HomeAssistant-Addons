@@ -20,8 +20,7 @@ COPY rootfs /
 RUN chmod +x /entrypoint.sh
 
 # 环境变量
-ENV TZ=UTC \
-    LOG_LEVEL=info
+ENV LOG_LEVEL=info
 
 # 端口
 EXPOSE 8191/tcp 8192/tcp
