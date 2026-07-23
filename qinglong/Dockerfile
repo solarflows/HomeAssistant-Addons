@@ -64,7 +64,9 @@ RUN mkdir -p /ql/data
 COPY rootfs /
 
 # 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
+
+ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 
 # 环境变量
 ENV QL_DIR=/ql \

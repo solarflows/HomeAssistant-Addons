@@ -59,6 +59,18 @@ longrun
 ```
 - After `COPY rootfs /`: `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run`
 - ⚠️ No `notification-fd` / `timeout-up` — debian-base:9.3.0 S6 is too old; unknown files cause service to silently skip.
+- **S6 Stage 2 Hook**: debian-base uses legacy-services for user-defined services under `/etc/s6-overlay/s6-rc.d/`.
+  - s6-rc reads the `/run/service/` tree at boot and creates `down` files for non-builtin services **before** cont-init runs.
+  - Without intervention, user services start in "down" state and `s6-supervise` never launches them.
+  - **Solution**: `S6_STAGE2_HOOK` env + hook script (after cont-init, before service start):
+    ```sh
+    # Dockerfile
+    ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
+    RUN chmod a+x ... /etc/s6-overlay/scripts/stage2_hook.sh
+    ```
+    Hook script: remove `down` + `s6-svc -u` for each user service (skip `s6-*` builtins).
+    Ref: tailscale addon pattern.
+  - **Do NOT** use cont-init `rm -f down` / `s6-svc -o` workarounds — they race with s6 startup.
 
 ## translations/
 ```yaml

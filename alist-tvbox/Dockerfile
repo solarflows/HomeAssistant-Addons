@@ -77,6 +77,8 @@ COPY rootfs /
 RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -exec chmod +x {} \; 2>/dev/null || true \
     && chmod +x /docker/scripts/*.sh 2>/dev/null || true
 
+ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
+
 # 环境变量
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
     MEM_OPT="-Xmx512M" \

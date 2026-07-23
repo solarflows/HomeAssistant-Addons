@@ -14,7 +14,7 @@
 | qdtoday | qd-today/qd | Python src build | 8923 | yes |
 | qinglong | whyour/qinglong | Node.js src build | 5700 | yes |
 | baihu-panel | engigu/baihu-panel | Go src build | 8052 | yes |
-| filebrowser-quantum | gtsteffaniak/filebrowser | upstream image | 8080 | no |
+| filebrowser-quantum | gtsteffaniak/filebrowser | upstream image | 8080 | yes |
 
 ### Version prefixes
 
@@ -51,7 +51,8 @@
 - `s6-rc.d/<service>/run` — `#!/usr/bin/with-contenv bashio`, ends with `exec <app>` (must block foreground)
 - **rootfs can't be empty**: Docker COPY fails on empty dir → add `.gitkeep`
 - **bashio**: `bashio::config`, `bashio::log`, `bashio::addon.ingress_entry`
-- **Exception**: non-debian-base images (flaresolverr, filebrowser-quantum) use ENTRYPOINT wrapper
+- **S6_STAGE2_HOOK**: `ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh` — removes `down` files + `s6-svc -u` for user services. Required because legacy-services creates `down` flags before cont-init.
+- **Exception**: non-debian-base images (flaresolverr) use ENTRYPOINT wrapper
 
 ### Build strategies
 
