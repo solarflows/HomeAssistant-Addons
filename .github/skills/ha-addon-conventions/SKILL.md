@@ -40,14 +40,25 @@ map: [config:rw]       # minimum; add ssl:ro, share:rw as needed
 #!/usr/bin/with-contenv bashio
 mkdir -p /config/<app> && ln -sf /config/<app> /app/data
 
-# rootfs/etc/s6-overlay/s6-rc.d/<name>/run
+# rootfs/etc/s6-overlay/s6-rc.d/<name>/run  (health-check + wait loop)
 #!/usr/bin/with-contenv bashio
-cd /app && exec python3 run.py
+APP_PID=
+trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
+/app &
+APP_PID=$!
+for i in $(seq 1 120); do
+    if curl -sf http://127.0.0.1:PORT/ 2>/dev/null; then
+        wait $APP_PID; exit $?
+    fi
+    sleep 1
+done
+kill $APP_PID 2>/dev/null; exit 1
 
 # rootfs/etc/s6-overlay/s6-rc.d/<name>/type
 longrun
 ```
 - After `COPY rootfs /`: `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run`
+- ⚠️ No `notification-fd` / `timeout-up` — debian-base:9.3.0 S6 is too old; unknown files cause service to silently skip.
 
 ## translations/
 ```yaml

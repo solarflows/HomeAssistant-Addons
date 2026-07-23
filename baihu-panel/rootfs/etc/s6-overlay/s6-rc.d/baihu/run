@@ -14,7 +14,6 @@ bashio::log.info "Waiting for Baihu Panel to become ready..."
 for i in $(seq 1 60); do
     if curl -sf http://127.0.0.1:8052/ 2>/dev/null; then
         bashio::log.info "Baihu Panel is ready (${i}s)"
-        printf '\n' >&3
         wait $APP_PID
         exit $?
     fi
