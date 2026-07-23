@@ -8,6 +8,7 @@ bashio::log.info "Starting Uptime Kuma..."
 cd /opt/uptime-kuma || exit 1
 node server/server.js &
 APP_PID=$!
+trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
 bashio::log.info "Waiting for Uptime Kuma to become ready..."
 for i in $(seq 1 120); do
     if curl -sf http://127.0.0.1:3001/ 2>/dev/null; then

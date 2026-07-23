@@ -9,6 +9,7 @@ bashio::log.info "Starting Baihu Panel..."
 
 /usr/local/bin/baihu &
 APP_PID=$!
+trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
 bashio::log.info "Waiting for Baihu Panel to become ready..."
 for i in $(seq 1 60); do
     if curl -sf http://127.0.0.1:8052/ 2>/dev/null; then

@@ -9,6 +9,7 @@ bashio::log.info "Starting AList-TvBox Standalone..."
 cd /opt/atv
 /docker/scripts/entrypoint.sh 81 --spring.profiles.active=production,docker &
 APP_PID=$!
+trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
 bashio::log.info "Waiting for AList-TvBox Standalone to become ready..."
 for i in $(seq 1 120); do
     if curl -sf http://127.0.0.1:4567/ 2>/dev/null; then

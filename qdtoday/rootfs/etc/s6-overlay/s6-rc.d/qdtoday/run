@@ -55,6 +55,7 @@ bashio::log.info "QD source: $(ls run.py config.py 2>&1)"
 
 python3 run.py &
 APP_PID=$!
+trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
 bashio::log.info "Waiting for QD-Today to become ready..."
 for i in $(seq 1 120); do
     if curl -sf http://127.0.0.1:8923/ 2>/dev/null; then
