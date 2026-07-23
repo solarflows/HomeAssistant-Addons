@@ -1,6 +1,6 @@
 name: Lucky(万吉)
 slug: lucky
-version: "2.27.2-build.8"
+version: "2.27.2-build.9"
 image: ghcr.io/solarflows/lucky
 description: "替代socat,IPv6 tcp/udp 转发内网IPv4,动态域名服务"
 url: https://github.com/gdy666/lucky

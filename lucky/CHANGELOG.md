@@ -1,3 +1,6 @@
+### 2.27.2-build.9 (2026-07-23)
+CI 工作流变更\nMerge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+
 ### 2026-07-23 - rootfs 脚本/配置变更: fix(s6): run 脚本添加 SIGTERM trap，防止停止时产生孤儿进程
 
 ### 2026-07-23 - config.yaml/version.yaml 变更: build(lucky): CI 工作流变更 → 2.27.2-build.6
