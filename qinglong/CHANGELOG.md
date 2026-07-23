@@ -1,3 +1,7 @@
+### 2.21.0-build.14 (2026-07-23)
+CI 工作流变更
+fix(s6): stage2_hook 后台轮询等待 legacy-services 就绪
+
 ### 2.21.0-build.13 (2026-07-23)
 Dockerfile 变更
 feat: S6_STAGE2_HOOK for all S6 addons
