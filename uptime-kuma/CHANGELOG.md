@@ -1,5 +1,7 @@
 ### 2026-07-23 - 手动触发强制重建
 
+### 2026-07-23 - 手动触发强制重建
+
 ### 2.4.0 (2026-07-22)
 ### 🆕 New Features
 - #7434 feat(notification): add EgoSMS SMS provider for Uganda (Thanks @kristianinc @cursoragent)
