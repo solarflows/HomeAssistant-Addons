@@ -1,3 +1,5 @@
+### 2026-07-23 - fix(qinglong): npm run build 不存在，改为 pnpm run build:front && build:back
+
 ### 2026-07-23 - 手动触发强制重建
 
 ### 2026-07-22 - 底包更新至 v9.3.0，无功能变更
