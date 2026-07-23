@@ -1,6 +1,6 @@
 name: FileBrowser Quantum
 slug: filebrowser-quantum
-version: "1.5.0-stable-build.9"
+version: "1.5.0-stable-build.10"
 image: ghcr.io/solarflows/filebrowser-quantum
 description: "Modern, responsive web-based file manager with multi-source support and advanced authentication"
 url: https://github.com/gtsteffaniak/filebrowser
