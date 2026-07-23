@@ -1,6 +1,6 @@
 name: 白虎面板
 slug: baihu-panel
-version: "1.1.22-build.2"
+version: "1.1.22-build.3"
 image: ghcr.io/solarflows/baihu-panel
 description: "轻量级定时任务管理系统，支持 Python, Node.js, Go, Rust, PHP 等所有主流语言"
 url: https://github.com/engigu/baihu-panel
