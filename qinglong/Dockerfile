@@ -25,9 +25,10 @@ RUN apk add --no-cache git \
 
 WORKDIR /src
 
-# 安装依赖并构建（失败即终止，不做降级）
+# 安装依赖并构建前后端（失败即终止）
 RUN pnpm install --frozen-lockfile \
-    && npm run build
+    && pnpm run build:front \
+    && pnpm run build:back
 
 # ---- Stage 2: HA 运行时 ----
 FROM ${BUILD_FROM}
