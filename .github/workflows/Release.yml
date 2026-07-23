@@ -315,36 +315,59 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Show GitHub Actions cache summary
+      - name: Install regctl
+        run: |
+          curl -fsSL https://github.com/regclient/regclient/releases/download/v0.8.2/regctl-linux-amd64 -o /usr/local/bin/regctl
+          chmod +x /usr/local/bin/regctl
+
+      - name: Show aggregated cache per addon
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo '### GitHub Actions Cache Summary'
+          echo '### Build Cache per Addon'
           echo ''
-          TOTAL_SIZE=0
-          while IFS=$'\t' read -r key size created; do
-            SIZE_MB=$(echo "scale=2; $size / 1048576" | bc)
-            TOTAL_SIZE=$((TOTAL_SIZE + size))
-            printf '| %-30s | %8s MB | %-20s |\n' "$key" "$SIZE_MB" "$created"
-          done < <(gh cache list --repo "${{ github.repository }}" \
-            --sort created_at --order desc --limit 20 \
-            --json key,sizeInBytes,createdAt \
-            | jq -r '.[] | "\(.key)\t\(.sizeInBytes)\t\(.createdAt[0:19])"' 2>/dev/null)
-          TOTAL_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+          printf '| %-30s | %10s | %6s |\n' 'Addon' 'Size' 'Keys'
+          printf '| %-30s | %10s | %6s |\n' ':---' '---:' '---:'
+          TOTAL=0
+          for dir in */; do
+            [ -f "${dir}version.yaml" ] || continue
+            slug="${dir%/}"
+            # 精确匹配 scope 边界：slug 后跟 - 或行尾，防止 alist-tvbox 误匹配 alist-tvbox-standalone
+            DATA=$(gh cache list --repo "${{ github.repository }}" --limit 100 \
+              --json key,sizeInBytes 2>/dev/null \
+              | jq --arg s "$slug" '[.[] | select(.key | test($s + "(-|$)"))] | {count: length, total: (map(.sizeInBytes) | add // 0)}')
+            SIZE=$(echo "$DATA" | jq -r '.total')
+            COUNT=$(echo "$DATA" | jq -r '.count')
+            if [ "$SIZE" -gt 0 ] 2>/dev/null; then
+              SIZE_MB=$(echo "scale=1; $SIZE / 1048576" | bc)
+              TOTAL=$((TOTAL + SIZE))
+              printf '| %-30s | %7s MB | %6s |\n' "$slug" "$SIZE_MB" "$COUNT"
+            fi
+          done
+          TOTAL_MB=$(echo "scale=1; $TOTAL / 1048576" | bc)
           echo ""
-          echo "**Total: ${TOTAL_MB} MB**"
+          echo "**Total cache: ${TOTAL_MB} MB**"
 
       - name: Show image sizes from GHCR
         run: |
           echo ''
-          echo '### GHCR Image Sizes'
+          echo '### GHCR Image Sizes (compressed)'
           echo ''
+          printf '| %-30s | %10s | %10s |\n' 'Addon' 'amd64' 'arm64'
+          printf '| %-30s | %10s | %10s |\n' ':---' '---:' '---:'
           OWNER="${{ github.repository_owner }}"
           for dir in */; do
             [ -f "${dir}version.yaml" ] || continue
             slug="${dir%/}"
             IMAGE="ghcr.io/${OWNER}/${slug}:latest"
-            echo "#### ${slug}"
-            docker buildx imagetools inspect "$IMAGE" 2>/dev/null || echo "  (not found)"
-            echo ""
+            OUT=$(regctl image size "$IMAGE" 2>/dev/null) || OUT=""
+            if [ -n "$OUT" ]; then
+              AMD64=$(echo "$OUT" | grep 'amd64' | awk '{print $2, $3}' | head -1)
+              ARM64=$(echo "$OUT" | grep 'arm64' | awk '{print $2, $3}' | head -1)
+              [ -z "$AMD64" ] && AMD64="-"
+              [ -z "$ARM64" ] && ARM64="-"
+              printf '| %-30s | %10s | %10s |\n' "$slug" "$AMD64" "$ARM64"
+            else
+              printf '| %-30s | %10s | %10s |\n' "$slug" "(pending)" "(pending)"
+            fi
           done
