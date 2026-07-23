@@ -1,3 +1,7 @@
+### 2.4.0-build.11 (2026-07-23)
+CI 工作流变更
+fix(s6): stage2_hook 后台轮询等待 legacy-services 就绪
+
 ### 2.4.0-build.10 (2026-07-23)
 Dockerfile 变更
 Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons into feat/upgrade-base-image
