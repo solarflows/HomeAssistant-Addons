@@ -192,7 +192,7 @@ jobs:
 
           # 更新 CHANGELOG.md
           if [ "$IS_FILE_TRIGGER" = "true" ]; then
-            # 文件变更：标记触发原因
+            # 文件变更：版本号作标题，原因+详情换行
             case "$REASON" in
               dockerfile)  CHANGELOG_TAG="Dockerfile 变更" ;;
               rootfs)      CHANGELOG_TAG="rootfs 脚本/配置变更" ;;
@@ -200,32 +200,37 @@ jobs:
               workflow)    CHANGELOG_TAG="CI 工作流变更" ;;
               *)           CHANGELOG_TAG="文件变更" ;;
             esac
-            CHANGELOG_CONTENT="${CHANGELOG_TAG}: ${COMMIT_MSG:-无提交信息}"
+            CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-无提交信息}"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              # prepend: 添加到开头
-              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
-              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+              rm -f temp_changelog.md combined.md
             else
-              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
             echo "Updated ${ADDON_DIR}/CHANGELOG.md with file change record"
           elif [ "$REASON" = "base_updated" ]; then
-            # 底包更新：记录 debian-base tag
+            # 底包更新
             CHANGELOG_CONTENT="底包更新至 ${BASE_TAG}，无功能变更"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
-              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+              rm -f temp_changelog.md combined.md
             else
-              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
             echo "Updated ${ADDON_DIR}/CHANGELOG.md with base image update record"
           elif [ "$REASON" = "force_rebuild" ]; then
             CHANGELOG_CONTENT="手动触发强制重建"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s - %s\n\n%s" "$TIMESTAMP" "$CHANGELOG_CONTENT" "$(cat "${ADDON_DIR}/CHANGELOG.md")" > temp_changelog.md
-              mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+              rm -f temp_changelog.md combined.md
             else
-              printf "### %s - %s\n\n" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
           elif [ "$REASON" = "version_changed" ]; then
             if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
