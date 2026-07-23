@@ -47,4 +47,10 @@ _export_val "TASK_WHILE_LOOP_TIMEOUT" "900"
 _export_val "NEW_TASK_DELAY" "1"
 
 cd /usr/src/app
+
+# 启动前诊断
+bashio::log.info "Python: $(python3 --version 2>&1)"
+bashio::log.info "Working dir: $(pwd)"
+bashio::log.info "QD source: $(ls run.py config.py 2>&1)"
+
 exec python3 run.py
