@@ -136,3 +136,16 @@ bashio::config.has_value 'KEY'  # true=用户显式设置, false=来自 options 
 ## 其他约定
 - **S6 内置时区**: `base-app-timezone` 服务自动处理 TZ — 禁止在 `environment` / `options` / `schema` / `Dockerfile ENV` 中设置 `TZ`。移除 `cont-init.d` 中的手动时区代码块及 apt-get 中的 `tzdata`
 - **隐藏可选配置**: 参考 alexbelgium `cifsdomain` 模式 — 从 `options` 中省略（UI 中隐藏），在 `schema` 中以 `?` 类型保留，脚本中通过 `bashio::config` 第 2 参数提供默认值
+
+## Docker Build Tips (debian-base)
+- **Node version**: Bookworm ships Node.js 18; if the app needs >=20 (e.g. Vite/Tailwind v4), install via nodesource: `curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs`
+- **Upstream source tarball**: GitHub archive lacks pre-built `dist/` — always run `npm run download-dist` after `npm ci`
+- **Chromium**: add `cap_add: [SYS_ADMIN, IPC_LOCK]` in config.yaml; large `/dev/shm` causes arithmetic overflow → patch `/etc/chromium.d/dev-shm` helper
+- **Chromium 140+**: wrapper script uses `==` (bashism) under `#!/bin/sh` → `sed '1s|/bin/sh|/bin/bash|' /usr/bin/chromium`
+- **Windows `COPY rootfs /`**: Git on Windows strips Unix `+x` → S6 scripts fail with exit 126. Always add `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run` after `COPY rootfs /` (non-debian-base: `RUN chmod +x /entrypoint.sh`)
+
+## CI Detail Reference
+- **debian-base tag**: API returns `v9.3.0` format → always `sed 's/^v//'` before comparing with stored `base_tag`
+- **New addon detection**: `tracking.file_sha` empty → CI treats as `version_changed` (first build)
+- **Push retry**: 3 attempts `pull --rebase && push`, `exit 1` on final failure (not silent skip)
+- **GitHub Packages**: old packages may be unwritable under new permission model → delete & recreate; avoid 2-char package names (triggers limits)
