@@ -1,0 +1,22 @@
+---
+configuration:
+  no_proxy:
+    name: No proxy domains
+    description: >-
+      Domains that bypass the HTTP proxy, comma-separated.
+      Default: *.aliyundrive.com
+  ALIST_PORT:
+    name: AList port
+    description: >-
+      Internal AList service port. Default: 5344.
+  INSTALL:
+    name: Install mode
+    description: >-
+      Installation mode: xiaoya (integrated Xiaoya AList) or new (clean install).
+  MEM_OPT:
+    name: JVM memory limit
+    description: >-
+      Java heap memory limit. Default: -Xmx512M.
+network:
+  4567/tcp: Management Web UI (TvBox config, subscriptions)
+  80/tcp: AList Web UI (file browsing, cloud storage management)

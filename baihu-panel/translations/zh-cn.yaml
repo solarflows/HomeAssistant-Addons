@@ -1,0 +1,16 @@
+---
+configuration:
+  BH_SERVER_PORT:
+    name: 服务端口
+    description: >-
+      Web 管理面板端口。默认：8052。
+  BH_SERVER_HOST:
+    name: 监听地址
+    description: >-
+      服务监听地址。默认：0.0.0.0。
+  BH_DB_PATH:
+    name: 数据库路径
+    description: >-
+      SQLite 数据库文件路径。默认：/config/baihu/data/baihu.db。
+network:
+  8052/tcp: 白虎面板 Web 管理界面

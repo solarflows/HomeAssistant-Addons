@@ -1,17 +1,35 @@
 # Uptime Kuma
 
-A fancy self-hosted monitoring tool, comparable to "Uptime Robot".
+自托管的服务监控工具，功能对标 Uptime Robot。Node.js 实现，界面精美，功能全面。
 
-## Features
+## 上游
 
-- Monitor HTTP/S, TCP, DNS, and other protocols
-- Notifications via Apprise, MQTT, email, and more
-- Status pages for public monitoring
-- Home Assistant integration via webhook
+[louislam/uptime-kuma](https://github.com/louislam/uptime-kuma)
 
-## Configuration
+## 支持架构
 
-This add-on has no configuration options. Everything is managed and configured
-from within the Uptime Kuma web interface.
+- `aarch64` (ARM64)
+- `amd64` (x86_64)
 
-**Default**: Access at http://[host]:3001
+## 端口
+
+| 端口 | 说明 |
+|---|---|
+| `3001/tcp` | Uptime Kuma Web 监控面板 |
+
+## 配置项
+
+| 配置项 | 默认值 | 说明 |
+|---|---|---|
+| `TZ` | `Asia/Shanghai` | 时区 |
+
+> 所有监控配置通过 Web UI 操作，加载项无额外配置项。
+
+## 特色功能
+
+- 📊 支持 HTTP/S、TCP、DNS、Ping、MQTT、Docker、gRPC、SQL 等 10+ 种监控类型
+- 🔔 70+ 通知渠道（Apprise 全平台）：Email、Telegram、Discord、钉钉、企业微信等
+- 📈 状态页面：公开分享监控面板
+- 🏠 Home Assistant 集成：通过 Webhook 推送监控状态到 HA
+- 🎨 深色模式 + 多语言 + 移动端适配
+- 🔐 多用户 + 2FA 认证

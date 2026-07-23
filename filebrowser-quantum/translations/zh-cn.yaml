@@ -1,0 +1,12 @@
+---
+configuration:
+  auth_method:
+    name: 认证方式
+    description: >-
+      认证方式：password（密码）、noauth（无认证）、proxy（代理）或 oidc（OpenID Connect）。
+  default_user_scope:
+    name: 默认用户目录
+    description: >-
+      文件浏览的默认目录路径，"/" 表示根目录。
+network:
+  8080/tcp: FileBrowser Quantum Web 管理界面

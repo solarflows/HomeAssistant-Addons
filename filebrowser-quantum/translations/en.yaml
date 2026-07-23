@@ -1,0 +1,12 @@
+---
+configuration:
+  auth_method:
+    name: Auth method
+    description: >-
+      Authentication method: password, noauth, proxy, or oidc.
+  default_user_scope:
+    name: Default user scope
+    description: >-
+      Default directory path for file browsing. Use "/" for root.
+network:
+  8080/tcp: FileBrowser Quantum Web UI

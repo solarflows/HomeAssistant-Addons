@@ -1,0 +1,22 @@
+---
+configuration:
+  no_proxy:
+    name: No proxy domains
+    description: >-
+      Domains that bypass the HTTP proxy, comma-separated.
+      Default: *.aliyundrive.com
+  ALIST_PORT:
+    name: AList port
+    description: >-
+      External AList service port. Default: 5244.
+  INSTALL:
+    name: Install mode
+    description: >-
+      Installation mode, fixed to "new" for standalone edition.
+  MEM_OPT:
+    name: JVM memory limit
+    description: >-
+      Java heap memory limit. Default: -Xmx512M.
+network:
+  4567/tcp: Management Web UI (TvBox config, subscriptions)
+  5244/tcp: AList port (connects to external AList instance)

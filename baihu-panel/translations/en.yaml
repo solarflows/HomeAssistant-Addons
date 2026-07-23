@@ -1,0 +1,16 @@
+---
+configuration:
+  BH_SERVER_PORT:
+    name: Server port
+    description: >-
+      Web management panel port. Default: 8052.
+  BH_SERVER_HOST:
+    name: Listen address
+    description: >-
+      Server listen address. Default: 0.0.0.0.
+  BH_DB_PATH:
+    name: Database path
+    description: >-
+      SQLite database file path. Default: /config/baihu/data/baihu.db.
+network:
+  8052/tcp: Baihu Panel Web management UI

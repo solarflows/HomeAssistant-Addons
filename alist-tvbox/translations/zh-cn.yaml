@@ -1,0 +1,21 @@
+---
+configuration:
+  no_proxy:
+    name: 不走代理的域名
+    description: >-
+      不使用 HTTP 代理的域名，逗号分隔。默认：*.aliyundrive.com
+  ALIST_PORT:
+    name: AList 端口
+    description: >-
+      内部 AList 服务端口。默认：5344。
+  INSTALL:
+    name: 安装模式
+    description: >-
+      安装模式：xiaoya（小雅集成版）或 new（纯净版）。
+  MEM_OPT:
+    name: JVM 内存限制
+    description: >-
+      Java 堆内存限制。默认：-Xmx512M。
+network:
+  4567/tcp: 管理后台 Web UI（TvBox 配置、订阅管理）
+  80/tcp: AList Web UI（文件浏览、网盘管理）

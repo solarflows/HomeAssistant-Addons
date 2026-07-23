@@ -23,6 +23,13 @@
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
 | `LOG_LEVEL` | `info` | 日志级别：`debug` / `info` / `warn` / `error` |
+| `HEADLESS` | `true` | Chrome 无头模式 |
+| `DISABLE_MEDIA` | `false` | 禁用媒体资源请求以加速 |
+| `LANG` | (空) | 浏览器语言（如 `zh-CN`） |
+| `PROMETHEUS_ENABLED` | `false` | 启用 Prometheus 指标导出 |
+| `PROXY_URL` | (空) | 上游代理地址 |
+| `PROXY_USERNAME` | (空) | 上游代理用户名 |
+| `PROXY_PASSWORD` | (空) | 上游代理密码 |
 | `TZ` | `UTC` | 时区 |
 
 ## 容器能力
