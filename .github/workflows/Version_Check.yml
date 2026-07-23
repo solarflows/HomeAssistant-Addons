@@ -16,6 +16,8 @@ on:
     paths:
       - '**/Dockerfile'
       - '**/rootfs/**'
+      - '**/version.yaml'
+      - '**/config.yaml'
       - '.github/workflows/**'
 
 permissions:
@@ -69,6 +71,11 @@ jobs:
             CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || echo "")
             COMMIT_MSG="${{ github.event.head_commit.message }}"
             echo "=== Push event: diff ${{ github.event.before }}..${{ github.event.after }} ==="
+            # 兜底：fetch-depth 不足或 before SHA 无效时，扫描最近 10 个 commit
+            if [ -z "$CHANGED_FILES" ]; then
+              echo "=== Diff returned empty, falling back to git log ==="
+              CHANGED_FILES=$(git log --name-only --format="" -10 2>/dev/null | sort -u | sed '/^$/d')
+            fi
           else
             # 从任意一个 addon 的 tracking.file_sha 取上次检查点
             LAST_SHA=""
@@ -158,19 +165,42 @@ jobs:
             echo "=== File changes ==="
             echo "$CHANGED_FILES"
 
+            WORKFLOW_CHANGED=false
             for file in $CHANGED_FILES; do
-              if echo "$file" | grep -qE '^(.github/workflows/|[^/]+/Dockerfile|[^/]+/rootfs/)'; then
-                ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
-                if [ -f "${ADDON_DIR}/version.yaml" ]; then
-                  if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
-                    echo "  File change: $file → addon $ADDON_DIR"
-                    HAS_CHANGES="true"
-                    ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
-                    ADDON_REASON["$ADDON_DIR"]="file_changed"
-                  fi
-                fi
+              if echo "$file" | grep -qE '^\.github/workflows/'; then
+                WORKFLOW_CHANGED=true
+                break
               fi
             done
+
+            # 工作流变更 → 全量重建（构建管道本身变了）
+            if [ "$WORKFLOW_CHANGED" = "true" ]; then
+              echo "  Workflow changed, triggering rebuild for ALL addons"
+              for vf in */version.yaml; do
+                [ -f "$vf" ] || continue
+                ADDON_DIR=$(dirname "$vf")
+                if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
+                  HAS_CHANGES="true"
+                  ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
+                  ADDON_REASON["$ADDON_DIR"]="file_changed"
+                fi
+              done
+            else
+              # 非工作流变更 → 按文件路径匹配到对应 addon
+              for file in $CHANGED_FILES; do
+                if echo "$file" | grep -qE '^[^/]+/(Dockerfile|rootfs/|version\.yaml|config\.yaml)'; then
+                  ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
+                  if [ -f "${ADDON_DIR}/version.yaml" ]; then
+                    if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
+                      echo "  File change: $file → addon $ADDON_DIR"
+                      HAS_CHANGES="true"
+                      ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
+                      ADDON_REASON["$ADDON_DIR"]="file_changed"
+                    fi
+                  fi
+                fi
+              done
+            fi
           fi
 
           # ============================================================
