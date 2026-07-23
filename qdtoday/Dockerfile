@@ -8,9 +8,9 @@
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: 编译阶段 (python:3.11-slim-bookworm, 全量构建工具链) ----
-# 与运行时同为 Bookworm，保证 glibc/libssl 等系统库二进制兼容
-FROM python:3.11-slim-bookworm AS builder
+# ---- Stage 1: 编译阶段 (python:3.13-slim-bookworm, 全量构建工具链) ----
+# 与运行时 debian-base:9.3.0 (Python 3.13) 版本对齐，避免 site-packages 路径差异
+FROM python:3.13-slim-bookworm AS builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -48,7 +48,7 @@ RUN apt-get update \
         openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
-# 拷贝预编译的 site-packages (Stage 1 产物)
+# 拷贝预编译的 site-packages (Stage 1 产物, python:3.13-slim)
 COPY --from=builder /install /usr/local
 
 # 拷贝源码
