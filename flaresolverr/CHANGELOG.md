@@ -1,3 +1,7 @@
+### 3.5.0-build.9 (2026-07-23)
+CI 工作流变更
+fix(s6): stage2_hook 后台轮询等待 legacy-services 就绪
+
 ### 3.5.0-build.8 (2026-07-23)
 config.yaml/version.yaml 变更
 build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.8
