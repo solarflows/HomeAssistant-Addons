@@ -16,6 +16,7 @@ on:
 permissions:
   contents: write
   packages: write
+  actions: read
 
 jobs:
   build:
@@ -292,3 +293,27 @@ jobs:
             fi
             echo "Committed ${ADDON} ${VERSION}"
           fi
+
+  cache-summary:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show GitHub Actions cache summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo '### GitHub Actions Cache Summary'
+          echo ''
+          TOTAL_SIZE=0
+          while IFS=$'\t' read -r key size created; do
+            SIZE_MB=$(echo "scale=2; $size / 1048576" | bc)
+            TOTAL_SIZE=$((TOTAL_SIZE + size))
+            printf '| %-30s | %8s MB | %-20s |\n' "$key" "$SIZE_MB" "$created"
+          done < <(gh cache list --repo "${{ github.repository }}" \
+            --sort created_at --order desc --limit 20 \
+            --json key,sizeInBytes,createdAt \
+            | jq -r '.[] | "\(.key)\t\(.sizeInBytes)\t\(.createdAt[0:19])"' 2>/dev/null)
+          TOTAL_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+          echo ""
+          echo "**Total: ${TOTAL_MB} MB**"
