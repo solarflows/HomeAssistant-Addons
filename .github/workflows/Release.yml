@@ -137,8 +137,8 @@ jobs:
           tags: |
             ${{ steps.prep.outputs.image }}:latest
             ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}
-          cache-from: type=gha,scope=${{ matrix.addon }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.addon }}
+          cache-from: type=gha,scope=buildkit
+          cache-to: type=gha,mode=max,scope=buildkit
 
       - name: Prepare config updates & commit
         if: success()
@@ -327,28 +327,15 @@ jobs:
           echo '### Build Cache Summary'
           echo ''
 
-          # 1. 列出有缓存的 addon（按 index 条目统计）
-          printf '| %-30s | %6s |\n' 'Addon' 'Indexes'
-          printf '| %-30s | %6s |\n' ':---' '---:'
-          for dir in */; do
-            [ -f "${dir}version.yaml" ] || continue
-            slug="${dir%/}"
-            COUNT=$(gh cache list --repo "${{ github.repository }}" --limit 100 \
-              --json key 2>/dev/null \
-              | jq --arg s "$slug" '[.[] | select(.key | startswith("index-\($s)"))] | length')
-            [ "$COUNT" -gt 0 ] 2>/dev/null && printf '| %-30s | %6s |\n' "$slug" "$COUNT"
-          done
-
-          # 2. 汇总所有 buildkit-blob 总大小（实际缓存数据）
-          echo ''
+          # 汇总所有 buildkit 缓存（统一 scope=buildkit，自动按内容 hash 去重）
           TOTAL=$(gh cache list --repo "${{ github.repository }}" --limit 200 \
             --json key,sizeInBytes 2>/dev/null \
-            | jq '[.[] | select(.key | startswith("buildkit-blob")) | .sizeInBytes] | add // 0')
+            | jq '[.[] | select(.key | startswith("buildkit")) | .sizeInBytes] | add // 0')
           TOTAL_MB=$(echo "scale=1; $TOTAL / 1048576" | bc)
-          BLOBS=$(gh cache list --repo "${{ github.repository }}" --limit 200 \
+          COUNT=$(gh cache list --repo "${{ github.repository }}" --limit 200 \
             --json key 2>/dev/null \
-            | jq '[.[] | select(.key | startswith("buildkit-blob"))] | length')
-          echo "**Total cache blobs: ${BLOBS} entries, ${TOTAL_MB} MB**"
+            | jq '[.[] | select(.key | startswith("buildkit"))] | length')
+          echo "**Total cache: ${COUNT} entries, ${TOTAL_MB} MB**"
 
       - name: Show image sizes from GHCR
         run: |
