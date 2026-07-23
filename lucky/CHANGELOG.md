@@ -1,3 +1,5 @@
+### 2026-07-23 - fix(ci): 三处增强保证 rootfs/workflow 变更触发构建
+
 ### 2026-07-23 - 手动触发强制重建
 
 ### 2026-07-23 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
