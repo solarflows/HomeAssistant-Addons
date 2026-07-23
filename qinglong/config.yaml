@@ -14,8 +14,6 @@ ports:
   5700/tcp: 5700
 ports_description:
   5700/tcp: "Web UI port"
-environment:
-  QL_DIR: /ql
 map:
   - config:rw
   - share:rw
