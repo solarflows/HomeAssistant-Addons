@@ -202,12 +202,12 @@ jobs:
             esac
             CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-无提交信息}"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+              printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
               cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
               mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
               rm -f temp_changelog.md combined.md
             else
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+              printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
             echo "Updated ${ADDON_DIR}/CHANGELOG.md with file change record"
           elif [ "$REASON" = "base_updated" ]; then
