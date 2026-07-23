@@ -1,3 +1,7 @@
+### 2.4.0-build.10 (2026-07-23)
+Dockerfile 变更
+Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons into feat/upgrade-base-image
+
 ### 2.4.0-build.9 (2026-07-23)
 config.yaml/version.yaml 变更
 build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.8
