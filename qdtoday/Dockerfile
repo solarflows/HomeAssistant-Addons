@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 #=============================================================================
 # QD-Today HA Addon - debian-base 同源多阶段构建
 #=============================================================================
@@ -56,13 +57,14 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 COPY --from=builder /install /usr/local
 COPY --from=builder /src /usr/src/app
 
-# 将 site-packages 路径注入 Python 模块搜索路径 (.pth 文件机制)
+# 注入 .pth 文件 → Python 可找到 /usr/local 下的 prefixed 包
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -c "import sysconfig; site=sysconfig.get_path('purelib').replace('/usr/','/usr/local/'); pth='/usr/local/lib/python3/dist-packages/qd-deps.pth'; __import__('os').makedirs(__import__('os').path.dirname(pth), exist_ok=True); open(pth,'w').write(site+'\\n'); print('pth:',pth,'→',site)"
+    && python3 -c "import sysconfig; print(sysconfig.get_path('purelib').replace('/usr/','/usr/local/'))" \
+       > /usr/lib/python3/dist-packages/qd-local.pth
 
 # 复制 HA rootfs
 COPY rootfs /
