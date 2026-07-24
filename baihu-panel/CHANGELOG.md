@@ -1,3 +1,7 @@
+### 1.1.22-build.21 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): remove obsolete site-packages→dist-packages bridge — no longer needed with same-base builder
+
 ### 1.1.22-build.20 (2026-07-24)
 CI 工作流变更
 fix(ci): show per-architecture compressed size using regctl in build summary
