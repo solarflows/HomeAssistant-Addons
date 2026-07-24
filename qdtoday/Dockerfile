@@ -60,9 +60,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
-    && rm -rf /var/lib/apt/lists/* \
-    && SITE=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) \
-    && [ -n "$SITE" ] && ln -sfn site-packages "$(dirname "$SITE")/dist-packages"
+    && rm -rf /var/lib/apt/lists/*
 
 # 复制 HA rootfs
 COPY rootfs /
