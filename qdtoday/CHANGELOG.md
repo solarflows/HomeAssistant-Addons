@@ -1,3 +1,7 @@
+### 20250803-build.26 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): force rebuild pycurl against runtime libcurl to fix CURLE_UNKNOWN_OPTION (48)
+
 ### 20250803-build.25 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): pycurl 用系统 libcurl4 编译 — 去掉全自编译链
