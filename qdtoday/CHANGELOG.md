@@ -1,3 +1,7 @@
+### 20250803-build.24 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): 移除 apt curl + 强制 purge libcurl4/3-gnutls，消除 libcurl 冲突
+
 ### 20250803-build.23 (2026-07-24)
 Dockerfile 变更
 revert(qdtoday): ja3 → main 方案 (quictls openssl + curl 8.6.0 + pycurl)
