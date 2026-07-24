@@ -57,13 +57,13 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 COPY --from=builder /install /usr/local
 COPY --from=builder /src /usr/src/app
 
-# 注入 .pth 文件 → Python 可找到 /usr/local 下的 prefixed 包
+# 注入 .pth — 找到 pip --prefix 实际安装到的路径（Debian posix_local: /usr/local/local/lib/python*/dist-packages）
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -c "import sysconfig; print(sysconfig.get_path('purelib', vars={'base': '/usr/local'}))" \
+    && find /usr/local -maxdepth 5 -type d -name dist-packages 2>/dev/null | head -1 \
        > /usr/lib/python3/dist-packages/qd-local.pth
 
 # 复制 HA rootfs
