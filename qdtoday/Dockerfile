@@ -80,7 +80,7 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
-        curl git openssh-client wget \
+        git wget \
         build-essential cmake perl autoconf g++ automake \
         linux-libc-dev libtool \
         libidn2-0 libidn2-dev libgsasl18 libgsasl-dev \
@@ -116,6 +116,8 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && cd /tmp && rm -rf "curl-${CURL_VERSION}" \
     && echo "=== Installing pycurl ===" \
     && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile pycurl \
+    && echo "=== Purging system libcurl4 (conflicts with self-built curl) ===" \
+    && dpkg --purge libcurl4 libcurl3-gnutls 2>/dev/null || true \
     && echo "=== Cleaning build deps ===" \
     && apt-get remove -y \
         python3-dev libidn2-dev libgsasl-dev libnghttp2-dev \
