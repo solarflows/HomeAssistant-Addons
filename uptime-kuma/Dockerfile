@@ -69,20 +69,22 @@ RUN apt-get update \
         fonts-noto-cjk \
         mariadb-server \
     \
-    # ---- cloudflared (Cloudflare Tunnel) ----
-    && curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
-        -o /usr/share/keyrings/cloudflare-main.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared $(. /etc/os-release && echo $VERSION_CODENAME) main" \
-        | tee /etc/apt/sources.list.d/cloudflared.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends cloudflared \
-    && cloudflared version \
-    \
     # ---- Apprise (pip 安装最新版，上游已不再发布 .deb) ----
     && pip3 install --break-system-packages --no-cache-dir apprise \
     \
     # ---- 清理 (保留 curl 给 HEALTHCHECK 用) ----
     && apt-get purge -y gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---- cloudflared (Cloudflare Tunnel) ----
+# Cloudflare 未提供 trixie 源，使用 bookworm 包（向前兼容）
+RUN curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+        -o /usr/share/keyrings/cloudflare-main.gpg \
+    && echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared bookworm main' \
+        | tee /etc/apt/sources.list.d/cloudflared.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends cloudflared \
+    && cloudflared version \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- nscd 配置 (上游 docker/etc/nscd.conf) ----
