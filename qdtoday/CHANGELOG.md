@@ -1,3 +1,7 @@
+### 20250803-build.29 (2026-07-24)
+CI 工作流变更
+fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
+
 ### 20250803-build.28 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): skip pycurl in builder stage, compile only at runtime to avoid libcurl ABI mismatch
