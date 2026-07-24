@@ -1,3 +1,7 @@
+### 3.5.0-build.12 (2026-07-24)
+CI 工作流变更
+fix(ci): 过滤 bot 提交避免 CI 自触发 config.yaml 循环重建
+
 ### 3.5.0-build.11 (2026-07-24)
 CI 工作流变更
 fix(ci): file_sha 在 commit 后更新，避免 CI 自触发的 config.yaml 循环重建
