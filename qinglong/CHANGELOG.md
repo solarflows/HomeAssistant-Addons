@@ -1,3 +1,7 @@
+### 2.21.0-build.21 (2026-07-24)
+CI 工作流变更
+fix(ci): show per-architecture compressed size using regctl in build summary
+
 ### 2.21.0-build.20 (2026-07-24)
 CI 工作流变更
 fix(ci): list built architectures in summary using jq from raw manifest
