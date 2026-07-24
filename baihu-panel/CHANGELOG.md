@@ -1,3 +1,7 @@
+### 1.1.22-build.22 (2026-07-24)
+CI 工作流变更
+fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
+
 ### 1.1.22-build.21 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): remove obsolete site-packages→dist-packages bridge — no longer needed with same-base builder
