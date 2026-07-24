@@ -95,6 +95,7 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && tar xjf "curl-${CURL_VERSION}.tar.bz2" \
     && rm "curl-${CURL_VERSION}.tar.bz2" \
     && echo "=== Building boringssl via quiche ===" \
+    && cd / \
     && git clone --recursive https://github.com/cloudflare/quiche \
     && cd /quiche && git submodule update --init \
     && cd /quiche/quiche/deps/boringssl && mkdir build && cd build \
