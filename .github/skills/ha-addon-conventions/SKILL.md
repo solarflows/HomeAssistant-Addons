@@ -113,16 +113,14 @@ tracking:
 | Release JAR | alist-tvbox/standalone | `FROM debian-base` + JAR download |
 
 ## Builder → Runtime Compatibility
-debian-base:9.3.0 runtime: Python 3.13, Node 18 (Bookworm apt). Builder must match:
+debian-base:9.3.0 runtime: Python 3.13, Node 22 (Trixie apt). **Builder should use same base image** (`FROM ${BUILD_FROM}`) whenever possible.
 
 | Scenario | Fix |
 |----------|-----|
-| Python `pip --prefix` to `python3.x/site-packages/` but runtime is 3.y | **Match builder image**: `python:3.13-slim-bookworm` |
-| Node.js same libc (glibc→glibc) | ✅ Reuse node_modules directly |
-| Node.js cross libc (musl→glibc) | **Delete node_modules, reinstall on runtime** |
+| Python pip packages with C extensions (pycurl, ddddocr) | **Compile at runtime, not in builder** — skip in builder (`sed -i '/^pkg/d' requirements.txt`) |
+| Node.js native modules (sqlite3, cpu-features) | **npm rebuild at runtime** — don't reuse builder's node_modules |
 | Go `CGO_ENABLED=0` | ✅ Static binary, no libc concern |
-
-- After building, verify: `python3 -c "import sys; print(sys.path)"` to confirm site-packages path.
+| Pure Python/JS/Java | ✅ Safe to COPY from any builder |
 
 ## CI (Version_Check + Release)
 - **Version_Check** triggers: cron 6h / push (path: Dockerfile,rootfs/,version.yaml,config.yaml,workflows) / workflow_dispatch
