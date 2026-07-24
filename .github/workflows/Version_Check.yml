@@ -16,8 +16,6 @@ on:
     paths:
       - '**/Dockerfile'
       - '**/rootfs/**'
-      - '**/version.yaml'
-      - '**/config.yaml'
       - '.github/workflows/**'
 
 permissions:
@@ -207,16 +205,15 @@ jobs:
             else
               # 非工作流变更 → 按文件路径匹配到对应 addon，区分子原因
               for file in $CHANGED_FILES; do
-                if echo "$file" | grep -qE '^[^/]+/(Dockerfile|rootfs/|version\.yaml|config\.yaml)'; then
+                if echo "$file" | grep -qE '^[^/]+/(Dockerfile|rootfs/)'; then
                   ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
                   [ -f "${ADDON_DIR}/version.yaml" ] || continue
 
-                  # 确定子原因（优先级：Dockerfile > rootfs > config）
+                  # 确定子原因（Dockerfile 或 rootfs）
                   case "$file" in
                     */Dockerfile)    TRIG="dockerfile" ;;
                     */rootfs/*)      TRIG="rootfs" ;;
-                    *version.yaml|*config.yaml) TRIG="config" ;;
-                    *)               TRIG="file_changed" ;;
+                    *)               continue ;;
                   esac
 
                   if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then

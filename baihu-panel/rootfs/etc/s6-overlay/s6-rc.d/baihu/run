@@ -11,5 +11,12 @@ export MISE_DATA_DIR=/app/envs/mise
 export MISE_CONFIG_DIR=/app/envs/mise
 export PATH="/app/envs/mise/shims:/app/envs/mise/bin:${PATH}"
 
+# Ingress 子路径支持（HA Ingress 代理时自动注入）
+INGRESS_ENTRY=$(bashio::addon.ingress_entry)
+if [ -n "$INGRESS_ENTRY" ] && [ "$INGRESS_ENTRY" != "/" ]; then
+    export BH_SERVER_URL_PREFIX="$INGRESS_ENTRY"
+    bashio::log.info "Ingress entry: ${INGRESS_ENTRY}"
+fi
+
 cd /app
 exec baihu server
