@@ -1,7 +1,7 @@
 #=============================================================================
 # QD-Today HA Addon - debian-base 同源多阶段构建
 #=============================================================================
-# 两个阶段共享同一基础镜像，消除 libc / libcurl / Python 版本漂移
+# 两个阶段共享 debian-base (Trixie)，libc/libcurl/Python ABI 天然一致
 #=============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
@@ -25,7 +25,6 @@ RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
 # Patch: Python 3.12+ 将 and/or/not 条件跳转合并为 TO_BOOL opcode
-# 上游 _SAFE_OPCODES 未收录 → 条件表达式触发 forbidden opcode
 RUN python3 <<'PYEOF'
 import sys
 src = '/src/libs/safe_eval.py'
@@ -42,38 +41,26 @@ with open(src, 'w') as f:
 print('patched:', src)
 PYEOF
 
-# 全量安装 Python 依赖
-# 注意：pycurl 和 ddddocr 包含 C 扩展，留在运行时编译以链接到实际系统库
+# 全量安装 Python 依赖（同源镜像 → C 扩展 ABI 安全）
 WORKDIR /src
-RUN sed -i '/^pycurl/d;/^ddddocr/d' requirements.txt \
-    && pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
+    && pip install --no-cache-dir --prefix=/install --compile ddddocr
 
-# ---- Stage 2: 运行时阶段 (debian-base，同源) ----
+# ---- Stage 2: 运行时阶段 (同源 debian-base) ----
 FROM ${BUILD_FROM}
 
-# 签名
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译纯 Python 包
+# 拷贝预编译产物（ABI 一致，无需重编译）
 COPY --from=builder /install /usr/local
+COPY --from=builder /src /usr/src/app
 
-# 编译带 C 扩展的包（链接到运行时系统库，ABI 天然一致）
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        python3 python3-pip python-is-python3 python3-dev \
-        libcurl4 libcurl4-openssl-dev libssl3 \
+        python3 libcurl4 libssl3 \
         curl git openssh-client \
-        build-essential \
-    && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile "pycurl==7.45.6" \
-    && pip install --no-cache-dir --break-system-packages --compile ddddocr \
-    && apt-get remove -y python3-dev libcurl4-openssl-dev build-essential \
-    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-
-# 拷贝源码
-COPY --from=builder /src /usr/src/app
-WORKDIR /usr/src/app
 
 # 复制 HA rootfs
 COPY rootfs /
