@@ -1,3 +1,7 @@
+### 20250803-build.19 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): pycurl 移到运行时编译，链接到实际 libcurl4
+
 ### 20250803-build.18 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): 移除 Ingress 改回外部端口访问 + 精简 TO_BOOL 补丁
