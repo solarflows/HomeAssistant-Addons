@@ -77,9 +77,9 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
-        curl git openssh-client wget file patch ca-certificates \
+        curl git wget patch ca-certificates \
         build-essential cmake perl autoconf g++ automake \
-        linux-libc-dev libtool util-linux \
+        linux-libc-dev libtool \
         libidn2-0 libidn2-dev libgsasl18 libgsasl-dev \
         zlib1g zlib1g-dev zstd libzstd-dev \
         libnghttp2-14 libnghttp2-dev libbrotli1 libbrotli-dev \
@@ -102,11 +102,13 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=on .. \
     && make -j$(nproc) \
     && cd /quiche/quiche && mkdir -p deps/boringssl/src/lib \
-    && ln -vnf $(find -name libcrypto.a -o -name libssl.a) deps/boringssl/src/lib/ \
+    && find /quiche/quiche \( -name libcrypto.a -o -name libssl.a \) -print | while read -r f; do \
+        ln -sf "$f" deps/boringssl/src/lib/; done \
     && echo "=== Building quiche (Rust) ===" \
+    && cd /quiche \
     && git config --global http.postBuffer 524288000 \
     && git config --global http.sslVerify false \
-    && cargo build --verbose --package quiche --release --features ffi,pkg-config-meta,qlog \
+    && cargo build --package quiche --release --features ffi,pkg-config-meta,qlog \
     && echo "=== Patching curl with curl-impersonate ===" \
     && cd "/tmp/curl-${CURL_VERSION}" \
     && wget -q "https://cdn.jsdelivr.net/gh/lwthiker/curl-impersonate@main/chrome/patches/curl-impersonate.patch" \
@@ -130,6 +132,7 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
         USE_CURL_SSLKEYLOGFILE=true \
     && make -j$(nproc) \
     && make install \
+    && rm -f /usr/bin/curl /usr/bin/curl-config \
     && ln -fs /usr/bin/curl-impersonate-chrome /usr/bin/curl \
     && ln -fs /usr/bin/curl-impersonate-chrome-config /usr/bin/curl-config \
     && echo "=== Installing pycurl-ja3 ===" \
@@ -144,7 +147,7 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
         libbrotli-dev zlib1g-dev libpsl-dev libzstd-dev libkrb5-dev libc-ares-dev \
         python3-setuptools python3-wheel \
         build-essential cmake perl autoconf g++ automake \
-        linux-libc-dev libtool util-linux wget file patch git golang-go \
+        linux-libc-dev libtool wget patch git golang-go \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
