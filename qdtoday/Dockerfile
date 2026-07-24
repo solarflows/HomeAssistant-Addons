@@ -52,18 +52,28 @@ FROM ${BUILD_FROM}
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译产物 + 桥接 site-packages → dist-packages（Debian Python 约定）
+# 拷贝预编译产物
 COPY --from=builder /install /usr/local
 COPY --from=builder /src /usr/src/app
+
+# 将 site-packages 路径注入 Python 模块搜索路径
+# .pth 文件放在 /usr/local/lib/python3/dist-packages/（已在 sys.path 中），
+# 内容指向实际的 site-packages 目录，完全绕过 Debian 路径约定
+RUN mkdir -p /usr/local/lib/python3/dist-packages \
+    && python3 -c "
+import sysconfig, os
+site = sysconfig.get_path('purelib').replace('/usr/', '/usr/local/')
+pth = '/usr/local/lib/python3/dist-packages/qd-deps.pth'
+os.makedirs(os.path.dirname(pth), exist_ok=True)
+open(pth, 'w').write(site + '\n')
+print('pth:', pth, '→', site)
+"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
-    && rm -rf /var/lib/apt/lists/* \
-    && for d in /usr/local/lib/python3.*/site-packages; do \
-         [ -d "$d" ] && ln -sfn site-packages "${d%/*}/dist-packages"; \
-       done
+    && rm -rf /var/lib/apt/lists/*
 
 # 复制 HA rootfs
 COPY rootfs /
