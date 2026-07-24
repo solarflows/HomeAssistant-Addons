@@ -1,3 +1,7 @@
+### 3.5.0-build.15 (2026-07-24)
+CI 工作流变更
+fix(ci): list built architectures in summary using jq from raw manifest
+
 ### 3.5.0-build.14 (2026-07-24)
 CI 工作流变更
 fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
