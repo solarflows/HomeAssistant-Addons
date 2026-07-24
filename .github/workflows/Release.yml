@@ -37,6 +37,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      - name: Install regctl
+        run: |
+          curl -sSL https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 -o /usr/local/bin/regctl
+          chmod +x /usr/local/bin/regctl
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -370,7 +375,7 @@ jobs:
             echo ""
           } >> $GITHUB_STEP_SUMMARY
 
-          # 获取多架构信息（排除 unknown/unknown 的 attestation 层）
+          # 获取多架构列表（过滤 attestation 层）
           for i in 1 2 3 4 5; do
             RAW=$(docker buildx imagetools inspect "$IMAGE" --raw 2>/dev/null)
             [ -n "$RAW" ] && break
@@ -378,9 +383,18 @@ jobs:
           done
 
           if [ -n "$RAW" ]; then
-            echo "| 架构 |" >> $GITHUB_STEP_SUMMARY
-            echo "|------|" >> $GITHUB_STEP_SUMMARY
-            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "| `\(.platform.os)/\(.platform.architecture)` |"' >> $GITHUB_STEP_SUMMARY
+            echo "| 架构 | 大小 |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "\(.platform.os)/\(.platform.architecture)"' \
+              | while read -r platform; do
+                  SIZE=$(regctl manifest get "$IMAGE" --platform "$platform" --format '{{ .GetSize }}' 2>/dev/null)
+                  if [ -n "$SIZE" ]; then
+                    SIZE_MB=$(awk "BEGIN {printf \"%.1f MB\", $SIZE / 1000000}")
+                  else
+                    SIZE_MB="N/A"
+                  fi
+                  echo "| \`${platform}\` | ${SIZE_MB} |" >> $GITHUB_STEP_SUMMARY
+                done
           else
             echo "*(image info unavailable)*" >> $GITHUB_STEP_SUMMARY
           fi
