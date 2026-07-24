@@ -1,3 +1,7 @@
+### 2.4.0-build.17 (2026-07-24)
+Dockerfile 变更
+build(uptime-kuma): Dockerfile 变更 → 2.4.0-build.16
+
 ### 2.4.0-build.16 (2026-07-24)
 Dockerfile 变更
 fix(uptime-kuma): npm rebuild native modules in runtime stage to prevent ABI mismatch
