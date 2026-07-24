@@ -1,6 +1,6 @@
 name: qdtoday
 slug: qdtoday
-version: "20250803-build.20"
+version: "20250803-build.21"
 image: ghcr.io/solarflows/qdtoday
 description: "QD - HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server"
 url: https://github.com/qd-today/qd

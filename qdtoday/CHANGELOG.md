@@ -1,3 +1,7 @@
+### 20250803-build.21 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): pycurl 编译需要 python3-dev (Python.h 头文件)
+
 ### 20250803-build.20 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): libcurl4 和 -dev 合并到同一个 apt-get update，消除版本漂移
