@@ -77,7 +77,8 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
         libcurl4 libcurl4-openssl-dev libssl3 \
         curl git openssh-client \
         build-essential \
-    && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile pycurl \
+    && pip uninstall -y pycurl 2>/dev/null; \
+       pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile "pycurl==7.45.6" \
     && apt-get remove -y python3-dev libcurl4-openssl-dev build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
