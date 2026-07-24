@@ -1,3 +1,7 @@
+### 2.4.0-build.18 (2026-07-24)
+CI 工作流变更
+fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
+
 ### 2.4.0-build.17 (2026-07-24)
 Dockerfile 变更
 build(uptime-kuma): Dockerfile 变更 → 2.4.0-build.16
