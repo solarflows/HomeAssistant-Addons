@@ -97,7 +97,8 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && echo "=== Building boringssl via quiche ===" \
     && cd / \
     && git clone --recursive https://github.com/cloudflare/quiche \
-    && cd /quiche && git submodule update --init --recursive \
+    && cd /quiche && git submodule update --init \
+    && cd /quiche/quiche && git submodule update --init --recursive \
     && cd /quiche/quiche/deps/boringssl && mkdir build && cd build \
     && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=on .. \
     && make -j$(nproc) \
