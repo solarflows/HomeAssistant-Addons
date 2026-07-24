@@ -7,6 +7,9 @@
 ARG UPSTREAM_TAG=latest
 FROM flaresolverr/flaresolverr:${UPSTREAM_TAG}
 
+LABEL org.opencontainers.image.authors="solarflows"
+LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
+
 USER root
 
 # 安装运行时依赖

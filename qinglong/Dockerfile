@@ -33,6 +33,9 @@ RUN pnpm install --frozen-lockfile \
 # ---- Stage 2: HA 运行时 ----
 FROM ${BUILD_FROM}
 
+LABEL org.opencontainers.image.authors="solarflows"
+LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
+
 # 安装运行时依赖
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

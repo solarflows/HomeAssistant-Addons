@@ -8,6 +8,9 @@
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 FROM ${BUILD_FROM}
 
+LABEL org.opencontainers.image.authors="solarflows"
+LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
+
 ARG TARGETARCH
 ARG FILEBROWSER_VERSION
 RUN test -n "${FILEBROWSER_VERSION}" || { echo "FILEBROWSER_VERSION is required"; exit 1; }

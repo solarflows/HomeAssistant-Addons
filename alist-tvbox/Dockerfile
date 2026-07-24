@@ -34,6 +34,9 @@ FROM haroldli/alist:latest AS alist-source
 # ---- Stage 4: HA 底包运行时 ----
 FROM ${BUILD_FROM}
 
+LABEL org.opencontainers.image.authors="solarflows"
+LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
+
 ARG TARGETARCH
 
 # 安装运行时依赖

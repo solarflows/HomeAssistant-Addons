@@ -31,6 +31,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 # ---- Stage 2: HA 运行时 (完整 base2 等价) ----
 FROM ${BUILD_FROM}
 
+LABEL org.opencontainers.image.authors="solarflows"
+LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
+
 #===========================================================================
 # 依赖对照上游 debian-base.dockerfile (base2-slim + base2):
 #   base2-slim: dumb-init / nscd / cloudflared / apprise / python3-paho-mqtt
