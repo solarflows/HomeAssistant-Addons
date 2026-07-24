@@ -51,6 +51,9 @@ print('patched:', src)
 WORKDIR /src
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+# 上游注释掉的完整版依赖：ddddocr (OCR 验证码) + pycurl (SOCKS5 代理)
+RUN pip install --no-cache-dir --prefix=/install --compile ddddocr pycurl
+
 # ---- Stage 2: 运行时阶段 (HA debian-base, 零编译) ----
 FROM ${BUILD_FROM}
 
