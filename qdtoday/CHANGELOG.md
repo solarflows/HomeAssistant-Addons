@@ -1,3 +1,7 @@
+### 20250803-build.22 (2026-07-24)
+Dockerfile 变更
+build(qdtoday): Dockerfile 变更 → 20250803-build.21
+
 ### 20250803-build.21 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): pycurl 编译需要 python3-dev (Python.h 头文件)

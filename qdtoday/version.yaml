@@ -9,6 +9,6 @@ changelog:
   file_url: "https://github.com/qd-today/qd/raw/refs/heads/master/CHANGELOG.md"
   mode: prepend
 tracking:
-  base_tag: "9.3.0"
-  file_sha: "b2c27e59c42f2426264507880d3504a04b2b4b03"
-  build_num: 21
+  base_tag: ""
+  file_sha: "87cbfdd1ad72c46d45738f569ff8ad4b8e907b23"
+  build_num: 22
