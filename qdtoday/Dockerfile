@@ -41,10 +41,10 @@ with open(src, 'w') as f:
 print('patched:', src)
 PYEOF
 
-# 全量安装 Python 依赖（同源镜像 → C 扩展 ABI 安全）
+# 全量安装 Python 依赖到自定义路径（避开 dist-packages/site-packages 约定差异）
 WORKDIR /src
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
-    && pip install --no-cache-dir --prefix=/install --compile ddddocr
+RUN pip install --no-cache-dir --target /opt/qd-deps -r requirements.txt \
+    && pip install --no-cache-dir --target /opt/qd-deps --compile ddddocr
 
 # ---- Stage 2: 运行时阶段 (同源 debian-base) ----
 FROM ${BUILD_FROM}
@@ -52,8 +52,8 @@ FROM ${BUILD_FROM}
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译产物
-COPY --from=builder /install /usr/local
+# 拷贝预编译产物（自定义路径，不受 Debian site-packages 约定影响）
+COPY --from=builder /opt/qd-deps /opt/qd-deps
 COPY --from=builder /src /usr/src/app
 
 RUN apt-get update \
@@ -69,6 +69,7 @@ COPY rootfs /
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
+ENV PYTHONPATH=/opt/qd-deps
 ENV PORT=8923
 EXPOSE 8923/tcp
 
