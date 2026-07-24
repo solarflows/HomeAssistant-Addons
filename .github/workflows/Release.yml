@@ -359,14 +359,29 @@ jobs:
         run: |
           IMAGE="${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}"
           STATUS="${{ job.status }}"
-          if [ "$STATUS" = "success" ]; then
-            ICON="✅"
-          else
-            ICON="❌"
-          fi
+
           {
-            echo "### ${ICON} ${{ matrix.addon }}"
-            echo ""
-            echo "\`${IMAGE}\`"
+            if [ "$STATUS" = "success" ]; then
+              echo "### ✅ ${{ matrix.addon }} — \`${IMAGE}\`"
+            else
+              echo "### ❌ ${{ matrix.addon }} — build failed"
+              exit 0
+            fi
             echo ""
           } >> $GITHUB_STEP_SUMMARY
+
+          # 获取多架构信息（排除 unknown/unknown 的 attestation 层）
+          for i in 1 2 3 4 5; do
+            RAW=$(docker buildx imagetools inspect "$IMAGE" --raw 2>/dev/null)
+            [ -n "$RAW" ] && break
+            sleep 3
+          done
+
+          if [ -n "$RAW" ]; then
+            echo "| 架构 |" >> $GITHUB_STEP_SUMMARY
+            echo "|------|" >> $GITHUB_STEP_SUMMARY
+            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "| `\(.platform.os)/\(.platform.architecture)` |"' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "*(image info unavailable)*" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
