@@ -1,3 +1,7 @@
+### 20250803-build.37 (2026-07-24)
+CI 工作流变更
+无提交信息
+
 ### 20250803-build.36 (2026-07-24)
 Dockerfile 变更
 Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
