@@ -48,8 +48,10 @@ print('patched:', src)
 PYEOF
 
 # 全量安装 Python 依赖（编译失败即终止，不做降级）
+# 注意：pycurl 跳过，移到运行时编译 — 避免跨阶段 libcurl ABI 不匹配
 WORKDIR /src
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN sed -i '/^pycurl/d' requirements.txt \
+    && pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # 上游注释掉的完整版依赖：ddddocr (OCR 验证码)
 RUN pip install --no-cache-dir --prefix=/install --compile ddddocr
@@ -77,8 +79,7 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
         libcurl4 libcurl4-openssl-dev libssl3 \
         curl git openssh-client \
         build-essential \
-    && pip uninstall -y pycurl 2>/dev/null; \
-       pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile "pycurl==7.45.6" \
+    && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile "pycurl==7.45.6" \
     && apt-get remove -y python3-dev libcurl4-openssl-dev build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
