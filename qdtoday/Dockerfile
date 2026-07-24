@@ -116,8 +116,10 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && cd /tmp && rm -rf "curl-${CURL_VERSION}" \
     && echo "=== Installing pycurl ===" \
     && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile pycurl \
-    && echo "=== Purging system libcurl4 (conflicts with self-built curl) ===" \
-    && dpkg --purge libcurl4 libcurl3-gnutls 2>/dev/null || true \
+    && echo "=== Force-replace system libcurl with self-built ===" \
+    && cp -a /usr/lib/libcurl.so* /usr/lib/x86_64-linux-gnu/ 2>/dev/null || true \
+    && cp -a /usr/lib/libcurl.so* /usr/lib/aarch64-linux-gnu/ 2>/dev/null || true \
+    && ldconfig \
     && echo "=== Cleaning build deps ===" \
     && apt-get remove -y \
         python3-dev libidn2-dev libgsasl-dev libnghttp2-dev \
