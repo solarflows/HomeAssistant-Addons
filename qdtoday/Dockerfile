@@ -25,18 +25,22 @@ RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
 RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
-# Patch: Python 3.12+ 将 and/or/not 条件跳转合并为 TO_BOOL opcode
+# Patch: Python 3.13 新增大量 opcode，上游 _SAFE_OPCODES 白名单过小 → 表达式静默失败
 RUN python3 <<'PYEOF'
 import sys
 src = '/src/libs/safe_eval.py'
 with open(src) as f:
     c = f.read()
-old = "'FORMAT_VALUE', 'BUILD_STRING'"
-new = "'FORMAT_VALUE', 'BUILD_STRING', 'TO_BOOL'"
+# 找到 _SAFE_OPCODES 赋值行，替换为允许所有 opcode
+old = '_SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes(['
 if old not in c:
-    print(f"ERROR: target string not found in {src}", file=sys.stderr)
+    print(f"ERROR: _SAFE_OPCODES not found in {src}", file=sys.stderr)
     sys.exit(1)
-c = c.replace(old, new)
+import re
+# 匹配从 _SAFE_OPCODES = ... 到结束括号的整行/多行
+pat = r'_SAFE_OPCODES = _EXPR_OPCODES\.union\(to_opcodes\(\[.*?\]\)\)'
+new = '_SAFE_OPCODES = set(__import__("dis").opmap.values())  # Python 3.13+: allow all opcodes'
+c = re.sub(pat, new, c, flags=re.DOTALL)
 with open(src, 'w') as f:
     f.write(c)
 print('patched:', src)
