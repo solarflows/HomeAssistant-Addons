@@ -58,23 +58,11 @@ RUN pip install --no-cache-dir --prefix=/install --compile ddddocr
 # ---- Stage 2: 运行时阶段 (HA debian-base, 零编译) ----
 FROM ${BUILD_FROM}
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        python3 \
-        python3-pip \
-        python-is-python3 \
-        libcurl4 \
-        libssl3 \
-        curl \
-        git \
-        openssh-client \
-    && rm -rf /var/lib/apt/lists/*
-
 # 拷贝预编译包 + 桥接 Debian dist-packages ← python 官方 site-packages
 # Debian Python 只扫 /usr/local/lib/python3.X/dist-packages/，忽略 site-packages/
 COPY --from=builder /install /usr/local
 
-# pycurl 在运行时编译，链接到实际的 libcurl4（避免跨阶段版本不匹配）
+# 全部运行时依赖 + pycurl 编译在同一 RUN：确保 libcurl4 和 libcurl4-openssl-dev 版本一致
 RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) && \
     DST_DIR=$(dirname "$SRC") && DST="$DST_DIR/dist-packages" && \
     if [ -n "$SRC" ] && [ ! -L "$DST" ]; then \
@@ -82,7 +70,11 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
         echo "Bridge: $SRC → $DST"; \
     fi \
     && apt-get update \
-    && apt-get install -y --no-install-recommends libcurl4-openssl-dev build-essential \
+    && apt-get install -y --no-install-recommends \
+        python3 python3-pip python-is-python3 \
+        libcurl4 libcurl4-openssl-dev libssl3 \
+        curl git openssh-client \
+        build-essential \
     && pip install --no-cache-dir --break-system-packages --compile pycurl \
     && apt-get remove -y libcurl4-openssl-dev build-essential \
     && apt-get autoremove -y \
