@@ -1,3 +1,7 @@
+### 20250803-build.35 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): use find to locate actual dist-packages path — no sysconfig scheme assumptions
+
 ### 20250803-build.34 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): use sysconfig scheme vars to compute correct /usr/local purelib path
