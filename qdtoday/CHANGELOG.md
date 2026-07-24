@@ -1,3 +1,7 @@
+### 20250803-build.18 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): 移除 Ingress 改回外部端口访问 + 精简 TO_BOOL 补丁
+
 ### 20250803-build.17 (2026-07-24)
 CI 工作流变更
 fix(ci): 过滤 bot 提交避免 CI 自触发 config.yaml 循环重建
