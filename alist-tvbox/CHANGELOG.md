@@ -1,3 +1,7 @@
+### 1.27.0-build.1 (2026-07-24)
+CI 工作流变更
+fix(ci): list built architectures in summary using jq from raw manifest
+
 ### 1.27.0 (2026-07-24)
 # Release Notes - 1.27.0
 
