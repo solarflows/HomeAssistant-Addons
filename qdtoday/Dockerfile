@@ -63,7 +63,7 @@ RUN apt-get update \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -c "import sysconfig; print(sysconfig.get_path('purelib').replace('/usr/','/usr/local/'))" \
+    && python3 -c "import sysconfig; print(sysconfig.get_path('purelib', vars={'base': '/usr/local'}))" \
        > /usr/lib/python3/dist-packages/qd-local.pth
 
 # 复制 HA rootfs
