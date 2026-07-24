@@ -1,3 +1,7 @@
+### 20250803-build.25 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): pycurl 用系统 libcurl4 编译 — 去掉全自编译链
+
 ### 20250803-build.24 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): 移除 apt curl + 强制 purge libcurl4/3-gnutls，消除 libcurl 冲突
