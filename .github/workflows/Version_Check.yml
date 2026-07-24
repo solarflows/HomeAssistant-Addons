@@ -86,6 +86,25 @@ jobs:
             done
             if [ -n "$LAST_SHA" ]; then
               CHANGED_FILES=$(git diff --name-only "$LAST_SHA" HEAD 2>/dev/null || echo "")
+              # 过滤掉仅由 CI bot 修改的文件（避免 CI 自触发的 config.yaml 循环重建）
+              if [ -n "$CHANGED_FILES" ] && [ -n "$LAST_SHA" ]; then
+                FILTERED=""
+                for f in $CHANGED_FILES; do
+                  BOT_ONLY=true
+                  for c in $(git log --pretty=format:"%H" "$LAST_SHA..HEAD" -- "$f" 2>/dev/null); do
+                    author=$(git log -1 --pretty=format:"%an" "$c" 2>/dev/null)
+                    if [ "$author" != "github-actions[bot]" ]; then
+                      BOT_ONLY=false; break
+                    fi
+                  done
+                  if [ "$BOT_ONLY" = "false" ]; then
+                    FILTERED="$FILTERED $f"
+                  else
+                    echo "  [bot filter] Skipping CI-only change: $f"
+                  fi
+                done
+                CHANGED_FILES="$FILTERED"
+              fi
               echo "=== Cron/dispatch: diff $LAST_SHA..HEAD ==="
             else
               CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
