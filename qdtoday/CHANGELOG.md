@@ -1,3 +1,7 @@
+### 20250803-build.16 (2026-07-24)
+CI 工作流变更
+fix(ci): file_sha 在 commit 后更新，避免 CI 自触发的 config.yaml 循环重建
+
 ### 20250803-build.15 (2026-07-23)
 Dockerfile 变更
 build(qdtoday): Dockerfile 变更 → 20250803-build.14
