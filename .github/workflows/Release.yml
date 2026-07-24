@@ -284,10 +284,8 @@ jobs:
             fi
           fi
 
-          # 更新 version.yaml 中的 tracking 字段
+          # 更新 version.yaml 中的 tracking 字段（file_sha 在 commit 后单独更新）
           VERSION_FILE="${ADDON_DIR}/version.yaml"
-          CURRENT_SHA=$(git rev-parse HEAD)
-          yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
           yq eval ".tracking.build_num = ${BUILD_NUM}" -i "$VERSION_FILE"
           # version_changed 时更新版本号（清洁版本号，用于下次比较基准）
           if [ "$REASON" = "version_changed" ]; then
@@ -339,6 +337,10 @@ jobs:
               git commit -m "chore(${ADDON}): upstream ${VER_DESC}" \
                          -m "${RELEASE_TITLE:-Upstream release ${VERSION}}"
             fi
+            # 将 file_sha 更新为当前提交 SHA（必须在 commit 之后获取，确保下次 cron 不会重复触发）
+            CURRENT_SHA=$(git rev-parse HEAD)
+            yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
+            git add "$VERSION_FILE" && git commit --amend --no-edit
             # 重试 push，处理并行构建的竞态
             PUSH_OK=false
             for i in 1 2 3; do
