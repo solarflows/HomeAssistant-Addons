@@ -1,3 +1,7 @@
+### 2.4.0-build.19 (2026-07-24)
+CI 工作流变更
+fix(ci): show per-architecture compressed size using regctl in build summary
+
 ### 2.4.0-build.18 (2026-07-24)
 CI 工作流变更
 fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
