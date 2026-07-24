@@ -1,3 +1,7 @@
+### 1.1.22-build.23 (2026-07-24)
+rootfs 脚本/配置变更
+fix(qdtoday): revert to --prefix with safe shell-glob bridge for dist-packages
+
 ### 1.1.22-build.22 (2026-07-24)
 CI 工作流变更
 fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
