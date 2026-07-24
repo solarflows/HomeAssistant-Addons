@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.15 (2026-07-24)
+Dockerfile 变更
+feat: ja3 curl-impersonate + pycurl-ja3 + sign labels
+
 ### 1.5.0-stable-build.14 (2026-07-24)
 CI 工作流变更
 fix(ci): 过滤 bot 提交避免 CI 自触发 config.yaml 循环重建
