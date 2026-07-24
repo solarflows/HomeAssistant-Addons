@@ -1,6 +1,6 @@
 name: Uptime Kuma
 slug: uptime-kuma
-version: "2.4.0-build.13"
+version: "2.4.0-build.14"
 image: ghcr.io/solarflows/uptime-kuma
 description: "A fancy self-hosted monitoring tool"
 url: https://github.com/louislam/uptime-kuma
