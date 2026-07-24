@@ -1,3 +1,7 @@
+### 1.1.22-build.18 (2026-07-24)
+CI 工作流变更
+fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
+
 ### 1.1.22-build.17 (2026-07-24)
 Dockerfile 变更
 feat: ja3 curl-impersonate + pycurl-ja3 + sign labels
