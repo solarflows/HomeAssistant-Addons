@@ -52,7 +52,7 @@ FROM ${BUILD_FROM}
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译产物（ABI 一致，无需重编译）
+# 拷贝预编译产物
 COPY --from=builder /install /usr/local
 COPY --from=builder /src /usr/src/app
 
@@ -60,7 +60,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && SITE=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) \
+    && [ -n "$SITE" ] && ln -sfn site-packages "$(dirname "$SITE")/dist-packages"
 
 # 复制 HA rootfs
 COPY rootfs /
