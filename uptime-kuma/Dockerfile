@@ -106,6 +106,15 @@ debug-level\t0\n' > /etc/nscd.conf
 COPY --from=builder /app /opt/uptime-kuma
 WORKDIR /opt/uptime-kuma
 
+# 重新编译原生模块 (@louislam/sqlite3, cpu-features, oracledb 等)
+# 确保 C++ addon 链接到运行时系统库，而非 builder 阶段的库
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && npm rebuild \
+    && apt-get purge -y build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
 # 复制 HA rootfs (S6 overlay)
 COPY rootfs /
 
