@@ -1,3 +1,7 @@
+### 20250803-build.33 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): .pth file in system dist-packages (guaranteed on sys.path), no glob/symlink/PYTHONPATH
+
 ### 20250803-build.32 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): use --target /opt/qd-deps + PYTHONPATH to avoid Debian dist-packages path issue entirely
