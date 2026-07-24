@@ -1,25 +1,20 @@
 #=============================================================================
-# QD-Today HA Addon - 多阶段源码构建
+# QD-Today HA Addon - debian-base 同源多阶段构建
 #=============================================================================
-# 多阶段构建（编译与运行严格分离）：
-#   Stage 1 (builder): 全量编译工具链 → pip 安装所有依赖，失败即终止
-#   Stage 2 (runtime): 仅运行时库 → 拷贝预编译产物，零编译
+# 两个阶段共享同一基础镜像，消除 libc / libcurl / Python 版本漂移
 #=============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: 编译阶段 (python:3.13-slim-bookworm, 全量构建工具链) ----
-# 与运行时 debian-base:9.3.0 (Python 3.13) 版本对齐，避免 site-packages 路径差异
-FROM python:3.13-slim-bookworm AS builder
+# ---- Stage 1: 编译阶段 (debian-base + 构建工具链) ----
+FROM ${BUILD_FROM} AS builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        python3 python3-pip python-is-python3 python3-dev \
         build-essential \
-        libcurl4-openssl-dev \
-        libssl-dev \
-        libffi-dev \
-        cargo \
-        rustc \
+        libcurl4-openssl-dev libssl-dev libffi-dev \
+        cargo rustc \
         git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -47,39 +42,31 @@ with open(src, 'w') as f:
 print('patched:', src)
 PYEOF
 
-# 全量安装 Python 依赖（编译失败即终止，不做降级）
-# 注意：pycurl 跳过，移到运行时编译 — 避免跨阶段 libcurl ABI 不匹配
+# 全量安装 Python 依赖
+# 注意：pycurl 和 ddddocr 包含 C 扩展，留在运行时编译以链接到实际系统库
 WORKDIR /src
-RUN sed -i '/^pycurl/d' requirements.txt \
+RUN sed -i '/^pycurl/d;/^ddddocr/d' requirements.txt \
     && pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# 上游注释掉的完整版依赖：ddddocr (OCR 验证码)
-RUN pip install --no-cache-dir --prefix=/install --compile ddddocr
-
-# ---- Stage 2: 运行时阶段 (HA debian-base) ----
+# ---- Stage 2: 运行时阶段 (debian-base，同源) ----
 FROM ${BUILD_FROM}
 
 # 签名
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译包 + 桥接 Debian dist-packages ← python 官方 site-packages
+# 拷贝预编译纯 Python 包
 COPY --from=builder /install /usr/local
 
-# pycurl 源码编译，链接到容器内 libcurl4（同一次 apt-get update 保证版本一致）
-RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) && \
-    DST_DIR=$(dirname "$SRC") && DST="$DST_DIR/dist-packages" && \
-    if [ -n "$SRC" ] && [ ! -L "$DST" ]; then \
-        rm -rf "$DST" && ln -s site-packages "$DST"; \
-        echo "Bridge: $SRC → $DST"; \
-    fi \
-    && apt-get update \
+# 编译带 C 扩展的包（链接到运行时系统库，ABI 天然一致）
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
         libcurl4 libcurl4-openssl-dev libssl3 \
         curl git openssh-client \
         build-essential \
-    && /usr/local/bin/pip3 install --no-cache-dir --no-binary pycurl --compile "pycurl==7.45.6" \
+    && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile "pycurl==7.45.6" \
+    && pip install --no-cache-dir --break-system-packages --compile ddddocr \
     && apt-get remove -y python3-dev libcurl4-openssl-dev build-essential \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
