@@ -2,23 +2,14 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Baihu Panel 启动脚本 (S6 longrun service)
-# 在 cont-init.d 完成持久化目录设置后，启动白虎面板
 # ==============================================================================
 
 bashio::log.info "Starting Baihu Panel..."
 
-/usr/local/bin/baihu &
-APP_PID=$!
-trap 'kill $APP_PID 2>/dev/null; exit 0' TERM INT
-bashio::log.info "Waiting for Baihu Panel to become ready..."
-for i in $(seq 1 60); do
-    if curl -sf http://127.0.0.1:8052/ 2>/dev/null; then
-        bashio::log.info "Baihu Panel is ready (${i}s)"
-        wait $APP_PID
-        exit $?
-    fi
-    sleep 1
-done
-bashio::log.error "Baihu Panel failed to start within 60s"
-kill $APP_PID 2>/dev/null
-exit 1
+# mise 运行时环境
+export MISE_DATA_DIR=/app/envs/mise
+export MISE_CONFIG_DIR=/app/envs/mise
+export PATH="/app/envs/mise/shims:/app/envs/mise/bin:${PATH}"
+
+cd /app
+exec baihu server

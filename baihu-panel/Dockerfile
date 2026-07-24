@@ -57,14 +57,22 @@ FROM ${BUILD_FROM}
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 安装运行时依赖
+# 安装运行时依赖 + mise (Python/Node 版本管理器)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
         wget \
         git \
         ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+        rsync \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://mise.run | sh \
+    && mv /root/.local/bin/mise /usr/local/bin/mise
+# 预装 Python 和 Node 到 /opt/mise-base（耗时的下载放在构建期）
+ENV MISE_DATA_DIR=/opt/mise-base MISE_CONFIG_DIR=/opt/mise-base
+RUN mise install python@3 node@22 \
+    && mise use -g python@3 \
+    && mise use -g node@22
 
 # 复制 Go 二进制
 COPY --from=builder /baihu /usr/local/bin/baihu
@@ -88,7 +96,10 @@ ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 # 环境变量
 ENV BH_SERVER_PORT=8052 \
     BH_SERVER_HOST=0.0.0.0 \
-    BH_DB_PATH=/config/baihu/data/baihu.db
+    BH_DB_PATH=/config/baihu/data/baihu.db \
+    MISE_TRUSTED_CONFIG_PATHS=/app/data/scripts \
+    NODE_OPTIONS="--max-old-space-size=256" \
+    PYTHONPATH=/app/data/scripts
 
 # 端口
 EXPOSE 8052/tcp
