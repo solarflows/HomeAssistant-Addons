@@ -1,3 +1,7 @@
+### 2.4.0-build.16 (2026-07-24)
+Dockerfile 变更
+fix(uptime-kuma): npm rebuild native modules in runtime stage to prevent ABI mismatch
+
 ### 2.4.0-build.15 (2026-07-24)
 Dockerfile 变更
 feat: ja3 curl-impersonate + pycurl-ja3 + sign labels
