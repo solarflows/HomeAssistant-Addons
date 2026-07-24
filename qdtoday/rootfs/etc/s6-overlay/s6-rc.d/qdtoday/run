@@ -48,13 +48,4 @@ _export_val "NEW_TASK_DELAY" "1"
 
 cd /usr/src/app
 
-# 启动前诊断
-bashio::log.info "Python: $(python3 --version 2>&1)"
-bashio::log.info "Working dir: $(pwd)"
-bashio::log.info "QD source: $(ls run.py config.py 2>&1)"
-
-# Ingress 路径适配: 使 QD 的 Tornado redirect() 自动添加 HA Ingress 前缀
-export INGRESS_PATH="$(bashio::addon.ingress_entry)"
-bashio::log.info "Ingress path: ${INGRESS_PATH:-none}"
-
-exec python3 /usr/local/bin/qd_ingress_wrapper.py
+exec python3 run.py

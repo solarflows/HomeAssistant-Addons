@@ -29,23 +29,23 @@ RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
 RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
-# Patch: Python 3.12/3.13 新增 opcode，safe_eval 沙箱未收录
-# TO_BOOL: and/or/not/in/比较布尔求值 (3.12)
-# BINARY_SLICE: obj[a:b] 切片 (3.12)
-# STORE_SLICE: 切片赋值 (3.12)
-# CALL_INTRINSIC_1/2: 内建函数调用 (3.12)
-RUN python3 -c "
+# Patch: Python 3.12+ 将 and/or/not 条件跳转合并为 TO_BOOL opcode
+# 上游 _SAFE_OPCODES 未收录 → 条件表达式触发 forbidden opcode
+RUN python3 <<'PYEOF'
+import sys
 src = '/src/libs/safe_eval.py'
 with open(src) as f:
     c = f.read()
-c = c.replace(
-    \"'FORMAT_VALUE', 'BUILD_STRING'\",
-    \"'FORMAT_VALUE', 'BUILD_STRING', 'TO_BOOL', 'BINARY_SLICE', 'STORE_SLICE', 'CALL_INTRINSIC_1', 'CALL_INTRINSIC_2'\"
-)
+old = "'FORMAT_VALUE', 'BUILD_STRING'"
+new = "'FORMAT_VALUE', 'BUILD_STRING', 'TO_BOOL'"
+if old not in c:
+    print(f"ERROR: target string not found in {src}", file=sys.stderr)
+    sys.exit(1)
+c = c.replace(old, new)
 with open(src, 'w') as f:
     f.write(c)
 print('patched:', src)
-"
+PYEOF
 
 # 全量安装 Python 依赖（编译失败即终止，不做降级）
 WORKDIR /src
@@ -87,7 +87,7 @@ WORKDIR /usr/src/app
 COPY rootfs /
 
 # 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh /usr/local/bin/qd_ingress_wrapper.py
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 ENV PORT=8923

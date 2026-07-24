@@ -48,5 +48,3 @@ map:
   - ssl:ro
 startup: application
 boot: manual
-ingress: true
-ingress_port: 8923
