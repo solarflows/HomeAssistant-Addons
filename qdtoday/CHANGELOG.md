@@ -1,3 +1,7 @@
+### 20250803-build.23 (2026-07-24)
+Dockerfile 变更
+revert(qdtoday): ja3 → main 方案 (quictls openssl + curl 8.6.0 + pycurl)
+
 ### 20250803-build.22 (2026-07-24)
 Dockerfile 变更
 build(qdtoday): Dockerfile 变更 → 20250803-build.21
