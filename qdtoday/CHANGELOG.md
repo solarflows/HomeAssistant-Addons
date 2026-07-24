@@ -1,3 +1,7 @@
+### 20250803-build.27 (2026-07-24)
+Dockerfile 变更
+build(uptime-kuma): Dockerfile 变更 → 2.4.0-build.16
+
 ### 20250803-build.26 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): force rebuild pycurl against runtime libcurl to fix CURLE_UNKNOWN_OPTION (48)
