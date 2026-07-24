@@ -1,3 +1,7 @@
+### 20250803-build.20 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): libcurl4 和 -dev 合并到同一个 apt-get update，消除版本漂移
+
 ### 20250803-build.19 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): pycurl 移到运行时编译，链接到实际 libcurl4
