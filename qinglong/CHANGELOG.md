@@ -1,3 +1,7 @@
+### 2.21.0-build.22 (2026-07-24)
+CI 工作流变更
+fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
+
 ### 2.21.0-build.21 (2026-07-24)
 CI 工作流变更
 fix(ci): show per-architecture compressed size using regctl in build summary
