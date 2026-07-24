@@ -355,8 +355,18 @@ jobs:
           fi
 
       - name: Build summary
-        if: success()
+        if: always()
         run: |
           IMAGE="${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}"
-          SIZE=$(docker buildx imagetools inspect "$IMAGE" --format '{{range .Manifest.Manifests}}{{printf "%.1f MB" (div .Size 1048576)}}{{end}}' 2>/dev/null || echo "N/A")
-          echo "### ${{ matrix.addon }}  \`${IMAGE}\` — ${SIZE}" >> $GITHUB_STEP_SUMMARY
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then
+            ICON="✅"
+          else
+            ICON="❌"
+          fi
+          {
+            echo "### ${ICON} ${{ matrix.addon }}"
+            echo ""
+            echo "\`${IMAGE}\`"
+            echo ""
+          } >> $GITHUB_STEP_SUMMARY

@@ -136,4 +136,4 @@ ENV UPTIME_KUMA_IS_CONTAINER=1 \
 
 # Healthcheck (curl 替代上游 Go 二进制)
 HEALTHCHECK --interval=60s --timeout=30s --start-period=180s --retries=5 \
-    CMD curl -sf http://127.0.0.1:3001/ || exit 1
+    CMD curl -sfo /dev/null http://127.0.0.1:3001/ || exit 1

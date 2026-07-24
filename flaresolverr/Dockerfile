@@ -36,4 +36,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 # Healthcheck (参考 alexbelgium)
 HEALTHCHECK --interval=30s --start-period=30s --timeout=25s --retries=5 \
-    CMD curl -A "HealthCheck: Docker/1.0" -s -f "http://127.0.0.1:8191/" || exit 1
+    CMD curl -A "HealthCheck: Docker/1.0" -sfo /dev/null "http://127.0.0.1:8191/" || exit 1

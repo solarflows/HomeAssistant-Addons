@@ -53,4 +53,4 @@ EXPOSE 8080/tcp
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sf http://127.0.0.1:8080/health || exit 1
+    CMD curl -sfo /dev/null http://127.0.0.1:8080/health || exit 1
