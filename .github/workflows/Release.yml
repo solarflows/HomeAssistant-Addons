@@ -104,7 +104,9 @@ jobs:
           CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$VERSION_FILE")
 
           if [ "$IS_FILE_TRIGGER" = "true" ]; then
-            COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+            FILE_SHA=$(yq eval '.tracking.file_sha // ""' "$VERSION_FILE")
+            [ -z "$FILE_SHA" ] && FILE_SHA="HEAD~10"
+            COMMIT_MSG=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null || echo "")
           else
             COMMIT_MSG=""
           fi
