@@ -1,3 +1,7 @@
+### 20250803-build.28 (2026-07-24)
+Dockerfile 变更
+fix(qdtoday): skip pycurl in builder stage, compile only at runtime to avoid libcurl ABI mismatch
+
 ### 20250803-build.27 (2026-07-24)
 Dockerfile 变更
 build(uptime-kuma): Dockerfile 变更 → 2.4.0-build.16
