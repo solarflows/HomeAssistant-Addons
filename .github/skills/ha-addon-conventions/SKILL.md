@@ -5,6 +5,12 @@ description: HA addon dev conventions. Use for config.yaml schemas, S6 run scrip
 
 # HA Addon Conventions
 
+## Base Rules
+- **Base image**: `ghcr.io/hassio-addons/debian-base:9.3.0` or `alpine-base`, built-in S6 overlay
+- **Filesystem**: `/config` (persistent/backup), `/data` (internal), `/share` (cross-addon), `/ssl` (certs)
+- **Dockerfile**: `{addon-slug}/Dockerfile` (same dir as config.yaml)
+- **Version**: `{addon-slug}/version.yaml` per addon
+
 ## config.yaml
 ```yaml
 init: false            # debian-base has built-in S6

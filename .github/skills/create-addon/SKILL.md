@@ -24,10 +24,10 @@ description: Create a new Home Assistant addon in this repository. Use when user
 
 ## Steps
 1. **version.yaml**: `source: github|github_tags`, `repo`, `tag_prefix`, optional `build_args` with `${version}`/`${tag}` placeholders, `changelog` block
-2. **config.yaml**: standard HA addon config with `options` (primitives only), `schema` (types from AGENTS.md), translations in `translations/`
-3. **Dockerfile**: choose build strategy (see AGENTS.md Build strategies)
+2. **config.yaml**: standard HA addon config with `options` (primitives only), `schema` (types from ha-addon-conventions SKILL), translations in `translations/`
+3. **Dockerfile**: choose build strategy (see ha-addon-conventions SKILL)
 4. **00-init.sh**: `#!/usr/bin/with-contenv bashio`, `mkdir -p /config/<data>`
-5. **run script**: S6 longrun `exec <app>` in foreground; export env vars per AGENTS.md run script pattern
+5. **run script**: S6 longrun `exec <app>` in foreground; export env vars per ha-addon-conventions SKILL run script pattern
 6. **README.md**: add entry to Add-ons table in AGENTS.md
 7. **No CI changes needed**: Version_Check.yml + Release.yml handle everything
 

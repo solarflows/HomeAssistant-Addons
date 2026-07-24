@@ -5,6 +5,27 @@ description: Debug and fix GitHub Actions CI/CD issues in this repository. Use w
 
 # CI Fix Guide
 
+## CI Flow
+```
+Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon build → push ghcr.io → independent commits
+```
+
+## Workflow Details
+
+### Version_Check.yml
+- **Trigger**: cron (every 6h) + workflow_dispatch
+- **Role**: detect upstream changes & debian-base updates → output `has_changes` + `matrix` JSON
+- **Permissions**: `contents: write, actions: write, packages: write` (packages:write critical for workflow_call)
+- Detect priority: `version_changed` > `base_updated` > `file_changed` > `force_rebuild`
+- File trigger sub-types: `dockerfile` / `rootfs` / `config` / `workflow`
+- Matrix (3 fields only): `addon` / `reason` / `new_ver`
+
+### Release.yml
+- **Trigger**: workflow_call (from Version_Check) + workflow_dispatch (manual)
+- **Jobs**: scan-all → build (matrix); each job does config update + changelog + git commit
+- **Matrix parse**: `fromJson(needs.scan-all.outputs.matrix || inputs.matrix || '{"include":[]}')`
+- Release computes `build_version`/`build_num`/`base_tag` from version.yaml at runtime
+
 ## GHA Common Pitfalls
 - `${{ }}` pipes `|` → use `jq -r` to read files
 - `strategy.matrix` must be `{include: [...]}`, not bare `[]`
