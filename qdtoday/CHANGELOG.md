@@ -1,3 +1,7 @@
+### 20250803-build.36 (2026-07-24)
+Dockerfile 变更
+Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+
 ### 20250803-build.35 (2026-07-24)
 Dockerfile 变更
 fix(qdtoday): use find to locate actual dist-packages path — no sysconfig scheme assumptions
