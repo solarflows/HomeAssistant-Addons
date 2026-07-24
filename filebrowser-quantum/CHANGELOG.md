@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.17 (2026-07-24)
+CI 工作流变更
+fix(ci): list built architectures in summary using jq from raw manifest
+
 ### 1.5.0-stable-build.16 (2026-07-24)
 CI 工作流变更
 fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
