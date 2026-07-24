@@ -52,7 +52,8 @@ WORKDIR /src
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # 上游注释掉的完整版依赖：ddddocr (OCR 验证码) + pycurl (SOCKS5 代理)
-RUN pip install --no-cache-dir --prefix=/install --compile ddddocr pycurl
+# pycurl 在运行时阶段单独编译，避免跨阶段 libcurl 版本不匹配
+RUN pip install --no-cache-dir --prefix=/install --compile ddddocr
 
 # ---- Stage 2: 运行时阶段 (HA debian-base, 零编译) ----
 FROM ${BUILD_FROM}
@@ -72,12 +73,20 @@ RUN apt-get update \
 # 拷贝预编译包 + 桥接 Debian dist-packages ← python 官方 site-packages
 # Debian Python 只扫 /usr/local/lib/python3.X/dist-packages/，忽略 site-packages/
 COPY --from=builder /install /usr/local
+
+# pycurl 在运行时编译，链接到实际的 libcurl4（避免跨阶段版本不匹配）
 RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) && \
     DST_DIR=$(dirname "$SRC") && DST="$DST_DIR/dist-packages" && \
     if [ -n "$SRC" ] && [ ! -L "$DST" ]; then \
         rm -rf "$DST" && ln -s site-packages "$DST"; \
         echo "Bridge: $SRC → $DST"; \
-    fi
+    fi \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends libcurl4-openssl-dev build-essential \
+    && pip install --no-cache-dir --break-system-packages --compile pycurl \
+    && apt-get remove -y libcurl4-openssl-dev build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # 拷贝源码
 COPY --from=builder /src /usr/src/app
