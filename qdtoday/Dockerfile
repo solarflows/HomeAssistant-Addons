@@ -46,10 +46,10 @@ with open(src, 'w') as f:
 print('patched:', src)
 PYEOF
 
-# 全量安装 Python 依赖（同源 debian-base → C 扩展 ABI 安全）
+# 全量安装 Python 依赖到自定义路径（避开 dist-packages/site-packages 全套陷阱）
 WORKDIR /src
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
-    && pip install --no-cache-dir --prefix=/install --compile ddddocr
+RUN pip install --no-cache-dir --target /opt/qd-deps -r requirements.txt \
+    && pip install --no-cache-dir --target /opt/qd-deps --compile ddddocr
 
 # ---- Stage 2: 运行时阶段 (同源 debian-base) ----
 FROM ${BUILD_FROM}
@@ -58,17 +58,14 @@ LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
 # 拷贝预编译产物
-COPY --from=builder /install /usr/local
+COPY --from=builder /opt/qd-deps /opt/qd-deps
 COPY --from=builder /src /usr/src/app
 
-# 注入 .pth — 找到 pip --prefix 实际安装到的路径（Debian posix_local: /usr/local/local/lib/python*/dist-packages）
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 libcurl4 libssl3 \
         curl git openssh-client \
-    && rm -rf /var/lib/apt/lists/* \
-    && find /usr/local -maxdepth 5 -type d -name dist-packages 2>/dev/null | head -1 \
-       > /usr/lib/python3/dist-packages/qd-local.pth
+    && rm -rf /var/lib/apt/lists/*
 
 # 复制 HA rootfs
 COPY rootfs /
@@ -77,6 +74,7 @@ COPY rootfs /
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
+ENV PYTHONPATH=/opt/qd-deps
 ENV PORT=8923
 EXPOSE 8923/tcp
 
