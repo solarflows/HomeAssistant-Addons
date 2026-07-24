@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.20 (2026-07-24)
+CI 工作流变更
+无提交信息
+
 ### 1.5.0-stable-build.19 (2026-07-24)
 CI 工作流变更
 fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
