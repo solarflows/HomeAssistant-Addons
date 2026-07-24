@@ -54,8 +54,11 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # 上游注释掉的完整版依赖：ddddocr (OCR 验证码)
 RUN pip install --no-cache-dir --prefix=/install --compile ddddocr
 
-# ---- Stage 2: 运行时阶段 (HA debian-base, ja3 自编译) ----
-# 参考: https://github.com/qd-today/pycurl-docker/blob/main/Dockerfile.ja3
+# ---- Stage 2: 运行时阶段 (HA debian-base, 自编译 openssl + curl + pycurl) ----
+# 参考: https://github.com/qd-today/pycurl-docker/blob/main/Dockerfile
+# ja3 (boringssl/quiche/curl-impersonate) 放弃 — cloudflare/quiche 已重构，
+# quiche/quiche/deps/boringssl 路径不存在，boringssl.googlesource.com 被墙。
+# main 方案已验证：SOCKS5 ✅，仅无 JA3 Chrome 指纹伪装。
 FROM ${BUILD_FROM}
 
 # 签名
@@ -66,8 +69,8 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 COPY --from=builder /install /usr/local
 
 ENV PYCURL_SSL_LIBRARY=openssl
-ENV CURL_VERSION=8.1.1
-ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV SSL_VERSION=3.1.5
+ENV CURL_VERSION=8.6.0
 RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) && \
     DST_DIR=$(dirname "$SRC") && DST="$DST_DIR/dist-packages" && \
     if [ -n "$SRC" ] && [ ! -L "$DST" ]; then \
@@ -77,80 +80,51 @@ RUN SRC=$(ls -d /usr/local/lib/python3.*/site-packages 2>/dev/null | head -1) &&
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
-        curl git wget patch ca-certificates \
+        curl git openssh-client wget \
         build-essential cmake perl autoconf g++ automake \
         linux-libc-dev libtool \
         libidn2-0 libidn2-dev libgsasl18 libgsasl-dev \
-        zlib1g zlib1g-dev zstd libzstd-dev \
         libnghttp2-14 libnghttp2-dev libbrotli1 libbrotli-dev \
+        zlib1g zlib1g-dev zstd libzstd-dev \
         libpsl5 libpsl-dev libc-ares2 libc-ares-dev libkrb5-dev \
-        python3-setuptools python3-wheel golang-go \
-    && echo "=== Installing Rust ===" \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup.sh \
-    && sh /tmp/rustup.sh -y --default-toolchain stable --profile minimal \
-    && . "$HOME/.cargo/env" \
-    && echo "=== Downloading curl ${CURL_VERSION} ===" \
+        python3-setuptools python3-wheel \
+    && echo "=== Building OpenSSL ${SSL_VERSION} (quictls) ===" \
     && cd /tmp \
-    && wget -q "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.bz2" \
-    && tar xjf "curl-${CURL_VERSION}.tar.bz2" \
-    && rm "curl-${CURL_VERSION}.tar.bz2" \
-    && echo "=== Building boringssl via quiche ===" \
-    && cd / \
-    && git clone --recursive https://github.com/cloudflare/quiche \
-    && cd /quiche && git submodule update --init \
-    && cd /quiche/quiche && git submodule update --init --recursive \
-    && cd /quiche/quiche/deps/boringssl && mkdir build && cd build \
-    && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=on .. \
+    && git clone --depth 1 -b "openssl-${SSL_VERSION}+quic" https://github.com/quictls/openssl \
+    && cd openssl \
+    && ./config enable-tls1_3 --prefix=/usr --openssldir=/etc/ssl \
     && make -j$(nproc) \
-    && cd /quiche/quiche && mkdir -p deps/boringssl/src/lib \
-    && find /quiche/quiche \( -name libcrypto.a -o -name libssl.a \) -print | while read -r f; do \
-        ln -sf "$f" deps/boringssl/src/lib/; done \
-    && echo "=== Building quiche (Rust) ===" \
-    && cd /quiche \
-    && git config --global http.postBuffer 524288000 \
-    && git config --global http.sslVerify false \
-    && cargo build --package quiche --release --features ffi,pkg-config-meta,qlog \
-    && echo "=== Patching curl with curl-impersonate ===" \
-    && cd "/tmp/curl-${CURL_VERSION}" \
-    && wget -q "https://cdn.jsdelivr.net/gh/lwthiker/curl-impersonate@main/chrome/patches/curl-impersonate.patch" \
-    && wget -q "https://cdn.jsdelivr.net/gh/curl/curl@master/lib/easy_lock.h" -O lib/easy_lock.h \
-    && for p in $(ls curl-*.patch 2>/dev/null); do patch -p1 < "$p"; done \
+    && make install_sw \
+    && cd /tmp && rm -rf openssl \
+    && echo "=== Building curl ${CURL_VERSION} ===" \
+    && wget -q "https://curl.haxx.se/download/curl-${CURL_VERSION}.tar.bz2" \
+    && tar xjf "curl-${CURL_VERSION}.tar.bz2" && rm "curl-${CURL_VERSION}.tar.bz2" \
+    && cd "curl-${CURL_VERSION}" \
     && autoreconf -fi \
-    && LDFLAGS="-Wl,-rpath,/usr/lib,-rpath,/quiche/target/release" ./configure \
-        --with-openssl=/quiche/quiche/deps/boringssl/src \
+    && LDFLAGS="-Wl,-rpath,/usr/lib" ./configure \
+        --with-openssl=/usr \
         --with-nghttp2=/usr \
-        --without-ngtcp2 \
-        --with-brotli \
         --prefix=/usr \
         --enable-ipv6 \
         --enable-unix-sockets \
         --with-libidn2 \
-        --disable-static \
-        --disable-ldap \
-        --with-pic \
-        --with-gssapi \
-        --enable-ares \
-        USE_CURL_SSLKEYLOGFILE=true \
+        --disable-static --disable-ldap \
+        --with-pic --with-gssapi --with-brotli --with-zstd --enable-ares \
     && make -j$(nproc) \
     && make install \
-    && rm -f /usr/bin/curl /usr/bin/curl-config \
-    && ln -fs /usr/bin/curl-impersonate-chrome /usr/bin/curl \
-    && ln -fs /usr/bin/curl-impersonate-chrome-config /usr/bin/curl-config \
-    && echo "=== Installing pycurl-ja3 ===" \
-    && cd /tmp \
-    && git clone https://github.com/a76yyyy/pycurl-ja3.git \
-    && cd pycurl-ja3 \
-    && python3 setup.py install --openssl-dir=/quiche/quiche/deps/boringssl/src \
+    && ldconfig \
+    && cd /tmp && rm -rf "curl-${CURL_VERSION}" \
+    && echo "=== Installing pycurl ===" \
+    && pip install --no-cache-dir --break-system-packages --no-binary pycurl --compile pycurl \
     && echo "=== Cleaning build deps ===" \
-    && cd / && rm -rf /tmp/* /quiche /root/.cargo /root/.rustup \
     && apt-get remove -y \
         python3-dev libidn2-dev libgsasl-dev libnghttp2-dev \
         libbrotli-dev zlib1g-dev libpsl-dev libzstd-dev libkrb5-dev libc-ares-dev \
         python3-setuptools python3-wheel \
         build-essential cmake perl autoconf g++ automake \
-        linux-libc-dev libtool wget patch git golang-go \
+        linux-libc-dev libtool wget git \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # 拷贝源码
 COPY --from=builder /src /usr/src/app
