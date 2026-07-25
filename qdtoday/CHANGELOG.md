@@ -1,3 +1,7 @@
+### 20250803-build.46 (2026-07-25)
+CI 变更
+- build(qdtoday): CI 变更 → 20250803-build.45
+
 ### 20250803-build.45 (2026-07-25)
 CI 变更
 - build(qdtoday): CI 工作流变更 → 20250803-build.44
