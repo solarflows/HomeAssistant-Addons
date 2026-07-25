@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.28 (2026-07-25)
+CI 变更
+- build(filebrowser-quantum): CI 变更 → 1.5.0-stable-build.27
+
 ### 1.5.0-stable-build.27 (2026-07-25)
 CI 变更
 - build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.26
