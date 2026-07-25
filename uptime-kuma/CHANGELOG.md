@@ -1,3 +1,7 @@
+### 2.4.0-build.27 (2026-07-25)
+CI 变更
+- build(uptime-kuma): CI 变更 → 2.4.0-build.26
+
 ### 2.4.0-build.26 (2026-07-25)
 CI 变更
 - build(uptime-kuma): CI 工作流变更 → 2.4.0-build.25
