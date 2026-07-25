@@ -1,3 +1,8 @@
+### 1.1.23-build.6 (2026-07-25)
+rootfs 变更
+- fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
+- build(baihu-panel): CI 变更 → 1.1.23-build.5
+
 ### 1.1.23-build.5 (2026-07-25)
 CI 变更
 - build(baihu-panel): CI 变更 → 1.1.23-build.4
