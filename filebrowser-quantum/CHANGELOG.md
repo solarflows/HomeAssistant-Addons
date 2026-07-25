@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.22 (2026-07-25)
+rootfs 脚本/配置变更
+无提交信息
+
 ### 1.5.0-stable-build.21 (2026-07-25)
 Dockerfile 变更
 无提交信息
