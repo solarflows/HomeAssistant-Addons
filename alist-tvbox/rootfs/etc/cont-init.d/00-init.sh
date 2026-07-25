@@ -45,7 +45,10 @@ bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 # 调用上游初始化脚本（下载资源、配置 AList 等）
 bashio::log.info "Running upstream initialization..."
 export INSTALL=xiaoya
+# 记录关键状态
+bashio::log.info "pre-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing'), data.sql=$(ls -la /data/atv/data.sql 2>/dev/null || echo 'missing')"
 /docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log || true
+bashio::log.info "post-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing')"
 
 # 确保 AList config.json 存在（init-xiaoya.sh 不创建此文件，但 Spring Boot 启动需要）
 # 必须在 init 之后，否则 init 脚本检测到 config.json 会跳过数据库建表
