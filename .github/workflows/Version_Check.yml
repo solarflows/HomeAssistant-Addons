@@ -264,20 +264,6 @@ jobs:
           echo "=== Matrix ==="
           echo "$RESULT" | jq .
 
-  trigger-release:
-    needs: check-versions
-    if: needs.check-versions.outputs.has_changes == 'true'
-    uses: ./.github/workflows/Release.yml
-    with:
-      matrix: ${{ needs.check-versions.outputs.matrix }}
-      force_rebuild: ${{ inputs.force_rebuild || false }}
-    secrets: inherit
-
-  cleanup-runs:
-    runs-on: ubuntu-latest
-    if: always()
-    needs: trigger-release
-    steps:
       - name: Delete old workflow runs (>30 days)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -287,21 +273,23 @@ jobs:
           DELETED=0
 
           RUNS=$(gh api "repos/${{ github.repository }}/actions/runs?created=<$CUTOFF&per_page=100" \
-            --jq '.workflow_runs[] | .id' 2>/dev/null || echo "")
-
-          if [ -z "$RUNS" ]; then
-            echo "No old workflow runs to delete."
-            exit 0
-          fi
+            --jq '.workflow_runs[] | .id') || { echo "No old runs found or API error"; exit 0; }
 
           for RUN_ID in $RUNS; do
             echo "Deleting run $RUN_ID..."
-            if gh api --method DELETE "repos/${{ github.repository }}/actions/runs/$RUN_ID" 2>/dev/null; then
-              DELETED=$((DELETED + 1))
-            else
+            gh api --method DELETE "repos/${{ github.repository }}/actions/runs/$RUN_ID" && \
+              DELETED=$((DELETED + 1)) || \
               echo "  Failed to delete run $RUN_ID (may be in progress)"
-            fi
           done
 
           echo "Deleted $DELETED old workflow runs."
+
+  trigger-release:
+    needs: check-versions
+    if: needs.check-versions.outputs.has_changes == 'true'
+    uses: ./.github/workflows/Release.yml
+    with:
+      matrix: ${{ needs.check-versions.outputs.matrix }}
+      force_rebuild: ${{ inputs.force_rebuild || false }}
+    secrets: inherit
 
