@@ -13,10 +13,15 @@ ports:
   8052/tcp: 8052
 ports_description:
   8052/tcp: 'Baihu Panel Web UI port'
-environment:
-  BH_SERVER_PORT: "8052"
+# 可选配置项：修改后保存并重启 addon 生效。
+options:
+  BH_SERVER_PORT: 8052
   BH_SERVER_HOST: "0.0.0.0"
   BH_DB_PATH: "/config/baihu/data/baihu.db"
+schema:
+  BH_SERVER_PORT: int?
+  BH_SERVER_HOST: str?
+  BH_DB_PATH: str?
 map:
   - config:rw
 startup: application

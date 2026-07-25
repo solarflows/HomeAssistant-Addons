@@ -39,6 +39,25 @@ if [ -f "$CHROMIUM_WRAPPER" ] && grep -q '^#!/bin/sh' "$CHROMIUM_WRAPPER" 2>/dev
 fi
 
 echo "Warning - minimum configuration recommended: 2 CPU cores and 4 GB memory"
+
+# ---- HA addon options → 环境变量 ----
+if [ -f /data/options.json ]; then
+    echo "[FlareSolverr] Reading HA addon options..."
+    python3 -c "
+import json
+with open('/data/options.json') as f:
+    opts = json.load(f)
+with open('/tmp/ha_options.env', 'w') as out:
+    for k, v in opts.items():
+        if v is not None and v != '':
+            if isinstance(v, bool):
+                v = str(v).lower()
+            out.write(f'{k}={v}\n')
+"
+    set -a; . /tmp/ha_options.env; set +a
+    rm -f /tmp/ha_options.env
+fi
+
 echo "[FlareSolverr] Starting..."
 
 exec dumb-init -- python -u /app/flaresolverr.py

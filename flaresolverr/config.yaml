@@ -15,17 +15,8 @@ ports:
 ports_description:
   8191/tcp: "FlareSolverr proxy port"
   8192/tcp: "Prometheus exporter port"
-environment:
-  LOG_LEVEL: "info"
-  LOG_FILE: ""
-  HEADLESS: "true"
-  DISABLE_MEDIA: "false"
-  LANG: ""
-  PROMETHEUS_ENABLED: "false"
-  PROXY_URL: ""
-  PROXY_USERNAME: ""
-  PROXY_PASSWORD: ""
 # 可选配置项：修改后保存并重启 addon 生效。
+# 常用配置在 UI 中可见；高级配置可手动写入 YAML（见下方 schema）。
 options:
   LOG_LEVEL: info
   LOG_FILE: ""
@@ -37,12 +28,12 @@ options:
   PROXY_USERNAME: ""
   PROXY_PASSWORD: ""
 schema:
-  LOG_LEVEL: list(info|debug|warn|error)
+  LOG_LEVEL: list(info|debug|warn|error)?
   LOG_FILE: str?
-  HEADLESS: bool
-  DISABLE_MEDIA: bool
+  HEADLESS: bool?
+  DISABLE_MEDIA: bool?
   LANG: str?
-  PROMETHEUS_ENABLED: bool
+  PROMETHEUS_ENABLED: bool?
   PROXY_URL: url?
   PROXY_USERNAME: str?
   PROXY_PASSWORD: password?

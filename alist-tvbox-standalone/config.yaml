@@ -20,7 +20,11 @@ environment:
   no_proxy: "*.aliyundrive.com"
   ALIST_PORT: "5244"
   INSTALL: "new"
+# 可选配置项：修改后保存并重启 addon 生效。
+options:
   MEM_OPT: "-Xmx512M"
+schema:
+  MEM_OPT: str?
 map:
   - config:rw
 startup: application

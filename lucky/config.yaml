@@ -4,7 +4,9 @@ version: "2.27.2-build.22"
 image: ghcr.io/solarflows/lucky
 description: "替代socat,IPv6 tcp/udp 转发内网IPv4,动态域名服务"
 url: https://github.com/gdy666/lucky
+webui: "[PROTO:http]://[HOST]:[PORT:16601]"
 init: false
+startup: application
 boot: manual
 arch:
   - aarch64
