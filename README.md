@@ -1,32 +1,54 @@
 # HomeAssistant-Addons
 
-Home Assistant 自定义 Add-on 仓库
+[![Version Check](https://img.shields.io/github/actions/workflow/status/solarflows/HomeAssistant-Addons/Version_Check.yml?label=Version%20Check&logo=githubactions&logoColor=white)](https://github.com/solarflows/HomeAssistant-Addons/actions/workflows/Version_Check.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/solarflows/HomeAssistant-Addons/Release.yml?label=Release&logo=githubactions&logoColor=white)](https://github.com/solarflows/HomeAssistant-Addons/actions/workflows/Release.yml)
+[![License](https://img.shields.io/github/license/solarflows/HomeAssistant-Addons)](LICENSE)
 
-## Add-ons
+> Home Assistant 自定义 Add-on 仓库 · Maintained by [solarflows](https://github.com/solarflows)
 
-| Add-on | 描述 | 版本 | 上游 |
-|---|---|---|---|
-| [AList-TvBox](alist-tvbox/) | AList proxy server for TvBox, support playlist and search | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/alist-tvbox/config.yaml) | [power721/alist-tvbox](https://github.com/power721/alist-tvbox) |
-| [AList-TvBox Standalone](alist-tvbox-standalone/) | AList-TvBox without embedded AList kernel | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/alist-tvbox-standalone/config.yaml) | [power721/alist-tvbox](https://github.com/power721/alist-tvbox) |
-| [Lucky](lucky/) | IPv6/IPv4 端口转发, DDNS, Stun 内网穿透 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/lucky/config.yaml) | [gdy666/lucky](https://github.com/gdy666/lucky) |
-| [FlareSolverr](flaresolverr/) | Bypass Cloudflare protection | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/flaresolverr/config.yaml) | [FlareSolverr/FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) |
-| [QD-Today](qdtoday/) | HTTP请求定时任务自动执行框架 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qdtoday/config.yaml) | [qd-today/qd](https://github.com/qd-today/qd) |
-| [青龙面板](qinglong/) | 定时任务管理平台 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qinglong/config.yaml) | [whyour/qinglong](https://github.com/whyour/qinglong) |
-| [白虎面板](baihu-panel/) | 轻量级定时任务管理系统 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/baihu-panel/config.yaml) | [engigu/baihu-panel](https://github.com/engigu/baihu-panel) |
-| [FileBrowser Quantum](filebrowser-quantum/) | 现代化 Web 文件管理器 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/filebrowser-quantum/config.yaml) | [gtsteffaniak/filebrowser](https://github.com/gtsteffaniak/filebrowser) |
-| [Uptime Kuma](uptime-kuma/) | 自托管监控工具 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/uptime-kuma/config.yaml) | [louislam/uptime-kuma](https://github.com/louislam/uptime-kuma) |
+---
 
-## 特性
+## 📦 Add-ons
 
-- 所有 addon 使用 HA 标准底包 (`ghcr.io/hassio-addons/debian-base`)
-- 支持 HA 原生备份和文件管理
-- 支持 Healthcheck 健康检查
-- 支持 Ingress 反向代理
-- 自动版本检测和更新（每6小时检查一次）
-- 多架构支持 (amd64/arm64)
+| Add-on | 版本 | 下载量 | 架构 | 描述 |
+|:---|:---:|:---:|:---:|:---|
+| [AList-TvBox](alist-tvbox/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/alist-tvbox/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Falist-tvbox%2Flatest.json) | amd64 · arm64 | AList proxy server for TvBox |
+| [AList-TvBox Standalone](alist-tvbox-standalone/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/alist-tvbox-standalone/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Falist-tvbox-standalone%2Flatest.json) | amd64 · arm64 | AList-TvBox without embedded AList kernel |
+| [Lucky](lucky/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/lucky/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Flucky%2Flatest.json) | amd64 · arm64 | IPv6/IPv4 端口转发 · DDNS · 内网穿透 |
+| [FlareSolverr](flaresolverr/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/flaresolverr/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Fflaresolverr%2Flatest.json) | amd64 · arm64 | Bypass Cloudflare anti-bot protection |
+| [QD-Today](qdtoday/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qdtoday/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Fqdtoday%2Flatest.json) | amd64 · arm64 | HTTP 请求定时任务自动执行框架 |
+| [青龙面板](qinglong/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qinglong/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Fqinglong%2Flatest.json) | amd64 · arm64 | 支持 Python/JS/Shell/TS 的定时任务管理平台 |
+| [白虎面板](baihu-panel/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/baihu-panel/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Fbaihu-panel%2Flatest.json) | amd64 · arm64 | 轻量级定时任务管理系统 |
+| [FileBrowser Quantum](filebrowser-quantum/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/filebrowser-quantum/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Ffilebrowser-quantum%2Flatest.json) | amd64 · arm64 | 现代化 Web 文件管理器 |
+| [Uptime Kuma](uptime-kuma/) | ![](https://img.shields.io/badge/dynamic/yaml?color=blue&label=&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/uptime-kuma/config.yaml) | ![](https://img.shields.io/badge/dynamic/json?color=blue&label=&query=%24.package_version_downloads&url=https%3A%2F%2Fipkgghcr01.azurefd.net%2Fdownloads%2Fsolarflows%2Fuptime-kuma%2Flatest.json) | amd64 · arm64 | 自托管监控工具 |
 
-## 安装
+---
 
-1. 在 Home Assistant 中添加此仓库 URL: `https://github.com/solarflows/HomeAssistant-Addons`
-2. 在 Add-on Store 中找到需要的 Add-on
+## ✨ 特性
+
+- 🏗️ 基于 HA 标准底包 (`debian-base:9.3.0` + S6 overlay)
+- 💾 支持 HA 原生备份和文件管理
+- 🏥 Docker HEALTHCHECK 健康检查
+- 🔀 Ingress 反向代理（部分 addon）
+- 🔄 自动版本检测和 CI 构建（每 6 小时）
+- 🏛️ 多架构支持 (`amd64` / `arm64`)
+
+## 🚀 安装
+
+1. 在 Home Assistant 中添加此仓库 URL：
+   ```
+   https://github.com/solarflows/HomeAssistant-Addons
+   ```
+2. 在 **Add-on Store** 中找到需要的 Add-on
 3. 安装并配置
+
+## 📖 文档
+
+每个 Add-on 目录下包含：
+- `DOCS.md` — 使用说明和配置指南
+- `CHANGELOG.md` — 版本变更记录
+- `translations/` — 多语言翻译（en / zh-Hans）
+
+## 📄 License
+
+[MIT](LICENSE)
