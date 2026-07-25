@@ -15,16 +15,20 @@ if [ -f /bin/busybox-extras ]; then
     /bin/busybox-extras httpd -p 81 -h /www &
 fi
 
-# 启动 nginx
+# 启动 nginx（先停止可能已存在的实例，避免 S6 重启时端口冲突）
 bashio::log.info "Starting nginx..."
-nginx || true
+nginx -s stop 2>/dev/null || true
+sleep 0.5
+mkdir -p /var/cache/nginx/image
+nginx || bashio::log.warning "nginx failed to start"
 
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
+# Spring Boot layertools 目录结构：application/dependencies/snapshot-dependencies/spring-boot-loader
 export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
 cd /opt/atv
 exec java ${MEM_OPT} \
     -Duser.timezone=Asia/Shanghai \
     -Dspring.config.additional-location=file:/data/atv/config/ \
-    -cp BOOT-INF/classes:BOOT-INF/lib/* \
-    cn.har01d.alist_tvbox.AListApplication \
+    -cp spring-boot-loader:application/BOOT-INF/classes:dependencies/BOOT-INF/lib/*:snapshot-dependencies/BOOT-INF/lib/* \
+    org.springframework.boot.loader.launch.JarLauncher \
     81 --spring.profiles.active=production,xiaoya
