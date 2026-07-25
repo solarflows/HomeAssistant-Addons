@@ -18,4 +18,3 @@ configuration:
       Java 堆内存限制。默认：-Xmx512M。
 network:
   4567/tcp: 管理后台 Web UI（TvBox 配置、订阅管理）
-  5244/tcp: AList 端口（连接外部 AList 实例）

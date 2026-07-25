@@ -8,7 +8,7 @@
 | slug | upstream | strategy | port | S6 |
 |---|---|---|---|---|
 | alist-tvbox | power721/alist-tvbox | JAR + haroldli/alist | 4567, 80→5344 | yes |
-| alist-tvbox-standalone | same | JAR (no alist) | 4567, 5244 | yes |
+| alist-tvbox-standalone | same | JAR (no alist, no nginx) | 4567 | yes |
 | lucky | gdy666/lucky | binary download | 16601 (host) | yes |
 | flaresolverr | FlareSolverr/FlareSolverr | upstream image | 8191, 8192 | no |
 | qdtoday | qd-today/qd | Python src build | 8923 | yes |

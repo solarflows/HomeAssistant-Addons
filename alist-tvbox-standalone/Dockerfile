@@ -39,15 +39,10 @@ ARG TARGETARCH
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         openjdk-21-jre-headless \
-        nginx \
         curl \
         wget \
         unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    # 移除 nginx 默认配置，防止 postinst 自动绑定 80 端口
-    # entrypoint.sh 会用上游 nginx.conf 替代
-    && rm -f /etc/nginx/http.d/default.conf \
-    && (nginx -t && nginx -s stop 2>/dev/null || true)
+    && rm -rf /var/lib/apt/lists/*
 
 # 复制 Spring Boot 应用层
 COPY --from=app-builder /extracted/dependencies/ /opt/atv/dependencies/
@@ -62,7 +57,6 @@ COPY --from=source /src/data/115.index.zip /data/
 COPY --from=source /src/data/cat.zip /data/
 COPY --from=source /src/data/pg.zip /data/
 COPY --from=source /src/data/zx.zip /data/
-COPY --from=source /src/data/nginx.conf /etc/nginx/http.d/default.conf
 COPY --from=source /src/data/base_version /data/
 COPY --from=source /src/config/alist.json /alist.json
 
@@ -83,10 +77,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # 端口
-EXPOSE 4567/tcp 5244/tcp
-
-# 持久化目录（/config、/data 由 HAOS Supervisor 自动挂载）
-VOLUME ["/www/static"]
+EXPOSE 4567/tcp
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \

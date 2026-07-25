@@ -2,9 +2,29 @@
 # shellcheck shell=bash
 # ==============================================================================
 # alist-tvbox 启动脚本 (S6 longrun)
-# 在 cont-init.d 完成持久化目录设置后，进入 /opt/atv 启动 Spring Boot
+# 直接控制 httpd + nginx + Java，不依赖上游 entrypoint.sh
 # ==============================================================================
 bashio::log.info "Starting AList-TvBox..."
 
+APP_PID=
+trap 'kill ${APP_PID} 2>/dev/null; exit 0' TERM INT
+
+# 启动 httpd（xiaoya 模式，端口 81）
+if [ -f /bin/busybox-extras ]; then
+    bashio::log.info "Starting httpd on port 81..."
+    /bin/busybox-extras httpd -p 81 -h /www &
+fi
+
+# 启动 nginx
+bashio::log.info "Starting nginx..."
+nginx || true
+
+# 启动 Java 应用（前台运行，作为 S6 管理的主进程）
+export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
 cd /opt/atv
-exec /docker/scripts/entrypoint.sh 81 --spring.profiles.active=production,xiaoya
+exec java ${MEM_OPT} \
+    -Duser.timezone=Asia/Shanghai \
+    -Dspring.config.additional-location=file:/data/atv/config/ \
+    -cp BOOT-INF/classes:BOOT-INF/lib/* \
+    cn.har01d.alist_tvbox.AListApplication \
+    81 --spring.profiles.active=production,xiaoya

@@ -19,4 +19,3 @@ configuration:
       Java heap memory limit. Default: -Xmx512M.
 network:
   4567/tcp: Management Web UI (TvBox config, subscriptions)
-  5244/tcp: AList port (connects to external AList instance)

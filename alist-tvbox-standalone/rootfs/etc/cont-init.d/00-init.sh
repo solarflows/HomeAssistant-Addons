@@ -18,4 +18,9 @@ mkdir -p /data/store
 export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
 bashio::log.info "alist-tvbox-standalone JVM memory: ${MEM_OPT}"
 
+# 调用上游初始化脚本（配置 AList 等）
+bashio::log.info "Running upstream initialization..."
+export INSTALL=new
+/docker/scripts/init-alist.sh 2>&1 | tee /data/log/init.log || true
+
 bashio::log.info "alist-tvbox-standalone initialization completed"

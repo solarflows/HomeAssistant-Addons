@@ -12,10 +12,8 @@ icon: mdi:television-box
 webui: "[PROTO:http]://[HOST]:[PORT:4567]"
 ports:
   4567/tcp: 4567
-  5244/tcp: 5244
 ports_description:
   4567/tcp: 'Manager Web UI port'
-  5244/tcp: 'Alist port'
 environment:
   no_proxy: "*.aliyundrive.com"
   ALIST_PORT: "5244"
