@@ -49,8 +49,8 @@ RUN apt-get update \
         unzip \
     && rm -rf /var/lib/apt/lists/* \
     # 移除 nginx 默认配置，防止 postinst 自动绑定 80 端口
-    # entrypoint.sh 会用上游 nginx.full.conf 替代
-    && rm -f /etc/nginx/http.d/default.conf \
+    # Debian nginx 读 /etc/nginx/sites-enabled/，不是 Alpine 的 /etc/nginx/http.d/
+    && rm -f /etc/nginx/sites-enabled/default \
     && (nginx -t && nginx -s stop 2>/dev/null || true)
 
 # 从 haroldli/alist 复制干净的 alist 二进制
@@ -73,7 +73,7 @@ COPY --from=source /src/data/cat.zip /data/
 COPY --from=source /src/data/pg.zip /data/
 COPY --from=source /src/data/zx.zip /data/
 COPY --from=source /src/data/data.zip /data/
-COPY --from=source /src/data/nginx.full.conf /etc/nginx/http.d/default.conf
+COPY --from=source /src/data/nginx.full.conf /etc/nginx/sites-enabled/alist-tvbox.conf
 COPY --from=source /src/data/base_version /data/
 COPY --from=source /src/config/alist.json /alist.json
 
