@@ -67,3 +67,28 @@ tracking:
 - `run`: `#!/usr/bin/with-contenv bashio` → `exec <app>` (must block foreground)
 - `cont-init.d/00-init.sh`: init dirs, symlinks, data migration
 - `init: false` + `boot: manual` in config.yaml
+
+## Upstream hardcoded path adaptation
+Upstream Docker uses `volumes: ['./data:/app/data']` — paths just work. HA addons only mount `/config` and `/data`. Must adapt via symlinks or `mkdir -p`.
+
+**Audit checklist** when creating a new addon:
+1. Read upstream `Dockerfile` / `docker-compose.yml` for volume mounts
+2. Read upstream `entrypoint.sh` for hardcoded paths (`/app/data`, `/jre/bin/java`, etc.)
+3. Read upstream scripts for version files (`/app_version`, `/docker.version`)
+4. Check if CWD matters (Go/Node apps often derive data dir from CWD)
+5. Create symlinks in `00-init.sh` for all hardcoded paths → `/config/<slug>/` or `/data/`
+
+**Existing addon examples**:
+| Addon | Hardcoded path | Adaptation |
+|---|---|---|
+| alist-tvbox | `/jre/bin/java`, `/app_version`, `/docker.version` | Dockerfile symlink + files |
+| alist-tvbox-standalone | Spring `-Dspring.config.additional-location=file:/data/atv/config/` | `mkdir -p` in init |
+| baihu-panel | CWD `/app` → `/app/data`, `/app/configs`, `/app/envs` | symlink in init |
+| qinglong | `/ql/` paths | symlink `/ql → /config/qinglong` |
+| qdtoday | `/usr/src/app/config` | symlink in init |
+| uptime-kuma | `/opt/uptime-kuma/data` | symlink in init |
+
+**Common pitfalls**:
+- `set -e` in upstream scripts — any missing file kills the entire init
+- Upstream `entrypoint.sh` assumes specific Java/Python/Node paths
+- Spring Boot `additional-location` silently skips missing dirs (no crash, but config ignored)
