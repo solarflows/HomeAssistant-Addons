@@ -1,3 +1,7 @@
+### 2.27.2-build.28 (2026-07-25)
+CI 变更
+- build(lucky): CI 变更 → 2.27.2-build.27
+
 ### 2.27.2-build.27 (2026-07-25)
 CI 变更
 - build(lucky): CI 工作流变更 → 2.27.2-build.26
