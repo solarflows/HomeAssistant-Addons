@@ -17,6 +17,13 @@ mkdir -p /data/alist
 rm -rf /opt/alist/data
 ln -sf /data/alist /opt/alist/data
 
+# 确保 AList config.json 存在（xiaoya init 不创建此文件，但 Spring Boot 启动需要读取）
+if [ ! -f /opt/alist/data/config.json ] && [ -f /alist.json ]; then
+    bashio::log.info "Creating AList config.json from template..."
+    cp /alist.json /opt/alist/data/config.json
+    sed -i 's/127.0.0.1/0.0.0.0/' /opt/alist/data/config.json
+fi
+
 # 上游 inDocker 检测需要 /entrypoint.sh 存在
 # 否则 Spring Boot 会用 /opt/atv/alist/ 路径（找不到 config.json）
 [ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
