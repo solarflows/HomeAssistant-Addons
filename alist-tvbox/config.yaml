@@ -29,5 +29,3 @@ map:
   - config:rw
 startup: application
 boot: manual
-ingress: true
-ingress_port: 4567
