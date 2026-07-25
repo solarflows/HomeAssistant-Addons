@@ -1,3 +1,9 @@
+### 1.28.0-build.16 (2026-07-25)
+Dockerfile + rootfs 变更
+- Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+- fix: data.zip 备份到 /opt/，清空 data 后自动恢复 data.sql
+- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.15
+
 ### 1.28.0-build.15 (2026-07-25)
 Dockerfile + rootfs 变更
 - fix: 创建 /jre/bin/java symlink，修复上游 H2 升级脚本找不到 java
