@@ -11,6 +11,12 @@ mkdir -p /config/baihu/data
 mkdir -p /config/baihu/configs
 mkdir -p /config/baihu/envs
 
+# /app/data 持久化（脚本、WebUI 等用户数据）
+if [ ! -L /app/data ]; then
+    rm -rf /app/data
+    ln -sf /config/baihu/data /app/data
+fi
+
 # ---- mise 运行时环境 ----
 mkdir -p /config/baihu/mise
 mkdir -p /app/envs
