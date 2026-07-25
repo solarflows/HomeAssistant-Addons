@@ -1,3 +1,9 @@
+### 1.28.0-build.15 (2026-07-25)
+Dockerfile + rootfs 变更
+- fix: 创建 /jre/bin/java symlink，修复上游 H2 升级脚本找不到 java
+- fix: 创建 /data/atv/config/ 目录，修复清空 data 后 Spring Boot 启动失败
+- build(alist-tvbox): CI 变更 → 1.28.0-build.14
+
 ### 1.28.0-build.14 (2026-07-25)
 CI 变更
 - fix: 修复小雅数据未导入 + CI CHANGELOG commit message 提取
