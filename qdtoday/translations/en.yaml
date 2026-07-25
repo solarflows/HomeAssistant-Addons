@@ -81,3 +81,5 @@ configuration:
     description: >-
       Delay in seconds after creating a new task before it starts.
       Leave empty to use QD default (1).
+network:
+  8923/tcp: QD-Today Web management panel

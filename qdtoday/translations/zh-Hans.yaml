@@ -68,3 +68,5 @@ configuration:
     name: 新任务延迟
     description: >-
       新建任务后等待时间（秒）。留空使用 QD 默认值（1）。
+network:
+  8923/tcp: QD-Today Web 管理界面

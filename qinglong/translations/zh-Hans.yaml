@@ -4,3 +4,5 @@ configuration:
     name: 时区
     description: >-
       青龙面板时区设置，影响定时任务的执行时间。
+network:
+  5700/tcp: 青龙面板 Web 管理界面
