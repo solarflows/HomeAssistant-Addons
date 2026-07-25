@@ -7,8 +7,8 @@
 
 bashio::log.info "Initializing alist-tvbox-standalone..."
 
-# 创建持久化目录
-mkdir -p /config/atv/config
+# 创建持久化目录（独立于 xiaoya 版的 /config/atv/）
+mkdir -p /config/atv-standalone/config
 mkdir -p /data/log
 
 # Spring Boot atv 数据直接写入 /data/store
