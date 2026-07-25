@@ -1,3 +1,8 @@
+### 1.28.0-build.14 (2026-07-25)
+CI 变更
+- fix: 修复小雅数据未导入 + CI CHANGELOG commit message 提取
+- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.13
+
 ### 1.28.0-build.13 (2026-07-26)
 - 修复 init-xiaoya.sh 因缺少 `/app_version` 导致 `set -e` 中断，小雅数据未导入
 - Dockerfile: 生成 `/app_version` 和 `/docker.version`（上游 CI 构建时生成，git 仓库中不存在）
