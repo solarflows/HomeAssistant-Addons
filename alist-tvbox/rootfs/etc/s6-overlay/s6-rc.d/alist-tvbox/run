@@ -23,8 +23,13 @@ mkdir -p /var/cache/nginx/image
 nginx || bashio::log.warning "nginx failed to start"
 
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
-# Spring Boot layertools 目录结构：application/dependencies/snapshot-dependencies/spring-boot-loader
-export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
+MEM_OPT=${MEM_OPT:-"-Xmx512M"}
+ATV_DEBUG=$(bashio::config 'ATV_DEBUG' 'false')
+DEBUG_FLAG=""
+if [ "${ATV_DEBUG}" = "true" ]; then
+    DEBUG_FLAG="--debug"
+    bashio::log.info "Debug mode enabled"
+fi
 cd /opt/atv
 exec java ${MEM_OPT} \
     -Duser.timezone=Asia/Shanghai \
@@ -32,4 +37,4 @@ exec java ${MEM_OPT} \
     -Dloader.main=cn.har01d.alist_tvbox.AListApplication \
     -cp application/BOOT-INF/classes:dependencies/BOOT-INF/lib/*:snapshot-dependencies/BOOT-INF/lib/*:spring-boot-loader \
     org.springframework.boot.loader.launch.PropertiesLauncher \
-    81 --spring.profiles.active=production,xiaoya
+    81 --spring.profiles.active=production,xiaoya ${DEBUG_FLAG}

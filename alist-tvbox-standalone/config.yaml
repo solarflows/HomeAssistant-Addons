@@ -20,9 +20,11 @@ environment:
   INSTALL: "new"
 # 可选配置项：修改后保存并重启 addon 生效。
 options:
-  MEM_OPT: "-Xmx512M"
+  LOW_MEMORY: true
+  ATV_DEBUG: false
 schema:
-  MEM_OPT: str?
+  LOW_MEMORY: bool?
+  ATV_DEBUG: bool?
 map:
   - config:rw
 startup: application

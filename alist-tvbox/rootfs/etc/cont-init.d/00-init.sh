@@ -16,11 +16,20 @@ mkdir -p /data/log
 rm -rf /opt/alist/data
 ln -sf /data/alist /opt/alist/data
 
+# 上游 inDocker 检测需要 /entrypoint.sh 存在
+# 否则 Spring Boot 会用 /opt/atv/alist/ 路径（找不到 config.json）
+[ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
+
 # Spring Boot atv 数据直接写入 /data/store
 mkdir -p /data/store
 
 # ---- 读取 HA addon 配置选项并导出为环境变量 ----
-export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
+LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
+if [ "${LOW_MEMORY}" = "true" ]; then
+    export MEM_OPT="-Xmx512M"
+else
+    export MEM_OPT="-Xmx1024M"
+fi
 bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
 # 调用上游初始化脚本（下载资源、配置 AList 等）

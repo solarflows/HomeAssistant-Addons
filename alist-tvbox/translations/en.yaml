@@ -13,10 +13,16 @@ configuration:
     name: Install mode
     description: >-
       Installation mode: xiaoya (integrated Xiaoya AList) or new (clean install).
-  MEM_OPT:
-    name: JVM memory limit
+  LOW_MEMORY:
+    name: Low memory mode
     description: >-
-      Java heap memory limit. Default: -Xmx512M.
+      Enable to limit JVM heap to 512MB. Disable for 1024MB.
+      Recommended for most HA installations.
+  ATV_DEBUG:
+    name: Debug mode
+    description: >-
+      Enable Spring Boot debug logging (condition evaluation report).
+      Only enable when troubleshooting startup issues.
 network:
   4567/tcp: Management Web UI (TvBox config, subscriptions)
   80/tcp: AList Web UI (file browsing, cloud storage management)

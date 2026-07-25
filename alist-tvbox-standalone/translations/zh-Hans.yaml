@@ -12,9 +12,15 @@ configuration:
     name: 安装模式
     description: >-
       安装模式，独立版固定为 "new"。
-  MEM_OPT:
-    name: JVM 内存限制
+  LOW_MEMORY:
+    name: 低内存模式
     description: >-
-      Java 堆内存限制。默认：-Xmx512M。
+      开启限制 JVM 堆内存为 512MB，关闭为 1024MB。
+      大多数 HA 安装推荐开启。
+  ATV_DEBUG:
+    name: 调试模式
+    description: >-
+      开启 Spring Boot 调试日志（条件评估报告）。
+      仅在排查启动问题时开启。
 network:
   4567/tcp: 管理后台 Web UI（TvBox 配置、订阅管理）
