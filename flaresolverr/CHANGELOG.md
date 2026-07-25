@@ -1,3 +1,7 @@
+### 3.5.0-build.24 (2026-07-25)
+CI 变更
+- build(flaresolverr): CI 变更 → 3.5.0-build.23
+
 ### 3.5.0-build.23 (2026-07-25)
 CI 变更
 - build(flaresolverr): CI 工作流变更 → 3.5.0-build.22
