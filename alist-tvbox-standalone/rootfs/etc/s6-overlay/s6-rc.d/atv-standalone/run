@@ -16,6 +16,7 @@ cd /opt/atv
 exec java ${MEM_OPT} \
     -Duser.timezone=Asia/Shanghai \
     -Dspring.config.additional-location=file:/data/atv/config/ \
-    -cp spring-boot-loader:application/BOOT-INF/classes:dependencies/BOOT-INF/lib/*:snapshot-dependencies/BOOT-INF/lib/* \
-    org.springframework.boot.loader.launch.JarLauncher \
+    -Dloader.main=cn.har01d.alist_tvbox.AListApplication \
+    -cp application/BOOT-INF/classes:dependencies/BOOT-INF/lib/*:snapshot-dependencies/BOOT-INF/lib/*:spring-boot-loader \
+    org.springframework.boot.loader.launch.PropertiesLauncher \
     81 --spring.profiles.active=production,docker
