@@ -33,5 +33,3 @@ if [ -f /ql/.env.example ] && [ ! -f /ql/.env ]; then
 fi
 
 bashio::log.info "Qinglong initialization completed"
-
-rm -f /run/service/qinglong/down 2>/dev/null

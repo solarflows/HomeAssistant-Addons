@@ -90,7 +90,7 @@ configuration:
 network:
   8080/tcp: Web UI
 ```
-- Each addon needs `translations/en.yaml` + `translations/zh-cn.yaml`.
+- Each addon needs `translations/en.yaml` + `translations/zh-Hans.yaml`.
 
 ## version.yaml
 ```yaml

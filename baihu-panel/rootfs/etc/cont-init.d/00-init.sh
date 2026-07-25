@@ -28,6 +28,10 @@ if [ ! -L /app/configs ]; then
     ln -sf /config/baihu/configs /app/configs
 fi
 
-bashio::log.info "Baihu Panel initialization completed"
+# ---- 读取 HA addon 配置选项并导出为环境变量 ----
+export BH_SERVER_PORT=$(bashio::config 'BH_SERVER_PORT' '8052')
+export BH_SERVER_HOST=$(bashio::config 'BH_SERVER_HOST' '0.0.0.0')
+export BH_DB_PATH=$(bashio::config 'BH_DB_PATH' '/config/baihu/data/baihu.db')
+bashio::log.info "Baihu Panel config: port=${BH_SERVER_PORT}, host=${BH_SERVER_HOST}"
 
-rm -f /run/service/baihu/down 2>/dev/null
+bashio::log.info "Baihu Panel initialization completed"

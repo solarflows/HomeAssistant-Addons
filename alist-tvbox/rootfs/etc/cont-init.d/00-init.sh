@@ -19,7 +19,8 @@ ln -sf /data/alist /opt/alist/data
 # Spring Boot atv 数据直接写入 /data/store
 mkdir -p /data/store
 
-bashio::log.info "alist-tvbox initialization completed"
+# ---- 读取 HA addon 配置选项并导出为环境变量 ----
+export MEM_OPT=$(bashio::config 'MEM_OPT' '-Xmx512M')
+bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
-# 确保 legacy-services 自动启动（debian-base 默认加 down 标记）
-rm -f /run/service/alist-tvbox/down 2>/dev/null
+bashio::log.info "alist-tvbox initialization completed"

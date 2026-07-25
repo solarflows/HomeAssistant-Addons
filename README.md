@@ -14,6 +14,7 @@ Home Assistant 自定义 Add-on 仓库
 | [青龙面板](qinglong/) | 定时任务管理平台 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/qinglong/config.yaml) | [whyour/qinglong](https://github.com/whyour/qinglong) |
 | [白虎面板](baihu-panel/) | 轻量级定时任务管理系统 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/baihu-panel/config.yaml) | [engigu/baihu-panel](https://github.com/engigu/baihu-panel) |
 | [FileBrowser Quantum](filebrowser-quantum/) | 现代化 Web 文件管理器 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/filebrowser-quantum/config.yaml) | [gtsteffaniak/filebrowser](https://github.com/gtsteffaniak/filebrowser) |
+| [Uptime Kuma](uptime-kuma/) | 自托管监控工具 | ![](https://img.shields.io/badge/dynamic/yaml?label=version&query=$.version&url=https://raw.githubusercontent.com/solarflows/HomeAssistant-Addons/main/uptime-kuma/config.yaml) | [louislam/uptime-kuma](https://github.com/louislam/uptime-kuma) |
 
 ## 特性
 

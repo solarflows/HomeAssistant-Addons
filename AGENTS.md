@@ -3,7 +3,7 @@
 > Owner: solarflows | Maintainer: Husky
 > Repo definition: `repository.yaml`
 
-## Addons (8)
+## Addons (9)
 
 | slug | upstream | strategy | port | S6 |
 |---|---|---|---|---|
@@ -15,6 +15,7 @@
 | qinglong | whyour/qinglong | Node.js src build | 5700 | yes |
 | baihu-panel | engigu/baihu-panel | Go src build | 8052 | yes |
 | filebrowser-quantum | gtsteffaniak/filebrowser | upstream image | 8080 | yes |
+| uptime-kuma | louislam/uptime-kuma | Node.js src build | 3001 | yes |
 
 ### Version prefixes
 
@@ -27,6 +28,7 @@
 | qinglong | "v" | v2.21.0 | 2.21.0 |
 | baihu-panel | "v" | v1.1.21 | 1.1.21 |
 | filebrowser-quantum | "v" + transform | v1.4.0-stable | 1.4.0-stable |
+| uptime-kuma | "v" | v2.4.0 | 2.4.0 |
 
 ## Quick Reference
 - **Base**: `debian-base:9.3.0` (S6 built-in) | **Paths**: `/config` (persistent), `/share` (cross-addon), `/ssl` (certs)

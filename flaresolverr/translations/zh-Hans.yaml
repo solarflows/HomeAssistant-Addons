@@ -37,3 +37,6 @@ configuration:
     name: 代理密码
     description: >-
       上游代理认证密码，请妥善保管。
+network:
+  8191/tcp: FlareSolverr 代理 API
+  8192/tcp: Prometheus 监控指标导出

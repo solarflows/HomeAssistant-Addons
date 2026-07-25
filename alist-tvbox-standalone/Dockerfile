@@ -66,15 +66,15 @@ COPY --from=source /src/config/alist.json /alist.json
 COPY rootfs /
 
 # 确保脚本可执行
-RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -exec chmod +x {} \; 2>/dev/null || true \
-    && chmod +x /docker/scripts/*.sh 2>/dev/null || true
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh \
+    && chmod +x /docker/scripts/*.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 
 # 环境变量
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
     MEM_OPT="-Xmx512M" \
-    ALIST_PORT=5344 \
+    ALIST_PORT=5244 \
     INSTALL=new
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 

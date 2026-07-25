@@ -77,8 +77,8 @@ COPY --from=source /src/config/alist.json /alist.json
 COPY rootfs /
 
 # 确保脚本可执行
-RUN find /rootfs -type f \( -name "*.sh" -o -name "run" -o -name "finish" \) -exec chmod +x {} \; 2>/dev/null || true \
-    && chmod +x /docker/scripts/*.sh 2>/dev/null || true
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh \
+    && chmod +x /docker/scripts/*.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 

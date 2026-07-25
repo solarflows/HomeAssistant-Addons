@@ -55,5 +55,3 @@ if [ -x /usr/sbin/nscd ]; then
 fi
 
 bashio::log.info "Uptime Kuma initialization completed"
-
-rm -f /run/service/uptime-kuma/down 2>/dev/null

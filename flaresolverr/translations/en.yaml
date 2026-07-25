@@ -37,3 +37,6 @@ configuration:
     name: Proxy password
     description: >-
       Password for upstream proxy authentication. Keep this confidential.
+network:
+  8191/tcp: FlareSolverr proxy API
+  8192/tcp: Prometheus metrics exporter
