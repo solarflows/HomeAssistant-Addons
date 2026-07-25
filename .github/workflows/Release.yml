@@ -132,7 +132,12 @@ jobs:
           echo "changelog_file_path=$CHANGELOG_FILE_PATH" >> $GITHUB_OUTPUT
           echo "base_tag=$BASE_TAG" >> $GITHUB_OUTPUT
           echo "build_num=$BUILD_NUM" >> $GITHUB_OUTPUT
-          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          # commit_msg 可能是多行，用 heredoc 语法
+          {
+            echo "commit_msg<<COMMIT_EOF"
+            echo "$COMMIT_MSG"
+            echo "COMMIT_EOF"
+          } >> $GITHUB_OUTPUT
           echo "is_file_trigger=$IS_FILE_TRIGGER" >> $GITHUB_OUTPUT
 
       - name: Prepare build args
