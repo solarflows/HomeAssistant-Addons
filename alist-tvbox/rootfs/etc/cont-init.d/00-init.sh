@@ -13,6 +13,7 @@ mkdir -p /config/atv/config
 mkdir -p /data/log
 
 # Alist 内核数据 → /data/alist（HAOS 持久化）
+mkdir -p /data/alist
 rm -rf /opt/alist/data
 ln -sf /data/alist /opt/alist/data
 
