@@ -43,7 +43,11 @@ RUN apt-get update \
         curl \
         wget \
         unzip \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    # 移除 nginx 默认配置，防止 postinst 自动绑定 80 端口
+    # entrypoint.sh 会用上游 nginx.conf 替代
+    && rm -f /etc/nginx/http.d/default.conf \
+    && (nginx -t && nginx -s stop 2>/dev/null || true)
 
 # 复制 Spring Boot 应用层
 COPY --from=app-builder /extracted/dependencies/ /opt/atv/dependencies/

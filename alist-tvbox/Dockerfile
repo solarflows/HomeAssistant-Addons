@@ -47,7 +47,11 @@ RUN apt-get update \
         curl \
         wget \
         unzip \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    # 移除 nginx 默认配置，防止 postinst 自动绑定 80 端口
+    # entrypoint.sh 会用上游 nginx.full.conf 替代
+    && rm -f /etc/nginx/http.d/default.conf \
+    && (nginx -t && nginx -s stop 2>/dev/null || true)
 
 # 从 haroldli/alist 复制干净的 alist 二进制
 # config.json 是运行时生成的(VOLUME)，不预置于镜像中
