@@ -348,12 +348,20 @@ jobs:
                          -m "${RELEASE_TITLE:-Upstream release ${VERSION}}"
             fi
             # 重试 push，处理并行构建的竞态
+            # 每次重试前 pull --rebase 合并远程变更
             PUSH_OK=false
             for i in 1 2 3; do
-              git pull --rebase origin main && git push origin main && { PUSH_OK=true; break; }
+              echo "Push attempt $i/3..."
+              if git pull --rebase origin main; then
+                if git push origin main; then
+                  PUSH_OK=true
+                  break
+                fi
+              fi
+              # rebase 或 push 失败，清理状态后重试
               git rebase --abort 2>/dev/null || true
-              echo "Push attempt $i failed, retrying..."
-              sleep 2
+              echo "Attempt $i failed, waiting before retry..."
+              sleep $((i * 3))
             done
             if [ "$PUSH_OK" = "false" ]; then
               echo "ERROR: Push failed after 3 attempts for ${ADDON}"

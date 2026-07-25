@@ -16,7 +16,7 @@ on:
     paths:
       - '**/Dockerfile'
       - '**/rootfs/**'
-      - '.github/workflows/**'
+      - '.github/workflows/Release.yml'
 
 permissions:
   contents: write
@@ -182,16 +182,17 @@ jobs:
             echo "=== File changes ==="
             echo "$CHANGED_FILES"
 
-            WORKFLOW_CHANGED=false
+            # 检测是否有 Release.yml 变更（构建管道变更才需要全量重建）
+            RELEASE_CHANGED=false
             for file in $CHANGED_FILES; do
-              if echo "$file" | grep -qE '^\.github/workflows/'; then
-                WORKFLOW_CHANGED=true
+              if [ "$file" = ".github/workflows/Release.yml" ]; then
+                RELEASE_CHANGED=true
                 break
               fi
             done
 
-            # 工作流变更 → 全量重建（构建管道本身变了）
-            if [ "$WORKFLOW_CHANGED" = "true" ]; then
+            # Release.yml 变更 → 全量重建（构建管道本身变了）
+            if [ "$RELEASE_CHANGED" = "true" ]; then
               echo "  Workflow changed, triggering rebuild for ALL addons"
               for vf in */version.yaml; do
                 [ -f "$vf" ] || continue
@@ -258,4 +259,63 @@ jobs:
       matrix: ${{ needs.check-versions.outputs.matrix }}
       force_rebuild: ${{ inputs.force_rebuild || false }}
     secrets: inherit
+
+  cleanup-changelog:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: trigger-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Clean old CHANGELOG entries (>7 days)
+        run: |
+          CUTOFF=$(date -u -d '7 days ago' +%Y-%m-%d)
+          echo "Cutoff date: $CUTOFF"
+          CHANGED=false
+
+          for cl in */CHANGELOG.md; do
+            [ -f "$cl" ] || continue
+            ADDON_DIR=$(dirname "$cl")
+            echo "=== Processing $cl ==="
+
+            # 用 awk 移除日期早于 cutoff 的 changelog 条目
+            # 格式: ### version (YYYY-MM-DD)
+            awk -v cutoff="$CUTOFF" '
+              /^### [^ ]+ \([0-9]{4}-[0-9]{2}-[0-9]{2}\)/ {
+                match($0, /\(([0-9]{4}-[0-9]{2}-[0-9]{2})\)/, d)
+                if (d[1] < cutoff) { skip=1; next } else { skip=0 }
+              }
+              skip { next }
+              { print }
+            ' "$cl" > "${cl}.tmp"
+
+            if ! diff -q "$cl" "${cl}.tmp" >/dev/null 2>&1; then
+              mv "${cl}.tmp" "$cl"
+              CHANGED=true
+              echo "  Cleaned old entries from $cl"
+            else
+              rm -f "${cl}.tmp"
+              echo "  No old entries in $cl"
+            fi
+          done
+
+          if [ "$CHANGED" = "true" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add */CHANGELOG.md
+            git commit -m "chore: 清理 >7 天的 CHANGELOG 构建记录" \
+                       -m "Cutoff: ${CUTOFF}"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin main && exit 0
+              git rebase --abort 2>/dev/null || true
+              sleep 2
+            done
+            echo "WARNING: CHANGELOG cleanup push failed after 3 attempts"
+          else
+            echo "No old CHANGELOG entries to clean."
+          fi
 
