@@ -53,6 +53,11 @@ RUN apt-get update \
     && rm -f /etc/nginx/sites-enabled/default \
     && (nginx -t && nginx -s stop 2>/dev/null || true)
 
+# 上游 init-xiaoya.sh 硬编码 /jre/bin/java（H2 数据库升级用）
+# Debian 的 java 在 /usr/lib/jvm/ 下，创建兼容 symlink
+RUN mkdir -p /jre/bin \
+    && ln -sf /usr/lib/jvm/java-21-openjdk-${TARGETARCH}/bin/java /jre/bin/java
+
 # 从 haroldli/alist 复制干净的 alist 二进制
 # config.json 是运行时生成的(VOLUME)，不预置于镜像中
 COPY --from=alist-source /opt/alist/alist /opt/alist/alist
