@@ -10,6 +10,7 @@ bashio::log.info "Initializing alist-tvbox..."
 
 # 创建持久化目录
 mkdir -p /config/atv/config
+mkdir -p /data/atv/config
 mkdir -p /data/log
 
 # Alist 内核数据 → /data/alist（HAOS 持久化）
