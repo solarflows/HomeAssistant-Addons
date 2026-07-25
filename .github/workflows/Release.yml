@@ -358,7 +358,14 @@ jobs:
                   break
                 fi
               fi
-              # rebase 或 push 失败，清理状态后重试
+              # rebase 冲突时：version.yaml 冲突自动解决（保留我们的 tracking 更新）
+              # rebase 中 ours=远程 theirs=我们（本地 commit）
+              if [ -f "${ADDON_DIR}/version.yaml" ]; then
+                git checkout --theirs "${ADDON_DIR}/version.yaml" 2>/dev/null || true
+                git add "${ADDON_DIR}/version.yaml" 2>/dev/null || true
+                GIT_EDITOR=true git rebase --continue 2>/dev/null || true
+              fi
+              # 如果 rebase --continue 仍然失败，abort 后重试
               git rebase --abort 2>/dev/null || true
               echo "Attempt $i failed, waiting before retry..."
               sleep $((i * 3))
