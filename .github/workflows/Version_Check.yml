@@ -273,62 +273,35 @@ jobs:
       force_rebuild: ${{ inputs.force_rebuild || false }}
     secrets: inherit
 
-  cleanup-changelog:
+  cleanup-runs:
     runs-on: ubuntu-latest
     if: always()
     needs: trigger-release
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
-
-      - name: Clean old CHANGELOG entries (>7 days)
+      - name: Delete old workflow runs (>30 days)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CUTOFF=$(date -u -d '7 days ago' +%Y-%m-%d)
-          echo "Cutoff date: $CUTOFF"
-          CHANGED=false
+          CUTOFF=$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          echo "Deleting workflow runs created before: $CUTOFF"
+          DELETED=0
 
-          for cl in */CHANGELOG.md; do
-            [ -f "$cl" ] || continue
-            ADDON_DIR=$(dirname "$cl")
-            echo "=== Processing $cl ==="
+          RUNS=$(gh api "repos/${{ github.repository }}/actions/runs?created=<$CUTOFF&per_page=100" \
+            --jq '.workflow_runs[] | .id' 2>/dev/null || echo "")
 
-            # 用 awk 移除日期早于 cutoff 的 changelog 条目
-            # 格式: ### version (YYYY-MM-DD)
-            awk -v cutoff="$CUTOFF" '
-              /^### [^ ]+ \([0-9]{4}-[0-9]{2}-[0-9]{2}\)/ {
-                match($0, /\(([0-9]{4}-[0-9]{2}-[0-9]{2})\)/, d)
-                if (d[1] < cutoff) { skip=1; next } else { skip=0 }
-              }
-              skip { next }
-              { print }
-            ' "$cl" > "${cl}.tmp"
+          if [ -z "$RUNS" ]; then
+            echo "No old workflow runs to delete."
+            exit 0
+          fi
 
-            if ! diff -q "$cl" "${cl}.tmp" >/dev/null 2>&1; then
-              mv "${cl}.tmp" "$cl"
-              CHANGED=true
-              echo "  Cleaned old entries from $cl"
+          for RUN_ID in $RUNS; do
+            echo "Deleting run $RUN_ID..."
+            if gh api --method DELETE "repos/${{ github.repository }}/actions/runs/$RUN_ID" 2>/dev/null; then
+              DELETED=$((DELETED + 1))
             else
-              rm -f "${cl}.tmp"
-              echo "  No old entries in $cl"
+              echo "  Failed to delete run $RUN_ID (may be in progress)"
             fi
           done
 
-          if [ "$CHANGED" = "true" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add */CHANGELOG.md
-            git commit -m "chore: 清理 >7 天的 CHANGELOG 构建记录" \
-                       -m "Cutoff: ${CUTOFF}"
-            for i in 1 2 3; do
-              git pull --rebase origin main && git push origin main && exit 0
-              git rebase --abort 2>/dev/null || true
-              sleep 2
-            done
-            echo "WARNING: CHANGELOG cleanup push failed after 3 attempts"
-          else
-            echo "No old CHANGELOG entries to clean."
-          fi
+          echo "Deleted $DELETED old workflow runs."
 
