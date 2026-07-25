@@ -25,6 +25,14 @@ ln -sf /data/alist /opt/alist/data
 # Spring Boot atv 数据直接写入 /data/store
 mkdir -p /data/store
 
+# 确保 /data/atv/data.sql 存在（清空 /data 后可能丢失）
+# data.zip 备份在镜像的 /opt/data.zip（非卷路径，不会被用户清空）
+if [ ! -f /data/atv/data.sql ] && [ -f /opt/data.zip ]; then
+    bashio::log.warning "data.sql missing, restoring from /opt/data.zip..."
+    mkdir -p /data/atv
+    unzip -q -o /opt/data.zip -d /data/atv/
+fi
+
 # ---- 读取 HA addon 配置选项并导出为环境变量 ----
 LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
 if [ "${LOW_MEMORY}" = "true" ]; then
