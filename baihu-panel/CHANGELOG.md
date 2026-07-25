@@ -1,3 +1,7 @@
+### 1.1.23-build.5 (2026-07-25)
+CI 变更
+- build(baihu-panel): CI 变更 → 1.1.23-build.4
+
 ### 1.1.23-build.4 (2026-07-25)
 CI 变更
 - build(baihu-panel): CI 工作流变更 → 1.1.23-build.3
