@@ -1,3 +1,7 @@
+### 1.28.0-build.9 (2026-07-25)
+CI 变更
+- build(alist-tvbox-standalone): CI 工作流变更 → 1.28.0-build.8
+
 ### 1.28.0-build.8 (2026-07-25)
 CI 工作流变更
 无提交信息
