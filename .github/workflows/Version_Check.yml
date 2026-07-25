@@ -217,11 +217,15 @@ jobs:
                     *)               continue ;;
                   esac
 
-                  if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
-                    echo "  File change ($TRIG): $file → addon $ADDON_DIR"
-                    HAS_CHANGES="true"
-                    ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
+                  echo "  File change ($TRIG): $file → addon $ADDON_DIR"
+                  HAS_CHANGES="true"
+                  ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
+                  # 累积不重复的触发原因（如 dockerfile,rootfs）
+                  EXISTING="${ADDON_REASON[$ADDON_DIR]:-}"
+                  if [ -z "$EXISTING" ]; then
                     ADDON_REASON["$ADDON_DIR"]="$TRIG"
+                  elif ! echo "$EXISTING" | grep -q "$TRIG"; then
+                    ADDON_REASON["$ADDON_DIR"]="${EXISTING},${TRIG}"
                   fi
                 fi
               done
@@ -238,11 +242,20 @@ jobs:
             REASON="${ADDON_REASON[$ADDON_DIR]}"
             NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
 
+            # 捕获影响该 addon 的 commit message（Release 用于 CHANGELOG）
+            ADDON_COMMITS=""
+            FILE_SHA=$(yq eval '.tracking.file_sha // ""' "${ADDON_DIR}/version.yaml")
+            if [ -n "$FILE_SHA" ] && [ "$FILE_SHA" != "null" ]; then
+              ADDON_COMMITS=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null || echo "")
+            fi
+            [ -z "$ADDON_COMMITS" ] && ADDON_COMMITS=$(git log --pretty=format:"- %s" -10 -- "${ADDON_DIR}/" 2>/dev/null || echo "")
+
             MATRIX=$(echo "$MATRIX" | jq -c \
               --arg addon "$ADDON_DIR" \
               --arg reason "$REASON" \
               --arg new_ver "$NEW_VER" \
-              '. + [{addon: $addon, reason: $reason, new_ver: $new_ver}]')
+              --arg commit_msg "$ADDON_COMMITS" \
+              '. + [{addon: $addon, reason: $reason, new_ver: $new_ver, commit_msg: $commit_msg}]')
           done
 
           RESULT=$(echo "$MATRIX" | jq -c '{include: .}')

@@ -1,14 +1,14 @@
-### 1.28.0-build.13 (2026-07-25)
-Dockerfile 变更
-无提交信息
+### 1.28.0-build.13 (2026-07-26)
+- 修复 init-xiaoya.sh 因缺少 `/app_version` 导致 `set -e` 中断，小雅数据未导入
+- Dockerfile: 生成 `/app_version` 和 `/docker.version`（上游 CI 构建时生成，git 仓库中不存在）
+- 修复 Release CI: CHANGELOG 提取 commit message 失败（通过 matrix 传递，不再依赖 shallow clone 中的 SHA）
+- 改进 CI: 支持复合触发原因（如同时改 Dockerfile + rootfs → "Dockerfile + rootfs 变更"）
 
 ### 1.28.0-build.12 (2026-07-25)
-rootfs 脚本/配置变更
-无提交信息
+- fix: config.json 创建移到 init-xiaoya.sh 之后，避免跳过数据库建表
 
 ### 1.28.0-build.11 (2026-07-25)
-Dockerfile 变更
-无提交信息
+- fix: 修复 nginx 配置路径（Debian 用 sites-enabled/ 非 http.d/）
 
 ### 1.28.0-build.10 (2026-07-25)
 rootfs 脚本/配置变更

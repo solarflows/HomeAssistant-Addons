@@ -57,9 +57,9 @@ jobs:
           REASON="${{ matrix.reason || 'version_changed' }}"
           NEW_VER="${{ matrix.new_ver || '' }}"
 
-          # 文件触发类型统一标记（dockerfile|rootfs|config|workflow|file_changed）
+          # 文件触发类型统一标记（支持复合 reason 如 "dockerfile,rootfs"）
           case "$REASON" in
-            dockerfile|rootfs|config|workflow|file_changed) IS_FILE_TRIGGER=true ;;
+            dockerfile*|rootfs*|config*|workflow*|file_changed*) IS_FILE_TRIGGER=true ;;
             *) IS_FILE_TRIGGER=false ;;
           esac
           VERSION_FILE="${ADDON}/version.yaml"
@@ -104,12 +104,15 @@ jobs:
           CHANGELOG_FILE_URL=$(yq eval '.changelog.file_url // ""' "$VERSION_FILE")
           CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$VERSION_FILE")
 
-          if [ "$IS_FILE_TRIGGER" = "true" ]; then
+          # 优先使用 Version_Check 通过 matrix 传来的 commit message
+          COMMIT_MSG="${{ matrix.commit_msg || '' }}"
+          if [ -z "$COMMIT_MSG" ] && [ "$IS_FILE_TRIGGER" = "true" ]; then
+            # fallback: 从 git log 重新计算（可能因 shallow clone 失败）
             FILE_SHA=$(yq eval '.tracking.file_sha // ""' "$VERSION_FILE")
-            [ -z "$FILE_SHA" ] && FILE_SHA="HEAD~10"
-            COMMIT_MSG=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null || echo "")
-          else
-            COMMIT_MSG=""
+            if [ -n "$FILE_SHA" ] && [ "$FILE_SHA" != "null" ]; then
+              COMMIT_MSG=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null || echo "")
+            fi
+            [ -z "$COMMIT_MSG" ] && COMMIT_MSG=$(git log --pretty=format:"- %s" -10 -- "${ADDON_DIR}/" 2>/dev/null || echo "")
           fi
 
           echo "addon=$ADDON" >> $GITHUB_OUTPUT
@@ -200,14 +203,21 @@ jobs:
 
           # 更新 CHANGELOG.md
           if [ "$IS_FILE_TRIGGER" = "true" ]; then
-            # 文件变更：版本号作标题，原因+详情换行
-            case "$REASON" in
-              dockerfile)  CHANGELOG_TAG="Dockerfile 变更" ;;
-              rootfs)      CHANGELOG_TAG="rootfs 脚本/配置变更" ;;
-              config)      CHANGELOG_TAG="config.yaml/version.yaml 变更" ;;
-              workflow)    CHANGELOG_TAG="CI 工作流变更" ;;
-              *)           CHANGELOG_TAG="文件变更" ;;
-            esac
+            # 文件变更：支持复合 reason（如 dockerfile,rootfs）
+            CHANGELOG_TAG=""
+            IFS=',' read -ra REASONS <<< "$REASON"
+            for r in "${REASONS[@]}"; do
+              case "$r" in
+                dockerfile)  TAG_PART="Dockerfile" ;;
+                rootfs)      TAG_PART="rootfs" ;;
+                config)      TAG_PART="config" ;;
+                workflow)    TAG_PART="CI" ;;
+                *)           TAG_PART="$r" ;;
+              esac
+              [ -n "$CHANGELOG_TAG" ] && CHANGELOG_TAG="${CHANGELOG_TAG} + "
+              CHANGELOG_TAG="${CHANGELOG_TAG}${TAG_PART}"
+            done
+            CHANGELOG_TAG="${CHANGELOG_TAG} 变更"
             CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-无提交信息}"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
               printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
@@ -316,19 +326,22 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add "${ADDON_DIR}/"
             if [ "$IS_FILE_TRIGGER" = "true" ]; then
-              # 文件变更：标注触发原因 + commit message
-              case "$REASON" in
-                dockerfile) git commit -m "build(${ADDON}): Dockerfile 变更 → ${BUILD_VERSION}" \
-                                   -m "${COMMIT_MSG:-Dockerfile updated}" ;;
-                rootfs)     git commit -m "build(${ADDON}): rootfs 脚本/配置变更 → ${BUILD_VERSION}" \
-                                   -m "${COMMIT_MSG:-rootfs updated}" ;;
-                config)     git commit -m "build(${ADDON}): config.yaml/version.yaml 变更 → ${BUILD_VERSION}" \
-                                   -m "${COMMIT_MSG:-config updated}" ;;
-                workflow)   git commit -m "build(${ADDON}): CI 工作流变更 → ${BUILD_VERSION}" \
-                                   -m "${COMMIT_MSG:-CI workflow updated}" ;;
-                *)          git commit -m "build(${ADDON}): 文件变更 → ${BUILD_VERSION}" \
-                                   -m "${COMMIT_MSG}" ;;
-              esac
+              # 文件变更：支持复合 reason，生成可读标签
+              COMMIT_LABEL=""
+              IFS=',' read -ra REASONS <<< "$REASON"
+              for r in "${REASONS[@]}"; do
+                case "$r" in
+                  dockerfile)  PART="Dockerfile" ;;
+                  rootfs)      PART="rootfs" ;;
+                  config)      PART="config" ;;
+                  workflow)    PART="CI" ;;
+                  *)           PART="$r" ;;
+                esac
+                [ -n "$COMMIT_LABEL" ] && COMMIT_LABEL="${COMMIT_LABEL} + "
+                COMMIT_LABEL="${COMMIT_LABEL}${PART}"
+              done
+              git commit -m "build(${ADDON}): ${COMMIT_LABEL} 变更 → ${BUILD_VERSION}" \
+                         -m "${COMMIT_MSG:-${COMMIT_LABEL} updated}"
             elif [ "$REASON" = "base_updated" ]; then
               ADDON_OLD_BASE=$(yq eval '.tracking.base_tag // "?"' "$VERSION_FILE")
               git commit -m "build(${ADDON}): debian-base ${ADDON_OLD_BASE} → ${BASE_TAG}，${BUILD_VERSION}" \

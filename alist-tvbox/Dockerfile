@@ -77,6 +77,13 @@ COPY --from=source /src/data/nginx.full.conf /etc/nginx/sites-enabled/alist-tvbo
 COPY --from=source /src/data/base_version /data/
 COPY --from=source /src/config/alist.json /alist.json
 
+# 创建版本文件（上游 init-xiaoya.sh 用 set -e，缺少会直接退出）
+# /app_version: 上游 data/version（不在 git 中，用构建参数生成）
+# /docker.version: 上游 haroldli/alist-base 提供（我们没有，同样用构建参数）
+ARG ALIST_TVBOX_VERSION
+RUN echo "${ALIST_TVBOX_VERSION}" > /app_version \
+    && echo "${ALIST_TVBOX_VERSION}" > /docker.version
+
 # 复制 HA rootfs
 COPY rootfs /
 
