@@ -77,11 +77,16 @@ COPY --from=alist-source /var/lib/data.zip /var/lib/data.zip
 COPY --from=cli-builder /atv-cli /atv-cli
 RUN chmod +x /opt/alist/alist /atv-cli && mkdir -p /opt/alist/data
 
-# 复制 Spring Boot 应用层
+# 复制 Spring Boot 应用层（layertools 提取结构）
 COPY --from=app-builder /extracted/dependencies/ /opt/atv/dependencies/
 COPY --from=app-builder /extracted/snapshot-dependencies/ /opt/atv/snapshot-dependencies/
 COPY --from=app-builder /extracted/spring-boot-loader/ /opt/atv/spring-boot-loader/
 COPY --from=app-builder /extracted/application/ /opt/atv/application/
+
+# 兼容上游 BOOT-INF 路径（database.sh restore_database 需要 /opt/atv/BOOT-INF/lib/h2-*.jar）
+RUN mkdir -p /opt/atv/BOOT-INF/lib \
+    && find /opt/atv/snapshot-dependencies /opt/atv/dependencies \
+           -name 'h2-*.jar' -exec ln -sf {} /opt/atv/BOOT-INF/lib/ \;
 
 # 从上游源码复制脚本和资源
 # 上游 VOLUME 只有 /www/static，/data/ 不是卷，资源文件放在 /
