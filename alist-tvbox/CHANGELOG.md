@@ -1,3 +1,8 @@
+### 1.28.0-build.23 (2026-07-26)
+Dockerfile 变更
+- fix: 补齐上游依赖 + atv-cli 构建
+- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.22
+
 ### 1.28.0-build.22 (2026-07-26)
 Dockerfile + rootfs 变更
 - docs: 新增 analysis.yaml + DOCS.md 恢复为用户文档
