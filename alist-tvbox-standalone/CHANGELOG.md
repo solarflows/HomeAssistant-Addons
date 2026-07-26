@@ -6,15 +6,12 @@ rootfs 变更
 ### 1.28.0-build.11 (2026-07-25)
 rootfs 变更
 - fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
-- build(alist-tvbox-standalone): CI 变更 → 1.28.0-build.10
 
 ### 1.28.0-build.10 (2026-07-25)
 CI 变更
-- build(alist-tvbox-standalone): CI 变更 → 1.28.0-build.9
 
 ### 1.28.0-build.9 (2026-07-25)
 CI 变更
-- build(alist-tvbox-standalone): CI 工作流变更 → 1.28.0-build.8
 
 ### 1.28.0-build.8 (2026-07-25)
 CI 工作流变更

@@ -1,81 +1,66 @@
 ### 1.28.0-build.28 (2026-07-26)
 rootfs 变更
 - 修复 alist-tvbox 容器启动失败问题
-- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.27
 
 ### 1.28.0-build.27 (2026-07-26)
 Dockerfile 变更
 - fix: 添加 BOOT-INF symlink 兼容上游 database.sh H2 导入路径
-- build(alist-tvbox): rootfs 变更 → 1.28.0-build.26
 
 ### 1.28.0-build.26 (2026-07-26)
 rootfs 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
-- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.25
 - fix: 重构 00-init.sh 对齐上游 entrypoint.sh 设计
 
 ### 1.28.0-build.25 (2026-07-26)
 Dockerfile + rootfs 变更
-- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.24
 
 ### 1.28.0-build.24 (2026-07-26)
 Dockerfile 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
-- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.23
 - fix: 修正文件权限 — chmod 移到对应 COPY 之后
 
 ### 1.28.0-build.23 (2026-07-26)
 Dockerfile 变更
 - fix: 补齐上游依赖 + atv-cli 构建
-- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.22
 
 ### 1.28.0-build.22 (2026-07-26)
 Dockerfile + rootfs 变更
 - docs: 新增 analysis.yaml + DOCS.md 恢复为用户文档
 - fix: 从 haroldli/alist 复制 /var/lib/data.zip + 确保 SQLite 数据库存在
 - fix: 检测 H2 数据库格式兼容性，不兼容时删除旧文件让 Flyway 重建
-- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.21
 
 ### 1.28.0-build.21 (2026-07-26)
 Dockerfile 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
-- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.20
 - fix: 安装 busybox + 创建 busybox-extras symlink，补齐小雅 httpd:81
 
 ### 1.28.0-build.20 (2026-07-26)
 Dockerfile + rootfs 变更
 - fix: 对齐上游架构 — 资源文件移到 / + 补齐 H2 环境 + 上游完整文档
-- build(alist-tvbox): rootfs 变更 → 1.28.0-build.19
 
 ### 1.28.0-build.19 (2026-07-26)
 rootfs 变更
-- build(alist-tvbox): rootfs 变更 → 1.28.0-build.18
 
 ### 1.28.0-build.18 (2026-07-26)
 rootfs 变更
-- build(alist-tvbox): rootfs 变更 → 1.28.0-build.17
 
 ### 1.28.0-build.17 (2026-07-25)
 rootfs 变更
 - debug: init 脚本添加诊断日志（pre/post init 状态检查）
-- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.16
 
 ### 1.28.0-build.16 (2026-07-25)
 Dockerfile + rootfs 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
 - fix: data.zip 备份到 /opt/，清空 data 后自动恢复 data.sql
-- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.15
 
 ### 1.28.0-build.15 (2026-07-25)
 Dockerfile + rootfs 变更
 - fix: 创建 /jre/bin/java symlink，修复上游 H2 升级脚本找不到 java
 - fix: 创建 /data/atv/config/ 目录，修复清空 data 后 Spring Boot 启动失败
-- build(alist-tvbox): CI 变更 → 1.28.0-build.14
 
 ### 1.28.0-build.14 (2026-07-25)
 CI 变更
 - fix: 修复小雅数据未导入 + CI CHANGELOG commit message 提取
-- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.13
 
 ### 1.28.0-build.13 (2026-07-26)
 - 修复 init-xiaoya.sh 因缺少 `/app_version` 导致 `set -e` 中断，小雅数据未导入
