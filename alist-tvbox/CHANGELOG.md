@@ -1,3 +1,9 @@
+### 1.28.0-build.26 (2026-07-26)
+rootfs 变更
+- Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.25
+- fix: 重构 00-init.sh 对齐上游 entrypoint.sh 设计
+
 ### 1.28.0-build.25 (2026-07-26)
 Dockerfile + rootfs 变更
 - build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.24
