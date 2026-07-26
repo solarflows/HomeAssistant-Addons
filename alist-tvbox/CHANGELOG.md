@@ -1,3 +1,9 @@
+### 1.28.0-build.21 (2026-07-26)
+Dockerfile 变更
+- Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+- build(alist-tvbox): Dockerfile + rootfs 变更 → 1.28.0-build.20
+- fix: 安装 busybox + 创建 busybox-extras symlink，补齐小雅 httpd:81
+
 ### 1.28.0-build.20 (2026-07-26)
 Dockerfile + rootfs 变更
 - fix: 对齐上游架构 — 资源文件移到 / + 补齐 H2 环境 + 上游完整文档
