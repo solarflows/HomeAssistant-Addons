@@ -62,9 +62,10 @@ RUN mkdir -p /jre/bin \
     && ln -sf /usr/lib/jvm/java-21-openjdk-${TARGETARCH}/bin/java /jre/bin/java \
     && curl -fsSL "https://repo1.maven.org/maven2/com/h2database/h2/2.1.214/h2-2.1.214.jar" -o /h2-2.1.214.jar
 
-# 从 haroldli/alist 复制干净的 alist 二进制
+# 从 haroldli/alist 复制干净的 alist 二进制 + xiaoya 数据包
 # config.json 是运行时生成的(VOLUME)，不预置于镜像中
 COPY --from=alist-source /opt/alist/alist /opt/alist/alist
+COPY --from=alist-source /var/lib/data.zip /var/lib/data.zip
 RUN chmod +x /opt/alist/alist && mkdir -p /opt/alist/data
 
 # 复制 Spring Boot 应用层

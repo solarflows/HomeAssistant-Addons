@@ -520,3 +520,40 @@ echo "${{ github.ref_name }}" > data/version
 | VOLUME | 只有 `/www/static`，`/data/` 是容器可写层不是卷 |
 | nginx 路径 | Alpine: `/etc/nginx/http.d/`，Debian: `/etc/nginx/sites-enabled/` |
 | Java classpath | 上游用 `BOOT-INF/classes:BOOT-INF/lib/*`（直接解压 JAR） |
+
+---
+
+## 15. 上游构建链
+
+```
+openlistteam/openlist-base-image (Alpine + Java)
+    ↓
+haroldli/alist (PowerList fork, 添加 AList 二进制 + xiaoya 数据)
+    ↓ 包含 /var/lib/data.zip（xiaoya 数据包，含 data.db、CGI 脚本等）
+haroldli/alist-base (Dockerfile-base, 添加 JRE + H2 + Spring Boot)
+    ↓ 包含 /jre/bin/java、/h2-2.1.214.jar、/docker.version
+haroldli/xiaoya-tvbox (Dockerfile-xiaoya, 添加资源文件 + 脚本)
+    ↓ 包含 /data.zip、/tvbox.zip、/cat.zip 等
+```
+
+### 各镜像提供的关键文件
+
+| 文件 | 来源镜像 | 我们的替代方案 |
+|------|---------|-------------|
+| `/var/lib/data.zip` | haroldli/alist | COPY --from=alist-source |
+| `/jre/bin/java` | haroldli/alist-base | symlink → Debian OpenJDK |
+| `/h2-2.1.214.jar` | haroldli/alist-base | 从 Maven Central 下载 |
+| `/docker.version` | haroldli/alist-base | 用构建参数生成 |
+| `/app_version` | 构建时生成 | 用构建参数生成 |
+| `/bin/busybox-extras` | haroldli/alist-base | Debian busybox 包 + symlink |
+| `/data.zip` 等资源 | Dockerfile-xiaoya COPY | 从上游源码 stage COPY |
+| `/opt/alist/alist` | haroldli/alist | COPY --from=alist-source |
+
+### 构建脚本
+
+| 脚本 | 用途 |
+|------|------|
+| `build-base.sh` | 构建 haroldli/alist-base（mvn + Dockerfile-base） |
+| `build-docker.sh` | 构建标准版 alist-tvbox（INSTALL=new） |
+| `build-xiaoya.sh` | 构建小雅版 xiaoya-tvbox（INSTALL=xiaoya） |
+| `build-app.sh` | 本地直接运行（非 Docker） |

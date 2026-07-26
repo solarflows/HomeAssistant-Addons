@@ -42,6 +42,18 @@ else
 fi
 bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
+# 确保 AList SQLite 数据库文件存在
+# 上游 xiaoya_first_init() 从 /var/lib/data.zip（haroldli/alist-base 提供）解压 data.db
+# 我们没有这个文件，但 update_xiaoya_data() 每次启动都会从网络重建数据库
+# 创建空数据库让 sqlite3 命令能执行，update_xiaoya_data 会填充数据
+if [ ! -f /opt/alist/data/data.db ]; then
+    bashio::log.info "Creating empty AList SQLite database..."
+    mkdir -p /opt/alist/data
+    # 使用 Spring Boot 的 data.sql 初始化 H2 数据库（如果存在）
+    # 对于 AList SQLite，update_xiaoya_data() 会从网络下载并填充
+    touch /opt/alist/data/data.db
+fi
+
 # 调用上游初始化脚本（下载资源、配置 AList 等）
 bashio::log.info "Running upstream initialization..."
 export INSTALL=xiaoya
