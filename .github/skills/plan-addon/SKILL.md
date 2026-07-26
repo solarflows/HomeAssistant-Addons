@@ -1,6 +1,6 @@
 ---
 name: plan-addon
-description: Analyze an upstream service and fill analysis.yaml for addon scaffolding. Run AFTER create-addon has created the skeleton.
+description: 分析上游项目并填充 analysis.yaml。在 create-addon 创建骨架后运行。
 ---
 
 # Addon Planning Guide
@@ -67,6 +67,12 @@ Check:
 - Does CWD matter? (Go/Node apps often derive data dir from CWD)
 - Does upstream write version files at build time? (`/app_version`, `/docker.version`)
 - Does entrypoint use `set -e`? (any missing file kills init)
+
+**Audit checklist**:
+1. Read upstream `Dockerfile` / `docker-compose.yml` for volume mounts or VOLUME directives
+2. Read upstream `entrypoint.sh` for hardcoded paths (`/app/data`, `/jre/bin/java`, etc.)
+3. Read upstream scripts for version files the app expects (`/app_version`, `/docker.version`)
+4. Check if CWD matters (Go/Node apps often derive data dir from the working directory)
 
 ### 5. Config Options
 Identify what should be configurable:

@@ -1,0 +1,12 @@
+version: "0.0.0"
+source: github
+repo: owner/repo
+build_args:
+  APP_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: "9.3.0"
+  file_sha: ""
+  build_num: 0

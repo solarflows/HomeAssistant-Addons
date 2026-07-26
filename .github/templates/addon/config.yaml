@@ -1,0 +1,13 @@
+name: "ADDON_SLUG"
+slug: ADDON_SLUG
+version: "0.0.0-build.0"
+image: ghcr.io/solarflows/ADDON_SLUG
+description: "TODO: add description"
+url: "TODO: add upstream URL"
+init: false
+startup: application
+boot: manual
+ingress: true
+ingress_port: 8080     # TODO: update based on upstream port
+arch: [aarch64, amd64]
+map: [config:rw]

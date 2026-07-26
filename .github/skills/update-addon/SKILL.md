@@ -1,6 +1,6 @@
 ---
 name: update-addon
-description: 手动更新已有 HA 加载项的流程。适用于上游版本变更、架构调整或构建失败时的人工介入。
+description: 手动更新已有 HA 加载项。上游版本变更、架构调整或构建失败时人工介入。
 ---
 
 # Addon Update Guide

@@ -1,6 +1,6 @@
 ---
 name: fix-ci
-description: Debug and fix GitHub Actions CI/CD issues in this repository. Use when CI fails, build errors occur, workflow syntax needs debugging, or release pipeline breaks.
+description: 调试和修复 GitHub Actions CI/CD 问题。构建失败、工作流语法错误、发布管道异常时使用。
 ---
 
 # CI Fix Guide

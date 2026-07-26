@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# ADDON_SLUG 启动脚本 (S6 longrun)
+# 在前台阻塞运行，S6 会自动重启崩溃的进程
+# ==============================================================================
+bashio::log.info "Starting ADDON_SLUG..."
+
+# TODO: start foreground process
+# exec <app> <args>

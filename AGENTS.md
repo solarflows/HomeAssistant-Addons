@@ -42,5 +42,4 @@
 | create-addon | `.github/skills/create-addon/SKILL.md` | Scaffold new addon skeleton with empty analysis.yaml (run first) |
 | plan-addon | `.github/skills/plan-addon/SKILL.md` | Analyze upstream service & fill analysis.yaml (run after create-addon) |
 | update-addon | `.github/skills/update-addon/SKILL.md` | Manually update existing addon for upstream changes |
-| debug-addon | `.github/skills/debug-addon/SKILL.md` | Debug build failures or runtime issues |
 | fix-ci | `.github/skills/fix-ci/SKILL.md` | Debug CI/CD failures |
