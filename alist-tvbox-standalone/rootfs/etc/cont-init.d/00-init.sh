@@ -30,6 +30,12 @@ bashio::log.info "alist-tvbox-standalone JVM memory: ${MEM_OPT}"
 # 调用上游初始化脚本（配置 AList 等）
 bashio::log.info "Running upstream initialization..."
 export INSTALL=new
-/docker/scripts/init-alist.sh 2>&1 | tee /data/log/init.log || true
+set +e
+/docker/scripts/init-alist.sh 2>&1 | tee /data/log/init.log
+init_exit=${PIPESTATUS[0]}
+set -e
+if [ ${init_exit} -ne 0 ]; then
+    bashio::log.warning "init-alist.sh exited with code ${init_exit} (non-fatal, continuing)"
+fi
 
 bashio::log.info "alist-tvbox-standalone initialization completed"

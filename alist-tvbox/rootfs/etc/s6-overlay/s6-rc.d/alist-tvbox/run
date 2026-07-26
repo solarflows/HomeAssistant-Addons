@@ -22,6 +22,16 @@ sleep 0.5
 mkdir -p /var/cache/nginx/image
 nginx || bashio::log.warning "nginx failed to start"
 
+# 等待 cont-init 完成（legacy-cont-init 与 alist-tvbox 可能并行启动）
+# Spring Boot 需要 /data/atv/config/ 存在，否则启动失败
+while [ ! -d /data/atv/config ]; do
+    bashio::log.info "Waiting for init to create /data/atv/config/..."
+    sleep 1
+done
+
+# 确保 config 目录存在（双重保障，防止极短 race condition）
+mkdir -p /data/atv/config/
+
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
 MEM_OPT=${MEM_OPT:-"-Xmx512M"}
 ATV_DEBUG=$(bashio::config 'ATV_DEBUG' 'false')

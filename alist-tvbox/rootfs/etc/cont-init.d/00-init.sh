@@ -18,6 +18,11 @@ else
 fi
 bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
+# Spring Boot external config 目录：上游 entrypoint.sh 在 exec java 前创建
+# HAOS 中 /data 是持久卷，但空目录不会自动创建，需要显式 mkdir
+# 如果在 00-init.sh 中提前创建，即使 alist-tvbox/run 并行执行也能确保目录存在
+mkdir -p /data/atv/config/
+
 # ---- HAOS 特有：上游 Docker 不需要，但我们的容器每次重启会丢失这些 ----
 # AList 数据持久化：上游 Docker /data 是 volume，/opt/alist/data 自然持久
 # HAOS 中 /data 是 supervisor 挂载的持久卷，但 /opt/alist/data 是容器层，重启会丢失
@@ -38,6 +43,14 @@ chmod a+x /docker/scripts/*.sh /docker/scripts/lib/*.sh
 ensure_dir /data/log
 
 bashio::log.info "Running upstream init-xiaoya.sh..."
+# init-xiaoya.sh 有 set -e，某些步骤（索引下载、grep 等）可能非致命失败
+# 记录退出码但不传播给 S6，防止 cont-init 标记为 failed 导致容器重启
+set +e
 /docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log
+init_exit=${PIPESTATUS[0]}
+set -e
+if [ ${init_exit} -ne 0 ]; then
+    bashio::log.warning "init-xiaoya.sh exited with code ${init_exit} (non-fatal, continuing)"
+fi
 
 bashio::log.info "alist-tvbox initialization completed"
