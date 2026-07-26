@@ -1,3 +1,8 @@
+### 1.28.0-build.20 (2026-07-26)
+Dockerfile + rootfs 变更
+- fix: 对齐上游架构 — 资源文件移到 / + 补齐 H2 环境 + 上游完整文档
+- build(alist-tvbox): rootfs 变更 → 1.28.0-build.19
+
 ### 1.28.0-build.19 (2026-07-26)
 rootfs 变更
 - build(alist-tvbox): rootfs 变更 → 1.28.0-build.18
