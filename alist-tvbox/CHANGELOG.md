@@ -1,3 +1,10 @@
+### 1.28.0-build.22 (2026-07-26)
+Dockerfile + rootfs 变更
+- docs: 新增 analysis.yaml + DOCS.md 恢复为用户文档
+- fix: 从 haroldli/alist 复制 /var/lib/data.zip + 确保 SQLite 数据库存在
+- fix: 检测 H2 数据库格式兼容性，不兼容时删除旧文件让 Flyway 重建
+- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.21
+
 ### 1.28.0-build.21 (2026-07-26)
 Dockerfile 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
