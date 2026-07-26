@@ -29,7 +29,14 @@ ADD https://github.com/power721/alist-tvbox/releases/download/${ALIST_TVBOX_VERS
 RUN java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
 
 # ---- Stage 3: 提取 alist 二进制 ----
+# haroldli/alist 基于 PowerList，上游用 latest，CI 每次重建拉取最新
 FROM haroldli/alist:latest AS alist-source
+
+# ---- Stage 3.5: 构建 atv-cli Go 工具 ----
+FROM golang:1.24 AS cli-builder
+WORKDIR /app/
+COPY --from=source /src/atv-cli/ ./
+RUN go build -o /atv-cli
 
 # ---- Stage 4: HA 底包运行时 ----
 FROM ${BUILD_FROM}
@@ -48,6 +55,7 @@ RUN apt-get update \
         wget \
         unzip \
         busybox \
+        sqlite3 \
     && rm -rf /var/lib/apt/lists/* \
     # busybox-extras → busybox（上游 haroldli/alist-base 提供 busybox-extras，Debian 用 busybox 包）
     && ln -sf /bin/busybox /bin/busybox-extras \
@@ -66,6 +74,7 @@ RUN mkdir -p /jre/bin \
 # config.json 是运行时生成的(VOLUME)，不预置于镜像中
 COPY --from=alist-source /opt/alist/alist /opt/alist/alist
 COPY --from=alist-source /var/lib/data.zip /var/lib/data.zip
+COPY --from=cli-builder /atv-cli /atv-cli
 RUN chmod +x /opt/alist/alist && mkdir -p /opt/alist/data
 
 # 复制 Spring Boot 应用层
@@ -78,6 +87,8 @@ COPY --from=app-builder /extracted/application/ /opt/atv/application/
 # 上游 VOLUME 只有 /www/static，/data/ 不是卷，资源文件放在 /
 # HAOS 把 /data/ 挂为持久卷，所以资源文件放 /（镜像内），不会被用户清空
 COPY --from=source /src/docker/scripts/ /docker/scripts/
+COPY --from=source /src/scripts/index.sh /index.sh
+COPY --from=source /src/data/update.sql /update.sql
 COPY --from=source /src/data/tvbox.zip /
 COPY --from=source /src/data/115.index.zip /
 COPY --from=source /src/data/index.share.zip /
