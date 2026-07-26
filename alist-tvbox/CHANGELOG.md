@@ -1,3 +1,8 @@
+### 1.28.0-build.28 (2026-07-26)
+rootfs 变更
+- 修复 alist-tvbox 容器启动失败问题
+- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.27
+
 ### 1.28.0-build.27 (2026-07-26)
 Dockerfile 变更
 - fix: 添加 BOOT-INF symlink 兼容上游 database.sh H2 导入路径
