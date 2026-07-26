@@ -1,3 +1,7 @@
+### 1.28.0-build.25 (2026-07-26)
+Dockerfile + rootfs 变更
+- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.24
+
 ### 1.28.0-build.24 (2026-07-26)
 Dockerfile 变更
 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
