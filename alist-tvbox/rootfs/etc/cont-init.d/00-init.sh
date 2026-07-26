@@ -49,9 +49,17 @@ bashio::log.info "pre-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || ech
 
 # 上游 init-xiaoya.sh 的 upgrade_h2 在无旧 H2 数据库时会失败，set -e 杀死整个脚本
 # HAOS 用户清空 /data/ 后没有旧数据库需要升级，直接跳过
+# 但如果旧数据库存在但格式不兼容（H2 2.4 格式，旧工具无法读取），也需要跳过
 if [ ! -f /opt/atv/data/data.mv.db ] && [ ! -f /data/atv.mv.db ]; then
     bashio::log.info "No legacy H2 database found, skipping upgrade_h2"
     echo "2.3.232" > /data/h2.version.txt
+elif [ -f /data/atv.mv.db ]; then
+    # 尝试用旧版 H2 检测格式兼容性，失败则删除旧数据库让 Flyway 重建
+    if ! /jre/bin/java -cp /h2-2.1.214.jar org.h2.tools.Script -url "jdbc:h2:file:/data/atv" -user sa -password password -script /dev/null 2>/dev/null; then
+        bashio::log.warning "H2 database format incompatible with upgrade tool, removing old H2 files"
+        rm -f /data/atv.mv.db /data/atv.trace.db
+        echo "2.3.232" > /data/h2.version.txt
+    fi
 fi
 
 /docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log || true
