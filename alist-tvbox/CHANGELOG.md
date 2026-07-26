@@ -1,3 +1,9 @@
+### 1.28.0-build.24 (2026-07-26)
+Dockerfile 变更
+- Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+- build(alist-tvbox): Dockerfile 变更 → 1.28.0-build.23
+- fix: 修正文件权限 — chmod 移到对应 COPY 之后
+
 ### 1.28.0-build.23 (2026-07-26)
 Dockerfile 变更
 - fix: 补齐上游依赖 + atv-cli 构建
