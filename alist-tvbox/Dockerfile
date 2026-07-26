@@ -47,7 +47,10 @@ RUN apt-get update \
         curl \
         wget \
         unzip \
+        busybox \
     && rm -rf /var/lib/apt/lists/* \
+    # busybox-extras → busybox（上游 haroldli/alist-base 提供 busybox-extras，Debian 用 busybox 包）
+    && ln -sf /bin/busybox /bin/busybox-extras \
     # 移除 nginx 默认配置，防止 postinst 自动绑定 80 端口
     # Debian nginx 读 /etc/nginx/sites-enabled/，不是 Alpine 的 /etc/nginx/http.d/
     && rm -f /etc/nginx/sites-enabled/default \
