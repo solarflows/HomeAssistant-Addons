@@ -1,3 +1,8 @@
+### 1.28.0-build.12 (2026-07-26)
+rootfs 变更
+- 修复 alist-tvbox 容器启动失败问题
+- build(alist-tvbox-standalone): rootfs 变更 → 1.28.0-build.11
+
 ### 1.28.0-build.11 (2026-07-25)
 rootfs 变更
 - fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
