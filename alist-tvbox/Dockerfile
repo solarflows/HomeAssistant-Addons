@@ -75,7 +75,7 @@ RUN mkdir -p /jre/bin \
 COPY --from=alist-source /opt/alist/alist /opt/alist/alist
 COPY --from=alist-source /var/lib/data.zip /var/lib/data.zip
 COPY --from=cli-builder /atv-cli /atv-cli
-RUN chmod +x /opt/alist/alist && mkdir -p /opt/alist/data
+RUN chmod +x /opt/alist/alist /atv-cli && mkdir -p /opt/alist/data
 
 # 复制 Spring Boot 应用层
 COPY --from=app-builder /extracted/dependencies/ /opt/atv/dependencies/
@@ -88,6 +88,7 @@ COPY --from=app-builder /extracted/application/ /opt/atv/application/
 # HAOS 把 /data/ 挂为持久卷，所以资源文件放 /（镜像内），不会被用户清空
 COPY --from=source /src/docker/scripts/ /docker/scripts/
 COPY --from=source /src/scripts/index.sh /index.sh
+RUN chmod +x /index.sh
 COPY --from=source /src/data/update.sql /update.sql
 COPY --from=source /src/data/tvbox.zip /
 COPY --from=source /src/data/115.index.zip /
