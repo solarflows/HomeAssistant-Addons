@@ -1,0 +1,100 @@
+# analysis.yaml — alist-tvbox addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: power721/alist-tvbox
+  description: AList proxy server for TvBox, support playlist and search
+  license: MIT
+  base_image: haroldli/alist-base (FROM haroldli/alist → openlistteam/openlist-base-image)
+
+build:
+  strategy: release-jar
+  stages:
+    - name: source
+      from: alpine/git:latest
+      purpose: Clone upstream repo for scripts + resource zips
+    - name: app-builder
+      from: eclipse-temurin:21-jre
+      purpose: Extract Spring Boot layertools from release JAR
+    - name: alist-source
+      from: haroldli/alist:latest
+      purpose: Extract AList binary + /var/lib/data.zip (xiaoya data)
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: HA addon runtime (S6 built-in)
+  version_arg: ALIST_TVBOX_VERSION
+
+runtime:
+  language: java
+  java_version: 21
+  entrypoint: S6 longrun → java -cp ... PropertiesLauncher
+  profiles: [production, xiaoya]
+  data_dir: /data (HAOS persistent volume)
+
+network:
+  ports:
+    - container: 4567
+      ha: 4567
+      service: Spring Boot management UI
+    - container: 80
+      ha: 5344
+      service: nginx → AList reverse proxy
+    - container: 5244
+      ha: internal
+      service: AList kernel (managed by Spring Boot)
+    - container: 81
+      ha: internal
+      service: httpd (xiaoya CGI, not exposed)
+
+filesystem:
+  from_image: # Files from haroldli/alist (non-volume, survive data clear)
+    - /var/lib/data.zip    # xiaoya data: data.db + CGI scripts + mobi.tgz
+    - /opt/alist/alist     # AList binary
+  from_source: # Files from upstream git repo (non-volume)
+    - /data.zip            # Spring Boot initial DB (data.sql + base_version)
+    - /tvbox.zip           # TvBox subscription sources
+    - /115.index.zip       # 115 index seed
+    - /index.share.zip     # Share index seed
+    - /cat.zip, /pg.zip, /zx.zip  # Resource packs
+    - /base_version        # Movie database version
+    - /alist.json          # AList config.json template
+  generated: # Files created at build time
+    - /app_version         # from ALIST_TVBOX_VERSION build arg
+    - /docker.version      # from ALIST_TVBOX_VERSION build arg
+    - /jre/bin/java        # symlink → Debian OpenJDK
+    - /h2-2.1.214.jar      # downloaded from Maven Central
+  persistent_volume: /data (HAOS)
+    - /data/alist/         # AList SQLite DB (data.db, config.json)
+    - /data/atv/           # Spring Boot H2 DB + data.sql
+    - /data/index/         # Xiaoya indexes
+    - /data/store/         # TvBox data
+
+init_flow:
+  cont_init_d:
+    - Create /data/atv/config, /data/alist, /data/store, /data/log
+    - Symlink /opt/alist/data → /data/alist
+    - Restore data.sql from /data.zip if missing
+    - Skip upgrade_h2 if no legacy H2 database
+    - Create empty data.db if missing
+    - Run /docker/scripts/init-xiaoya.sh
+    - Create config.json from /alist.json template if missing
+  init_xiaoya:
+    - upgrade_h2 (skip if h2.version.txt exists or no legacy DB)
+    - xiaoya_first_init (if not initialized) OR update_movie (if already initialized)
+    - extract_resource_zips (cat/pg/zx)
+    - seed_index115
+    - update_xiaoya_data (download latest indexes from internet)
+  s6_longrun:
+    - httpd:81 (busybox, xiaoya CGI)
+    - nginx:80 (reverse proxy → AList:5244)
+    - java:4567 (Spring Boot, foreground, S6 managed)
+
+adaptations:
+  - haroldli/alist-base not used → provide /jre/bin/java symlink + /h2-2.1.214.jar
+  - /var/lib/data.zip from haroldli/alist → COPY --from=alist-source
+  - /app_version + /docker.version generated from build arg
+  - Alpine nginx path /etc/nginx/http.d/ → Debian /etc/nginx/sites-enabled/
+  - set-e + upgrade_h2 failure → pre-create h2.version.txt when no legacy DB
+  - data.sql missing → restore from /data.zip (non-volume backup)
+  - Empty data.db → touch file, update_xiaoya_data() populates from network
