@@ -1,3 +1,7 @@
+### 1.28.0-build.19 (2026-07-26)
+rootfs 变更
+- build(alist-tvbox): rootfs 变更 → 1.28.0-build.18
+
 ### 1.28.0-build.18 (2026-07-26)
 rootfs 变更
 - build(alist-tvbox): rootfs 变更 → 1.28.0-build.17
