@@ -53,10 +53,11 @@ RUN apt-get update \
     && rm -f /etc/nginx/sites-enabled/default \
     && (nginx -t && nginx -s stop 2>/dev/null || true)
 
-# 上游 init-xiaoya.sh 硬编码 /jre/bin/java（H2 数据库升级用）
-# Debian 的 java 在 /usr/lib/jvm/ 下，创建兼容 symlink
+# 上游 init-xiaoya.sh 硬编码 /jre/bin/java 和 /h2-2.1.214.jar
+# Debian 的 java 在 /usr/lib/jvm/ 下，创建兼容 symlink + 下载 H2 旧版 jar
 RUN mkdir -p /jre/bin \
-    && ln -sf /usr/lib/jvm/java-21-openjdk-${TARGETARCH}/bin/java /jre/bin/java
+    && ln -sf /usr/lib/jvm/java-21-openjdk-${TARGETARCH}/bin/java /jre/bin/java \
+    && curl -fsSL "https://repo1.maven.org/maven2/com/h2database/h2/2.1.214/h2-2.1.214.jar" -o /h2-2.1.214.jar
 
 # 从 haroldli/alist 复制干净的 alist 二进制
 # config.json 是运行时生成的(VOLUME)，不预置于镜像中
@@ -70,16 +71,18 @@ COPY --from=app-builder /extracted/spring-boot-loader/ /opt/atv/spring-boot-load
 COPY --from=app-builder /extracted/application/ /opt/atv/application/
 
 # 从上游源码复制脚本和资源
+# 上游 VOLUME 只有 /www/static，/data/ 不是卷，资源文件放在 /
+# HAOS 把 /data/ 挂为持久卷，所以资源文件放 /（镜像内），不会被用户清空
 COPY --from=source /src/docker/scripts/ /docker/scripts/
-COPY --from=source /src/data/tvbox.zip /data/
-COPY --from=source /src/data/115.index.zip /data/
-COPY --from=source /src/data/index.share.zip /data/
-COPY --from=source /src/data/cat.zip /data/
-COPY --from=source /src/data/pg.zip /data/
-COPY --from=source /src/data/zx.zip /data/
-COPY --from=source /src/data/data.zip /opt/data.zip
+COPY --from=source /src/data/tvbox.zip /
+COPY --from=source /src/data/115.index.zip /
+COPY --from=source /src/data/index.share.zip /
+COPY --from=source /src/data/cat.zip /
+COPY --from=source /src/data/pg.zip /
+COPY --from=source /src/data/zx.zip /
+COPY --from=source /src/data/data.zip /
 COPY --from=source /src/data/nginx.full.conf /etc/nginx/sites-enabled/alist-tvbox.conf
-COPY --from=source /src/data/base_version /data/
+COPY --from=source /src/data/base_version /
 COPY --from=source /src/config/alist.json /alist.json
 
 # 创建版本文件（上游 init-xiaoya.sh 用 set -e，缺少会直接退出）

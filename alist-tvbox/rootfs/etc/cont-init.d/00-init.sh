@@ -26,11 +26,11 @@ ln -sf /data/alist /opt/alist/data
 mkdir -p /data/store
 
 # 确保 /data/atv/data.sql 存在（清空 /data 后可能丢失）
-# data.zip 备份在镜像的 /opt/data.zip（非卷路径，不会被用户清空）
-if [ ! -f /data/atv/data.sql ] && [ -f /opt/data.zip ]; then
-    bashio::log.warning "data.sql missing, restoring from /opt/data.zip..."
+# data.zip 在镜像的 /（非卷路径），不会被用户清空
+if [ ! -f /data/atv/data.sql ] && [ -f /data.zip ]; then
+    bashio::log.warning "data.sql missing, restoring from /data.zip..."
     mkdir -p /data/atv
-    unzip -q -o /opt/data.zip -d /data/atv/
+    unzip -q -o /data.zip -d /data/atv/
 fi
 
 # ---- 读取 HA addon 配置选项并导出为环境变量 ----
@@ -45,8 +45,15 @@ bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 # 调用上游初始化脚本（下载资源、配置 AList 等）
 bashio::log.info "Running upstream initialization..."
 export INSTALL=xiaoya
-# 记录关键状态
 bashio::log.info "pre-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing'), data.sql=$(ls -la /data/atv/data.sql 2>/dev/null || echo 'missing')"
+
+# 上游 init-xiaoya.sh 的 upgrade_h2 在无旧 H2 数据库时会失败，set -e 杀死整个脚本
+# HAOS 用户清空 /data/ 后没有旧数据库需要升级，直接跳过
+if [ ! -f /opt/atv/data/data.mv.db ] && [ ! -f /data/atv.mv.db ]; then
+    bashio::log.info "No legacy H2 database found, skipping upgrade_h2"
+    echo "2.3.232" > /data/h2.version.txt
+fi
+
 /docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log || true
 bashio::log.info "post-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing')"
 
