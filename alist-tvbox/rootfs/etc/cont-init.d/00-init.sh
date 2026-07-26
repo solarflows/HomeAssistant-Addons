@@ -2,39 +2,15 @@
 # shellcheck shell=bash
 # ==============================================================================
 # alist-tvbox 初始化脚本
+# 等价于上游 entrypoint.sh 的初始化部分（去掉 JVM 启动，由 S6 longrun 接管）
+# 上游入口：docker/scripts/entrypoint.sh -> init-xiaoya.sh -> 启动服务
+# 我们拆分：00-init.sh -> init-xiaoya.sh（初始化）; alist-tvbox/run -> 启动服务
 # ==============================================================================
-# /config、/data 由 HAOS Supervisor 自动挂载（/data 持久但不在备份中）
-# /config → 用户可见配置；/data → 数据库等内部状态
 
-bashio::log.info "Initializing alist-tvbox..."
+export INSTALL=xiaoya
 
-# 创建持久化目录
-mkdir -p /config/atv/config
-mkdir -p /data/atv/config
-mkdir -p /data/log
-
-# Alist 内核数据 → /data/alist（HAOS 持久化）
-mkdir -p /data/alist
-rm -rf /opt/alist/data
-ln -sf /data/alist /opt/alist/data
-
-# 上游 inDocker 检测需要 /entrypoint.sh 存在
-# 否则 Spring Boot 会用 /opt/atv/alist/ 路径（找不到 config.json）
-[ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
-
-# Spring Boot atv 数据直接写入 /data/store
-mkdir -p /data/store
-
-# 确保 /data/atv/data.sql 存在（清空 /data 后可能丢失）
-# data.zip 在镜像的 /（非卷路径），不会被用户清空
-if [ ! -f /data/atv/data.sql ] && [ -f /data.zip ]; then
-    bashio::log.warning "data.sql missing, restoring from /data.zip..."
-    mkdir -p /data/atv
-    unzip -q -o /data.zip -d /data/atv/
-fi
-
-# ---- 读取 HA addon 配置选项并导出为环境变量 ----
-LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
+# ---- HA addon 配置 ----
+LOW_MEMORY=$(bashio::config "LOW_MEMORY" "true")
 if [ "${LOW_MEMORY}" = "true" ]; then
     export MEM_OPT="-Xmx512M"
 else
@@ -42,47 +18,26 @@ else
 fi
 bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
-# 确保 AList SQLite 数据库文件存在
-# 上游 xiaoya_first_init() 从 /var/lib/data.zip（haroldli/alist-base 提供）解压 data.db
-# 我们没有这个文件，但 update_xiaoya_data() 每次启动都会从网络重建数据库
-# 创建空数据库让 sqlite3 命令能执行，update_xiaoya_data 会填充数据
-if [ ! -f /opt/alist/data/data.db ]; then
-    bashio::log.info "Creating empty AList SQLite database..."
-    mkdir -p /opt/alist/data
-    # 使用 Spring Boot 的 data.sql 初始化 H2 数据库（如果存在）
-    # 对于 AList SQLite，update_xiaoya_data() 会从网络下载并填充
-    touch /opt/alist/data/data.db
-fi
+# ---- HAOS 特有：上游 Docker 不需要，但我们的容器每次重启会丢失这些 ----
+# AList 数据持久化：上游 Docker /data 是 volume，/opt/alist/data 自然持久
+# HAOS 中 /data 是 supervisor 挂载的持久卷，但 /opt/alist/data 是容器层，重启会丢失
+mkdir -p /data/alist
+rm -rf /opt/alist/data
+ln -sf /data/alist /opt/alist/data
 
-# 调用上游初始化脚本（下载资源、配置 AList 等）
-bashio::log.info "Running upstream initialization..."
-export INSTALL=xiaoya
-bashio::log.info "pre-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing'), data.sql=$(ls -la /data/atv/data.sql 2>/dev/null || echo 'missing')"
+# inDocker 检测：上游 entrypoint.sh 本身就存在于 /，我们用 symlink 兼容
+[ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
 
-# 上游 init-xiaoya.sh 的 upgrade_h2 在无旧 H2 数据库时会失败，set -e 杀死整个脚本
-# HAOS 用户清空 /data/ 后没有旧数据库需要升级，直接跳过
-# 但如果旧数据库存在但格式不兼容（H2 2.4 格式，旧工具无法读取），也需要跳过
-if [ ! -f /opt/atv/data/data.mv.db ] && [ ! -f /data/atv.mv.db ]; then
-    bashio::log.info "No legacy H2 database found, skipping upgrade_h2"
-    echo "2.3.232" > /data/h2.version.txt
-elif [ -f /data/atv.mv.db ]; then
-    # 尝试用旧版 H2 检测格式兼容性，失败则删除旧数据库让 Flyway 重建
-    if ! /jre/bin/java -cp /h2-2.1.214.jar org.h2.tools.Script -url "jdbc:h2:file:/data/atv" -user sa -password password -script /dev/null 2>/dev/null; then
-        bashio::log.warning "H2 database format incompatible with upgrade tool, removing old H2 files"
-        rm -f /data/atv.mv.db /data/atv.trace.db
-        echo "2.3.232" > /data/h2.version.txt
-    fi
-fi
+# ---- 以下与上游 entrypoint.sh 保持一致 ----
+. /docker/scripts/lib/common.sh
+. /docker/scripts/lib/proxy.sh
 
-/docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log || true
-bashio::log.info "post-init: .init=$(cat /opt/alist/data/.init 2>/dev/null || echo 'missing'), data.db=$(ls -la /opt/alist/data/data.db 2>/dev/null || echo 'missing')"
+load_custom_env
+setup_env_proxy
+chmod a+x /docker/scripts/*.sh /docker/scripts/lib/*.sh
+ensure_dir /data/log
 
-# 确保 AList config.json 存在（init-xiaoya.sh 不创建此文件，但 Spring Boot 启动需要）
-# 必须在 init 之后，否则 init 脚本检测到 config.json 会跳过数据库建表
-if [ ! -f /opt/alist/data/config.json ] && [ -f /alist.json ]; then
-    bashio::log.info "Creating AList config.json from template..."
-    cp /alist.json /opt/alist/data/config.json
-    sed -i 's/127.0.0.1/0.0.0.0/' /opt/alist/data/config.json
-fi
+bashio::log.info "Running upstream init-xiaoya.sh..."
+/docker/scripts/init-xiaoya.sh 2>&1 | tee /data/log/init.log
 
 bashio::log.info "alist-tvbox initialization completed"
