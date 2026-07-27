@@ -1,3 +1,8 @@
+### 1.1.23-build.7 (2026-07-27)
+Dockerfile + rootfs 变更
+- fix(baihu-panel): 修复 Ingress 静态资源加载并清理内部配置暴露
+- docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
+
 ### 1.1.23-build.6 (2026-07-25)
 rootfs 变更
 - fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
