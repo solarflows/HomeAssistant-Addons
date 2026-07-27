@@ -1,0 +1,93 @@
+# analysis.yaml — filebrowser-quantum addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: gtsteffaniak/filebrowser
+  description: Modern, responsive web-based file manager with multi-source support and advanced authentication
+  license: MIT
+
+build:
+  strategy: binary-download
+  stages: []
+  version_arg: FILEBROWSER_VERSION
+  builder_image: ""
+  apt_build_deps:
+    - curl
+  build_steps:
+    - |
+      ARCH=$(case "${TARGETARCH}" in
+        amd64) echo "amd64" ;;
+        arm64) echo "arm64" ;;
+        *) echo "${TARGETARCH}" ;;
+      esac)
+    - |
+      FB_URL="https://github.com/gtsteffaniak/filebrowser/releases/download/v${FILEBROWSER_VERSION}/linux-${ARCH}-filebrowser"
+      curl -fsSL "${FB_URL}" -o /usr/local/bin/filebrowser
+      chmod +x /usr/local/bin/filebrowser
+    - |
+      YQ_URL="https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_${ARCH}"
+      curl -fsSL "${YQ_URL}" -o /usr/local/bin/yq
+      chmod +x /usr/local/bin/yq
+  artifacts:
+    - /usr/local/bin/filebrowser
+    - /usr/local/bin/yq
+  runtime_deps:
+    apt:
+      - curl
+    pip: []
+
+runtime:
+  language: binary
+  entrypoint: S6 longrun → filebrowser -c /config/filebrowser.json -a 0.0.0.0 -p 8080
+  working_dir: /config
+  env: {}
+  data_dir: /config
+
+network:
+  port: 8080
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /config
+      ha: /config/filebrowser-quantum
+      type: map
+      reason: FileBrowser stores database, settings, and configs in /config
+    - container: /share
+      ha: /share
+      type: map
+      reason: Cross-addon shared directory for file access
+    - container: /ssl
+      ha: /ssl
+      type: map
+      reason: SSL certificates for HTTPS
+  hardcoded_paths: []
+  cwd_matters: false
+  generated_files: []
+
+config:
+  options:
+    auth_method:
+      type: list(password|noauth|proxy|oidc)?
+      default: password
+      description: Authentication method for FileBrowser
+    default_user_scope:
+      type: str?
+      default: "/"
+      description: Default scope for new users
+  schema:
+    auth_method: list(password|noauth|proxy|oidc)
+    default_user_scope: str?
+
+adaptations:
+  - Binary downloaded at build time from GitHub releases (gtsteffaniak/filebrowser)
+  - Architecture mapping: amd64→amd64, arm64→arm64
+  - yq (v4.44.3) downloaded for YAML config manipulation in S6 scripts
+  - FileBrowser binary + yq installed to /usr/local/bin/
+  - Configuration file /config/filebrowser.json managed via yq in S6 init scripts
+  - Runs with -a 0.0.0.0 -p 8080 -c /config/filebrowser.json
+  - Config, SSL, and share directories mounted via HA maps (config:rw, ssl:ro, share:rw)
+  - S6 overlay manages filebrowser process as longrun
+  - Healthcheck on /health endpoint (port 8080)
+  - Ingress enabled on port 8080

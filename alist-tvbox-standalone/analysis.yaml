@@ -1,0 +1,117 @@
+# analysis.yaml — alist-tvbox-standalone addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: power721/alist-tvbox
+  description: AList proxy server for TvBox (standalone version without embedded AList kernel)
+  license: MIT
+
+build:
+  strategy: release-jar
+  stages:
+    - name: source
+      from: alpine/git:latest
+      purpose: Clone upstream repo for resource zips and scripts
+    - name: app-builder
+      from: eclipse-temurin:21-jre
+      purpose: Extract Spring Boot layertools from release JAR
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: HA addon runtime (S6 built-in)
+  version_arg: ALIST_TVBOX_VERSION
+  apt_build_deps: []
+  build_steps:
+    - java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
+  artifacts:
+    - /extracted/dependencies/
+    - /extracted/snapshot-dependencies/
+    - /extracted/spring-boot-loader/
+    - /extracted/application/
+  runtime_deps:
+    apt:
+      - openjdk-21-jre-headless
+      - curl
+      - wget
+      - unzip
+    pip: []
+
+runtime:
+  language: java
+  java_version: 21
+  entrypoint: S6 longrun → java -cp ... PropertiesLauncher
+  working_dir: /opt/atv
+  env:
+    JAVA_HOME: /usr/lib/jvm/java-21-openjdk-${TARGETARCH}
+    MEM_OPT: "-Xmx512M"
+    ALIST_PORT: "5244"
+    INSTALL: "new"
+    no_proxy: "*.aliyundrive.com"
+  data_dir: /data
+
+network:
+  port: 4567
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /data
+      ha: /config/alist-tvbox-standalone/data
+      type: symlink
+      reason: Spring Boot app stores H2 DB, logs, and config in /data
+  hardcoded_paths:
+    - path: /alist.json
+      ha: /config/alist-tvbox-standalone/alist.json
+      type: file
+      reason: Template config file copied from source
+    - path: /data/tvbox.zip
+      ha: /config/alist-tvbox-standalone/tvbox.zip
+      type: file
+      reason: Resource zip from upstream source
+    - path: /data/115.index.zip
+      ha: /config/alist-tvbox-standalone/115.index.zip
+      type: file
+    - path: /data/cat.zip
+      ha: /config/alist-tvbox-standalone/cat.zip
+      type: file
+    - path: /data/pg.zip
+      ha: /config/alist-tvbox-standalone/pg.zip
+      type: file
+    - path: /data/zx.zip
+      ha: /config/alist-tvbox-standalone/zx.zip
+      type: file
+    - path: /data/base_version
+      ha: /config/alist-tvbox-standalone/base_version
+      type: file
+    - path: /docker/scripts
+      ha: /config/alist-tvbox-standalone/scripts
+      type: dir
+      reason: Startup scripts from upstream docker/scripts/
+  cwd_matters: false
+  generated_files:
+    - /app_version
+    - /docker.version
+
+config:
+  options:
+    LOW_MEMORY:
+      type: bool?
+      default: true
+      description: Enable low memory mode for Java
+    ATV_DEBUG:
+      type: bool?
+      default: false
+      description: Enable debug logging for ATV
+  schema:
+    LOW_MEMORY: bool?
+    ATV_DEBUG: bool?
+
+adaptations:
+  - No embedded AList kernel (standalone version) — connects to external AList instance
+  - Spring Boot layertools extraction from release JAR (eclipse-temurin:21-jre builder)
+  - Resource zips (tvbox, 115.index, cat, pg, zx, base_version) copied from source stage to /data
+  - alist.json template copied to /alist.json for runtime config generation
+  - Java 21 runtime from Debian (openjdk-21-jre-headless)
+  - S6 overlay manages Java process as longrun service
+  - Healthcheck on port 4567 (Spring Boot actuator)
+  - Port 4567 exposed for management UI; external AList runs separately on configurable port

@@ -1,0 +1,84 @@
+# analysis.yaml — lucky addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: gdy666/lucky
+  description: 替代socat, IPv6 tcp/udp 转发内网IPv4, 动态域名服务
+  license: Proprietary (closed source, binary distribution)
+
+build:
+  strategy: binary-download
+  stages: []
+  version_arg: LUCKY_VERSION
+  builder_image: ""
+  apt_build_deps:
+    - curl
+    - wget
+  build_steps:
+    - |
+      ARCH_PRIMARY=$(case "${TARGETARCH}" in
+        amd64) echo "amd64" ;;
+        arm64) echo "arm64" ;;
+        armhf) echo "armv7" ;;
+        *) echo "${TARGETARCH}" ;;
+      esac)
+    - |
+      ARCH_GITHUB=$(case "${TARGETARCH}" in
+        amd64) echo "x86_64" ;;
+        arm64) echo "arm64" ;;
+        armhf) echo "armv7" ;;
+        *) echo "${TARGETARCH}" ;;
+      esac)
+    - |
+      DOWNLOAD_URL="https://release.66666.host/v${LUCKY_VERSION}/${LUCKY_VERSION}_wanji_docker/lucky_${LUCKY_VERSION}_Linux_${ARCH_PRIMARY}_wanji_docker.tar.gz"
+      wget -q "$DOWNLOAD_URL" -O /tmp/lucky.tar.gz || \
+      ( GITHUB_URL="https://github.com/gdy666/lucky/releases/download/v${LUCKY_VERSION}/lucky_${LUCKY_VERSION}_Linux_${ARCH_GITHUB}.tar.gz" && wget -q "$GITHUB_URL" -O /tmp/lucky.tar.gz )
+    - tar -xzf /tmp/lucky.tar.gz -C /usr/local/bin/
+    - chmod +x /usr/local/bin/lucky
+    - rm -rf /tmp/*
+  artifacts:
+    - /usr/local/bin/lucky
+  runtime_deps:
+    apt:
+      - curl
+      - wget
+    pip: []
+
+runtime:
+  language: binary
+  entrypoint: S6 longrun → lucky -c /config/lucky/conf (host network mode)
+  working_dir: /etc/lucky
+  env: {}
+  data_dir: /config/lucky
+
+network:
+  port: 16601
+  protocol: tcp
+  host_network: true
+
+filesystem:
+  persistent_dirs:
+    - container: /etc/lucky
+      ha: /config/lucky
+      type: symlink
+      reason: Lucky stores config, certs, and logs in /etc/lucky
+  hardcoded_paths: []
+  cwd_matters: false
+  generated_files: []
+
+config:
+  options: {}
+  schema: {}
+
+adaptations:
+  - Closed-source binary downloaded at build time from primary mirror (release.66666.host) with GitHub releases fallback
+  - Architecture mapping: amd64→amd64, arm64→arm64, armhf→armv7 (wanji_docker variant from primary); x86_64/arm64/armv7 from GitHub
+  - Requires host network mode (host_network: true) for IPv6/port forwarding functionality
+  - Binary installed to /usr/local/bin/lucky
+  - Config directory /etc/lucky symlinked to /config/lucky for persistence
+  - S6 overlay manages lucky process with -c /config/lucky/conf
+  - Healthcheck on HTTP port 16601
+  - Ingress enabled on port 16601
+  - Config map mounted read-write
+  - No build-time compilation — pure binary download and package

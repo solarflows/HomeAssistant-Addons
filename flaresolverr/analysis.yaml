@@ -1,0 +1,117 @@
+# analysis.yaml — flaresolverr addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: FlareSolverr/FlareSolverr
+  description: Bypass Cloudflare anti-bot page, support for Home Assistant
+  license: MIT
+
+build:
+  strategy: upstream-image
+  stages:
+    - name: runtime
+      from: flaresolverr/flaresolverr:${UPSTREAM_TAG}
+      purpose: Use upstream official image with HA adaptations
+  version_arg: UPSTREAM_TAG
+  apt_build_deps:
+    - dumb-init
+  build_steps:
+    - apt-get update && apt-get install -y --no-install-recommends dumb-init
+    - COPY rootfs /
+    - chmod +x /entrypoint.sh
+  artifacts: []
+  runtime_deps:
+    apt:
+      - dumb-init
+    pip: []
+
+runtime:
+  language: python
+  entrypoint: /entrypoint.sh (dumb-init → python3 -m flaresolverr)
+  working_dir: /app
+  env:
+    LOG_LEVEL: info
+    HEADLESS: "true"
+    DISABLE_MEDIA: "false"
+    PROMETHEUS_ENABLED: "false"
+  data_dir: /data
+
+network:
+  ports:
+    - container: 8191
+      ha: 8191
+      service: FlareSolverr proxy
+    - container: 8192
+      ha: 8192
+      service: Prometheus exporter
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /data
+      ha: /config/flaresolverr/data
+      type: symlink
+      reason: Upstream VOLUME /data for cache, sessions, and logs
+  hardcoded_paths: []
+  cwd_matters: false
+  generated_files: []
+
+config:
+  options:
+    LOG_LEVEL:
+      type: str?
+      default: info
+      description: Log level (debug, info, warn, error)
+    LOG_FILE:
+      type: str?
+      default: ""
+      description: Log file path (empty for stdout)
+    HEADLESS:
+      type: bool?
+      default: true
+      description: Run Chrome in headless mode
+    DISABLE_MEDIA:
+      type: bool?
+      default: false
+      description: Disable media loading in Chrome
+    LANG:
+      type: str?
+      default: ""
+      description: Language for Chrome
+    PROMETHEUS_ENABLED:
+      type: bool?
+      default: false
+      description: Enable Prometheus metrics on port 8192
+    PROXY_URL:
+      type: url?
+      default: ""
+      description: Proxy URL for outgoing requests
+    PROXY_USERNAME:
+      type: str?
+      default: ""
+      description: Proxy username
+    PROXY_PASSWORD:
+      type: password?
+      default: ""
+      description: Proxy password
+  schema:
+    LOG_LEVEL: list(info|debug|warn|error)?
+    LOG_FILE: str?
+    HEADLESS: bool?
+    DISABLE_MEDIA: bool?
+    LANG: str?
+    PROMETHEUS_ENABLED: bool?
+    PROXY_URL: url?
+    PROXY_USERNAME: str?
+    PROXY_PASSWORD: password?
+
+adaptations:
+  - Uses upstream official Docker image (flaresolverr/flaresolverr) as base
+  - Adds dumb-init for proper signal handling and zombie reaping
+  - Custom entrypoint.sh wraps upstream entrypoint with Chromium sandbox fixes (--no-sandbox, --disable-gpu)
+  - Persistent /data volume symlinked to /config/flaresolverr/data for cookies, cache, sessions
+  - Ports 8191 (proxy) and 8192 (Prometheus) exposed
+  - Healthcheck on port 8191 root endpoint
+  - Capabilities: SYS_ADMIN, IPC_LOCK for Chromium
+  - tmpfs enabled for /tmp (Chromium needs writable temp)

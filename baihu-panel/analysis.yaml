@@ -1,0 +1,140 @@
+# analysis.yaml — baihu-panel addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: engigu/baihu-panel
+  description: 轻量级定时任务管理系统，支持 Python, Node.js, Go, Rust, PHP 等所有主流语言
+  license: MIT
+
+build:
+  strategy: multi-stage
+  stages:
+    - name: builder
+      from: golang:1.26
+      purpose: Build Go binary + Vite frontend + copy configs
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: HA addon runtime with mise for Python/Node version management
+  version_arg: BAIHU_VERSION
+  builder_image: golang:1.26
+  apt_build_deps:
+    - curl
+    - ca-certificates
+    - gnupg
+  build_steps:
+    - |
+      # Install Node.js 22 (Vite requires >=20)
+      curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+      && apt-get install -y --no-install-recommends nodejs \
+      && rm -rf /var/lib/apt/lists/*
+    - git clone --depth 1 --branch "v${BAIHU_VERSION}" https://github.com/engigu/baihu-panel.git /src
+    - |
+      # Build frontend if exists
+      if [ -d "web" ] && [ -f "web/package.json" ]; then
+        cd web && npm ci && npm run build && cd ..
+      fi
+      mkdir -p /www/baihu
+      if [ -d "web/dist" ]; then
+        cp -r web/dist/* /www/baihu/
+      else
+        touch /www/baihu/.gitkeep
+      fi
+      mkdir -p /app/configs
+      if [ -d "configs" ] && ls configs/* >/dev/null 2>&1; then
+        cp -r configs/* /app/configs/
+      else
+        touch /app/configs/.gitkeep
+      fi
+    - CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /baihu .
+  artifacts:
+    - /baihu
+    - /www/baihu/
+    - /app/configs/
+  runtime_deps:
+    apt:
+      - curl
+      - wget
+      - git
+      - ca-certificates
+      - rsync
+    pip: []
+  runtime_post_steps:
+    - |
+      # Install mise (Python/Node version manager)
+      curl -fsSL https://mise.run | sh \
+      && mv /root/.local/bin/mise /usr/local/bin/mise
+    - |
+      # Pre-install Python 3 and Node 22 to /opt/mise-base
+      MISE_DATA_DIR=/opt/mise-base MISE_CONFIG_DIR=/opt/mise-base \
+      mise install python@3 node@22 \
+      && mise use -g python@3 \
+      && mise use -g node@22
+
+runtime:
+  language: go
+  go_version: 1.26
+  entrypoint: S6 longrun → baihu (binary)
+  working_dir: /app
+  env:
+    BH_SERVER_PORT: "8052"
+    BH_SERVER_HOST: "0.0.0.0"
+    BH_DB_PATH: /config/baihu/data/baihu.db
+    MISE_TRUSTED_CONFIG_PATHS: /app/data/scripts
+  data_dir: /app/data
+
+network:
+  port: 8052
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /app/data
+      ha: /config/baihu-panel/data
+      type: symlink
+      reason: Baihu stores SQLite DB, logs, scripts in /app/data
+    - container: /app/configs
+      ha: /config/baihu-panel/configs
+      type: symlink
+      reason: Plugin configs persisted
+    - container: /app/envs
+      ha: /config/baihu-panel/envs
+      type: symlink
+      reason: Virtual environments for task execution
+    - container: /www/baihu
+      ha: /config/baihu-panel/www
+      type: symlink
+      reason: Frontend static files (can be updated)
+  hardcoded_paths: []
+  cwd_matters: false
+  generated_files: []
+
+config:
+  options:
+    BH_SERVER_PORT:
+      type: int?
+      default: 8052
+      description: Server listen port
+    BH_SERVER_HOST:
+      type: str?
+      default: "0.0.0.0"
+      description: Server listen host
+    BH_DB_PATH:
+      type: str?
+      default: "/config/baihu/data/baihu.db"
+      description: SQLite database path
+  schema:
+    BH_SERVER_PORT: int?
+    BH_SERVER_HOST: str?
+    BH_DB_PATH: str?
+
+adaptations:
+  - Go 1.26 multi-stage build with CGO_ENABLED=0 for static binary
+  - Frontend (Vite) built in builder stage with Node.js 22
+  - Configs and static files copied to dedicated directories in builder
+  - Runtime uses mise for Python/Node version management (pre-installed to /opt/mise-base at build time)
+  - Baihu binary copied to /usr/local/bin/baihu
+  - Data directories: /app/data (DB, logs), /app/configs (plugins), /app/envs (venvs), /www/baihu (frontend) → all symlinked to /config/baihu-panel/
+  - S6 overlay manages baihu process as longrun
+  - Healthcheck/ingress on port 8052
+  - Environment variables configured for DB path and mise trusted paths

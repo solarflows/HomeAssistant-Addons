@@ -1,0 +1,189 @@
+# analysis.yaml — qdtoday addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: qd-today/qd
+  description: QD - HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server
+  license: MIT
+
+build:
+  strategy: multi-stage
+  stages:
+    - name: builder
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: Compile Python deps + patch safe_eval for Python 3.13
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: HA addon runtime (same base as builder for ABI compatibility)
+  version_arg: QD_VERSION
+  builder_image: ghcr.io/hassio-addons/debian-base:9.3.0
+  apt_build_deps:
+    - python3
+    - python3-pip
+    - python-is-python3
+    - python3-dev
+    - build-essential
+    - libcurl4-openssl-dev
+    - libssl-dev
+    - libffi-dev
+    - cargo
+    - rustc
+    - git
+  build_steps:
+    - git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src
+    - |
+      # Patch: Python 3.13 新增 opcode，上游 _SAFE_OPCODES 白名单过小
+      python3 <<'PYEOF'
+      import sys, re
+      src = '/src/libs/safe_eval.py'
+      with open(src) as f:
+          c = f.read()
+      old = '_SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes(['
+      if old not in c:
+          print(f"ERROR: _SAFE_OPCODES not found in {src}", file=sys.stderr)
+          sys.exit(1)
+      pat = r'_SAFE_OPCODES = _EXPR_OPCODES\.union\(to_opcodes\(\[.*?\]\)\)'
+      new = '_SAFE_OPCODES = set(__import__("dis").opmap.values())  # Python 3.13+: allow all opcodes'
+      c = re.sub(pat, new, c, flags=re.DOTALL)
+      with open(src, 'w') as f:
+          f.write(c)
+      print('patched:', src)
+      PYEOF
+    - pip install --no-cache-dir --target /opt/qd-deps -r requirements.txt
+    - pip install --no-cache-dir --target /opt/qd-deps --compile ddddocr
+  artifacts:
+    - /opt/qd-deps/
+    - /src/
+  runtime_deps:
+    apt:
+      - python3
+      - libcurl4
+      - libssl3
+      - curl
+      - git
+      - openssh-client
+    pip: []
+
+runtime:
+  language: python
+  entrypoint: S6 longrun → python3 /usr/src/app/main.py
+  working_dir: /usr/src/app
+  env:
+    PYTHONPATH: /opt/qd-deps
+    PORT: "8923"
+  data_dir: /config/qdtoday
+
+network:
+  port: 8923
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /config
+      ha: /config/qdtoday
+      type: symlink
+      reason: QD stores config, tasks, logs in /config (mounted by HAOS)
+  hardcoded_paths: []
+  cwd_matters: false
+  generated_files: []
+
+config:
+  options:
+    QD_DEBUG:
+      type: bool?
+      default: false
+      description: Enable debug mode
+    AES_KEY:
+      type: str?
+      default: ""
+      description: AES encryption key for sensitive data
+    COOKIE_SECRET:
+      type: str?
+      default: ""
+      description: Secret for cookie signing
+    DOMAIN:
+      type: str?
+      default: ""
+      description: Domain for external access
+    MAIL_SMTP:
+      type: str?
+      default: ""
+      description: SMTP server address
+    MAIL_PORT:
+      type: int?
+      default: 465
+      description: SMTP port
+    MAIL_USER:
+      type: str?
+      default: ""
+      description: SMTP username
+    MAIL_PASSWORD:
+      type: password?
+      default: ""
+      description: SMTP password
+    USE_PYCURL:
+      type: bool?
+      default: null
+      description: Use pycurl for HTTP requests
+    DNS_SERVER:
+      type: str?
+      default: ""
+      description: Custom DNS server
+    TRACEBACK_PRINT:
+      type: bool?
+      default: null
+      description: Print full traceback on errors
+    PUSH_BATCH_SW:
+      type: bool?
+      default: null
+      description: Enable batch push
+    PROXIES:
+      type: str?
+      default: ""
+      description: Proxy configuration
+    MAIL_SSL:
+      type: bool?
+      default: null
+      description: Use SSL for SMTP
+    TASK_REQUEST_LIMIT:
+      type: int?
+      default: null
+      description: Max concurrent task requests
+    TASK_WHILE_LOOP_TIMEOUT:
+      type: int?
+      default: null
+      description: Task loop timeout seconds
+    NEW_TASK_DELAY:
+      type: int?
+      default: null
+      description: Delay before new task execution
+  schema:
+    QD_DEBUG: bool?
+    AES_KEY: str?
+    COOKIE_SECRET: str?
+    DOMAIN: str?
+    MAIL_SMTP: str?
+    MAIL_PORT: int?
+    MAIL_USER: str?
+    MAIL_PASSWORD: password?
+    USE_PYCURL: bool?
+    DNS_SERVER: str?
+    TRACEBACK_PRINT: bool?
+    PUSH_BATCH_SW: bool?
+    PROXIES: str?
+    MAIL_SSL: bool?
+    TASK_REQUEST_LIMIT: int?
+    TASK_WHILE_LOOP_TIMEOUT: int?
+    NEW_TASK_DELAY: int?
+
+adaptations:
+  - Multi-stage build sharing debian-base (Trixie) for builder and runtime — guarantees libc/libcurl/Python ABI compatibility
+  - Python 3.13 compatibility patch for upstream safe_eval.py (_SAFE_OPCODES white-list too small for new opcodes)
+  - Full Python deps installed to /opt/qd-deps via pip --target (avoids dist-packages/site-packages conflicts)
+  - ddddocr OCR dependency compiled at build time
+  - PYTHONPATH=/opt/qd-deps set at runtime
+  - Source code copied to /usr/src/app, run via S6 longrun
+  - Persistent /config symlinked to /config/qdtoday (HAOS mounts /config)
+  - Healthcheck on port 8923 root endpoint
+  - S6 stage2 hook for initialization

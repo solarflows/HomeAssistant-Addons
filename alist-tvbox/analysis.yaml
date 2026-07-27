@@ -64,11 +64,13 @@ filesystem:
     - /docker.version      # from ALIST_TVBOX_VERSION build arg
     - /jre/bin/java        # symlink → Debian OpenJDK
     - /h2-2.1.214.jar      # downloaded from Maven Central
-  persistent_volume: /data (HAOS)
-    - /data/alist/         # AList SQLite DB (data.db, config.json)
-    - /data/atv/           # Spring Boot H2 DB + data.sql
-    - /data/index/         # Xiaoya indexes
-    - /data/store/         # TvBox data
+  persistent_volume:
+    path: /data (HAOS)
+    dirs:
+      - /data/alist/         # AList SQLite DB (data.db, config.json)
+      - /data/atv/           # Spring Boot H2 DB + data.sql
+      - /data/index/         # Xiaoya indexes
+      - /data/store/         # TvBox data
 
 init_flow:
   cont_init_d:
@@ -98,3 +100,17 @@ adaptations:
   - set-e + upgrade_h2 failure → pre-create h2.version.txt when no legacy DB
   - data.sql missing → restore from /data.zip (non-volume backup)
   - Empty data.db → touch file, update_xiaoya_data() populates from network
+
+config:
+  options:
+    LOW_MEMORY:
+      type: bool?
+      default: true
+      description: Enable low memory mode for Java
+    ATV_DEBUG:
+      type: bool?
+      default: false
+      description: Enable debug logging for ATV
+  schema:
+    LOW_MEMORY: bool?
+    ATV_DEBUG: bool?

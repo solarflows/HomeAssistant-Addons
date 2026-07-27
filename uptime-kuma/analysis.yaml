@@ -1,0 +1,110 @@
+# analysis.yaml — uptime-kuma addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: louislam/uptime-kuma
+  description: A fancy self-hosted monitoring tool
+  license: MIT
+
+build:
+  strategy: multi-stage
+  stages:
+    - name: builder
+      from: node:22-bookworm-slim
+      purpose: Clone source, install deps, build frontend, download dist
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: Full HA runtime with Node.js 22, Chromium, MariaDB, cloudflared, nscd, Apprise
+  version_arg: UPTIME_KUMA_VERSION
+  builder_image: node:22-bookworm-slim
+  apt_build_deps:
+    - curl
+    - ca-certificates
+  build_steps:
+    - |
+      curl -fsSL "https://github.com/louislam/uptime-kuma/archive/refs/tags/${UPTIME_KUMA_VERSION}.tar.gz" | tar xzf - --strip-components 1
+    - npm ci --no-audit --no-fund --no-update-notifier --omit=dev
+    - npm run download-dist
+    - mkdir ./data
+  artifacts:
+    - /app (entire built application with node_modules, dist, data)
+  runtime_deps:
+    apt:
+      - nodejs
+      - npm
+      - dumb-init
+      - nscd
+      - sudo
+      - sqlite3
+      - iputils-ping
+      - util-linux
+      - python3
+      - python3-pip
+      - python3-setuptools
+      - python3-paho-mqtt
+      - chromium
+      - fonts-indic
+      - fonts-noto
+      - fonts-noto-cjk
+      - mariadb-server
+      - curl
+      - gnupg
+    pip:
+      - apprise
+
+runtime:
+  language: node
+  node_version: 22
+  entrypoint: S6 longrun → dumb-init node server/server.js (PORT=3001)
+  working_dir: /app
+  env:
+    PORT: "3001"
+  data_dir: /app/data
+
+network:
+  port: 3001
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /app/data
+      ha: /config/uptime-kuma/data
+      type: symlink
+      reason: Uptime Kuma stores SQLite DB, backups, certs in /app/data
+    - container: /config
+      ha: /config/uptime-kuma/config
+      type: map
+      reason: Additional config directory
+    - container: /share
+      ha: /share
+      type: map
+      reason: Cross-addon file sharing
+  hardcoded_paths: []
+  cwd_matters: true
+  reason: Server expects CWD=/app for relative paths (data/, dist/)
+  generated_files: []
+
+config:
+  options: {}
+  schema: {}
+
+adaptations:
+  - Multi-stage: Node.js 22 Bookworm slim builder → Debian-base runtime with full feature parity
+  - Builder: clones tag, npm ci (omit dev), npm run download-dist (fetches prebuilt frontend), creates data dir
+  - Runtime replicates upstream debian-base.dockerfile (base2-slim + base2):
+    - base2-slim: dumb-init, nscd, cloudflared (via Cloudflare bookworm repo), python3-paho-mqtt, sudo, sqlite3, iputils-ping, util-linux
+    - base2: chromium + fonts (indic, noto, noto-cjk) for browser checks, mariadb-server for MySQL backend
+    - Apprise installed via pip3 (upstream no longer publishes .deb)
+    - Node.js 22 from NodeSource repo
+  - nscd configured for hosts cache only (upstream docker/etc/nscd.conf)
+  - cloudflared installed from Cloudflare APT (bookworm repo used on trixie)
+  - Chromium launched with --no-sandbox --disable-gpu (handled by upstream code)
+  - MariaDB server available for MySQL backend option
+  - Working directory /app (critical: server uses relative paths)
+  - Data directory /app/data symlinked to /config/uptime-kuma/data
+  - Config and share maps mounted
+  - S6 overlay manages Node.js process with dumb-init
+  - Healthcheck on root endpoint (port 3001)
+  - Ingress enabled on port 3001
+  - Port 3001 exposed with description

@@ -1,0 +1,92 @@
+# analysis.yaml — qinglong addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+
+---
+upstream:
+  repo: whyour/qinglong
+  description: 支持 Python3、JavaScript、Shell、Typescript 的定时任务管理平台
+  license: MIT
+
+build:
+  strategy: multi-stage
+  stages:
+    - name: builder
+      from: node:18-alpine
+      purpose: Build frontend (pnpm) and backend
+    - name: runtime
+      from: ghcr.io/hassio-addons/debian-base:9.3.0
+      purpose: HA addon runtime with Node.js
+  version_arg: QINGLONG_VERSION
+  builder_image: node:18-alpine
+  apt_build_deps:
+    - git
+  build_steps:
+    - npm i -g pnpm@8.3.1
+    - git clone --depth 1 --branch "v${QINGLONG_VERSION}" https://github.com/whyour/qinglong.git /src
+    - cd /src && pnpm install --frozen-lockfile
+    - cd /src && pnpm run build:front
+    - cd /src && pnpm run build:back
+  artifacts:
+    - /src/
+  runtime_deps:
+    apt:
+      - nodejs
+      - npm
+      - python3
+      - python3-pip
+      - curl
+      - wget
+      - git
+      - jq
+      - openssl
+      - procps
+    pip: []
+  # Install pnpm globally in runtime
+  runtime_post_steps:
+    - npm i -g pnpm@8.3.1
+    - cd /ql && rm -rf node_modules && pnpm install --prod --frozen-lockfile
+
+runtime:
+  language: node
+  node_version: 18
+  entrypoint: S6 longrun → pnpm start (or node /ql/backend/src/main.js)
+  working_dir: /ql
+  env:
+    QL_DIR: /ql
+    NODE_ENV: production
+  data_dir: /ql/data
+
+network:
+  port: 5700
+  protocol: tcp
+
+filesystem:
+  persistent_dirs:
+    - container: /ql/data
+      ha: /config/qinglong/data
+      type: symlink
+      reason: Qinglong stores configs, scripts, logs, db in /ql/data
+    - container: /ql/config
+      ha: /config/qinglong/config
+      type: symlink
+      reason: Additional config directory
+  hardcoded_paths: []
+  cwd_matters: true
+  reason: App expects CWD=/ql for relative paths (scripts, config)
+  generated_files: []
+
+config:
+  options: {}
+  schema: {}
+
+adaptations:
+  - Multi-stage: Node.js 18 Alpine builder → Debian-base runtime
+  - pnpm@8.3.1 used for both build and runtime (frozen-lockfile for reproducibility)
+  - Frontend built to /ql/dist, backend compiled; alpine node_modules discarded to avoid glibc issues
+  - Runtime installs nodejs, npm, python3, pnpm, and production deps in /ql
+  - /ql/data and /ql/config symlinked to /config/qinglong/ for HA persistence
+  - CWD must be /ql (app derives paths from working directory)
+  - S6 overlay manages Node.js process as longrun service
+  - Healthcheck on /api/health endpoint (port 5700)
+  - Ingress enabled on port 5700
+  - Config and share maps mounted (config:rw, share:rw)
