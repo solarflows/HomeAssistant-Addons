@@ -80,6 +80,7 @@ runtime:
     BH_SERVER_PORT: "8052"
     BH_SERVER_HOST: "0.0.0.0"
     BH_DB_PATH: /config/baihu/data/baihu.db
+    BH_SERVER_URL_PREFIX: ""  # auto-detected from bashio::addon.ingress_entry in 00-init.sh
     MISE_TRUSTED_CONFIG_PATHS: /app/data/scripts
   data_dir: /app/data
 
@@ -110,23 +111,8 @@ filesystem:
   generated_files: []
 
 config:
-  options:
-    BH_SERVER_PORT:
-      type: int?
-      default: 8052
-      description: Server listen port
-    BH_SERVER_HOST:
-      type: str?
-      default: "0.0.0.0"
-      description: Server listen host
-    BH_DB_PATH:
-      type: str?
-      default: "/config/baihu/data/baihu.db"
-      description: SQLite database path
-  schema:
-    BH_SERVER_PORT: int?
-    BH_SERVER_HOST: str?
-    BH_DB_PATH: str?
+  options: {}
+  schema: {}
 
 adaptations:
   - Go 1.26 multi-stage build with CGO_ENABLED=0 for static binary
@@ -138,3 +124,4 @@ adaptations:
   - S6 overlay manages baihu process as longrun
   - Healthcheck/ingress on port 8052
   - Environment variables configured for DB path and mise trusted paths
+  - Ingress sub-path: BH_SERVER_URL_PREFIX auto-detected via bashio::addon.ingress_entry, upstream baihu injects <base href> + window.__BASE_URL__ based on this prefix

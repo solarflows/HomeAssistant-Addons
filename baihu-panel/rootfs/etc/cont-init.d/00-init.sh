@@ -34,10 +34,18 @@ if [ ! -L /app/configs ]; then
     ln -sf /config/baihu/configs /app/configs
 fi
 
-# ---- 读取 HA addon 配置选项并导出为环境变量 ----
-export BH_SERVER_PORT=$(bashio::config 'BH_SERVER_PORT' '8052')
-export BH_SERVER_HOST=$(bashio::config 'BH_SERVER_HOST' '0.0.0.0')
-export BH_DB_PATH=$(bashio::config 'BH_DB_PATH' '/config/baihu/data/baihu.db')
+# ---- 导出运行环境变量 (端口/host/DB路径均为内部实现，不暴露用户配置) ----
+export BH_SERVER_PORT=8052
+export BH_SERVER_HOST=0.0.0.0
+export BH_DB_PATH=/config/baihu/data/baihu.db
+
+# Ingress 子路径: 让 baihu 前端知道 HA 代理下的正确 base URL
+INGRESS_ENTRY=$(bashio::addon.ingress_entry)
+if [ -n "$INGRESS_ENTRY" ] && [ "$INGRESS_ENTRY" != "/" ]; then
+    export BH_SERVER_URL_PREFIX="${INGRESS_ENTRY}"
+    bashio::log.info "Baihu Ingress URL prefix set to: ${BH_SERVER_URL_PREFIX}"
+fi
+
 bashio::log.info "Baihu Panel config: port=${BH_SERVER_PORT}, host=${BH_SERVER_HOST}"
 
 bashio::log.info "Baihu Panel initialization completed"
