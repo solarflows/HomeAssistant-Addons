@@ -119,4 +119,3 @@ adaptations:
   - Frontend static files (/www/baihu) baked into image at build time; not persisted to /config
   - S6 overlay manages baihu process as longrun
   - Healthcheck/ingress on port 8052
-  - Ingress sub-path: run script writes url_prefix into /app/configs/config.ini via bashio::addon.ingress_entry before exec baihu server (env var override skipped when config.ini exists)
