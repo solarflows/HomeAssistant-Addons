@@ -1,3 +1,7 @@
+### 1.5.0-stable-build.30 (2026-07-28)
+rootfs 变更
+- fix(filebrowser-quantum): 移除 ingress 支持，添加通用编辑规则指令文件
+
 ### 1.5.0-stable-build.29 (2026-07-28)
 rootfs 变更
 - fix(filebrowser-quantum): 修复启动参数错误，改用 FILEBROWSER_CONFIG 环境变量
