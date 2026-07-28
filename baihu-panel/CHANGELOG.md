@@ -1,3 +1,11 @@
+### 1.1.23-build.10 (2026-07-28)
+Dockerfile + rootfs 变更
+- fix(baihu-panel): healthcheck 使用原生 /api/v1/ping 端点
+- fix(baihu-panel): 修复 Ingress 子路径并持久化到 /config/baihu-panel/
+- fix(baihu-panel): 修复 Ingress 静态资源加载并清理内部配置暴露
+- docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
+- fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
+
 ### 1.1.23-build.9 (2026-07-28)
 Dockerfile + rootfs 变更
 - fix(baihu-panel): healthcheck 使用原生 /api/v1/ping 端点
