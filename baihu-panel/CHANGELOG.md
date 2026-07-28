@@ -1,3 +1,7 @@
+### 1.1.23-build.8 (2026-07-28)
+Dockerfile + rootfs 变更
+- fix(baihu-panel): 修复 Ingress 子路径并持久化到 /config/baihu-panel/
+
 ### 1.1.23-build.7 (2026-07-27)
 Dockerfile + rootfs 变更
 - fix(baihu-panel): 修复 Ingress 静态资源加载并清理内部配置暴露
