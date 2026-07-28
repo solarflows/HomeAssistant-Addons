@@ -20,5 +20,3 @@ map:
   - config:rw
 startup: application
 boot: manual
-ingress: true
-ingress_port: 8052

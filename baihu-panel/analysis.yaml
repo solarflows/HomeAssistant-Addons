@@ -118,4 +118,4 @@ adaptations:
   - Data directories: /app/data (DB, logs, scripts), /app/configs (config.ini), /app/envs (venvs, mise runtimes) → all symlinked to /config/baihu-panel/
   - Frontend static files (/www/baihu) baked into image at build time; not persisted to /config
   - S6 overlay manages baihu process as longrun
-  - Healthcheck/ingress on port 8052
+  - Healthcheck on port 8052
