@@ -1,13 +1,118 @@
+# ============================================================================
+# Home Assistant App Configuration
+# Required fields included; optional fields commented below - add as needed
+# Official docs: https://developers.home-assistant.io/docs/apps/configuration
+# ============================================================================
 name: "ADDON_SLUG"
 slug: ADDON_SLUG
 version: "0.0.0-build.0"
 image: ghcr.io/solarflows/ADDON_SLUG
 description: "TODO: add description"
-url: "TODO: add upstream URL"
-init: false
-startup: application
-boot: manual
-ingress: true
-ingress_port: 8080     # TODO: update based on upstream port
 arch: [aarch64, amd64]
-map: [config:rw]
+
+# ============================================================================
+# Optional fields - uncomment and configure as needed
+# ============================================================================
+
+# --- Metadata & Links ---
+# url: "TODO: add upstream URL"                # Homepage/documentation URL
+
+# --- Startup & Boot ---
+# init: false                                   # Use S6 instead of HA init (default: true)
+# startup: application                          # Startup sequence: initialize|system|services|application|once
+# boot: manual                                  # Auto-start: auto|manual
+
+# --- Web UI & Access ---
+# webui: "[PROTO:http]://[HOST]:[PORT:8080]"   # Direct access link (sidebar button)
+# ingress: true                                 # Enable embedded access via ingress panel
+# ingress_port: 8080                            # Container port for ingress traffic
+# ingress_entry: "/web"                         # Custom ingress path (default: auto)
+# panel_icon: "mdi:application"                 # Icon for ingress panel (default: from icon.png)
+# panel_title: "My App"                         # Title for ingress panel (default: from name)
+# panel_admin: true                             # Restrict ingress panel to admins only
+
+# --- Port Mappings ---
+# ports:
+#   8080/tcp: 8080                              # host_port: container_port (null = disabled)
+# ports_description:
+#   8080/tcp: "Web UI port"
+
+# --- Network & Security ---
+# host_network: true                            # Use host network stack
+# host_pid: true                                # Share host PID namespace
+# host_ipc: true                                # Share host IPC namespace
+# host_uts: true                                # Share host UTS namespace (hostname)
+# host_dbus: true                               # Access host D-Bus
+
+# --- Permissions & Capabilities ---
+# privileged:                                   # NET_ADMIN capabilities (for net tools)
+#   - NET_ADMIN
+#   - SYS_ADMIN
+# full_access: true                             # Full system access (use sparingly)
+# apparmor: true                                # Enable AppArmor (false to disable, or path to profile)
+# devices:                                      # Device access
+#   - /dev/ttyUSB0
+#   - /dev/sda1:/dev/xvdc:rwm
+
+# --- Storage & Mounts ---
+# map:                                          # Volume mounts (default: none)
+#   - share:rw                                  # /share (cross-addon storage)
+#   - ssl:ro                                    # /ssl (certificates)
+#   - config:rw                                 # /config (HA config, use sparingly)
+#   - media:ro                                  # /media
+#   - backup:rw                                 # /backup
+#   - addon_config:rw                           # /config inside addon (for advanced configs)
+# tmpfs: true                                   # Use tmpfs for /tmp
+
+# --- Environment Variables ---
+# environment:
+#   KEY: "value"
+#   PATH: "/custom/path:$PATH"
+
+# --- User Configuration (options & schema) ---
+# options:                                      # Default values for user settings
+#   log_level: info
+#   enable_feature: true
+# schema:                                       # Type definitions for options
+#   log_level: list(debug|info|warn|error)?    # Optional dropdown
+#   enable_feature: bool                        # Required boolean
+#   port: port                                  # Port number (1-65535)
+#   url: url                                    # Valid URL
+#   password: password                          # Masked input
+#   email: email                                # Email validation
+
+# --- Home Assistant Integration ---
+# homeassistant: 2024.1.0                       # Minimum HA Core version required
+# hassio_api: true                              # Access Supervisor API
+# hassio_role: default                          # API role: default|homeassistant|manager|admin
+# homeassistant_api: true                       # Access HA Core API (via Supervisor proxy)
+# auth_api: true                                # Access HA authentication system
+# ingress_stream: true                          # Enable ingress streaming (WebSocket/SSE)
+
+# --- Hardware & Devices ---
+# audio: true                                   # Enable audio device access
+# gpio: true                                    # Access GPIO pins
+# devicetree: true                              # Access device tree
+# uart: true                                    # Access UART devices
+# usb: true                                     # Access USB devices (requires udev rules)
+# udev: true                                    # Access udev for device management
+# kernel_modules: true                          # Load kernel modules
+# video: true                                   # Access video devices
+# realtime: true                                # Enable realtime scheduling
+
+# --- Advanced Options ---
+# docker_api: true                              # Access Docker API (host socket)
+# codenotary: "your@email.com"                  # Code signing email
+# stdin: true                                   # Keep stdin open
+# legacy: true                                  # Support legacy HA versions
+# machine:                                      # Limit to specific machine types
+#   - odroid-n2
+#   - !generic-x86-64                           # Negate with !
+# services:                                     # Required services
+#   - mqtt:need
+#   - mysql:want
+# discovery:                                    # Service discovery publishing
+#   - mqtt
+# watchdog: "http://[HOST]:8080/health"         # External healthcheck URL (Supervisor polls)
+# journald: true                                # Send logs to journald instead of stdout
+# advanced: true                                # Show in advanced view only

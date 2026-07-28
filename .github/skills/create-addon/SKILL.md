@@ -94,6 +94,148 @@ tracking:
 | `file` | `curl` remote URL | projects with standalone CHANGELOG.md |
 | `tag_file` | GitHub Contents API `?ref=${TAG}` | tag-only repos (e.g. qinglong)
 
+## config.yaml fields reference
+
+The template includes all **required fields** and comprehensive optionals as comments. Delete unused fields to keep configs clean.
+
+**Official docs:** https://developers.home-assistant.io/docs/apps/configuration
+
+### Required fields (always present)
+| Field | Type | Description | Example |
+|---|---|---|---|
+| `name` | string | Display name in HA UI | `"FileBrowser Quantum"` |
+| `slug` | string | Unique identifier (lowercase, hyphens) | `filebrowser-quantum` |
+| `version` | string | Addon version (managed by CI) | `"1.5.0-build.29"` |
+| `image` | string | Container image reference | `ghcr.io/solarflows/filebrowser-quantum` |
+| `description` | string | Short description for addon store | `"Modern file manager"` |
+| `arch` | list | Supported architectures | `[aarch64, amd64]` |
+
+### Common optional fields
+
+#### Metadata & Startup
+| Field | Default | Description |
+|---|---|---|
+| `url` | - | Homepage/documentation URL |
+| `init` | `true` | `false` for S6-based addons (we always use S6) |
+| `startup` | `application` | `initialize`, `system`, `services`, `application`, `once` |
+| `boot` | `manual` | `auto` or `manual` |
+
+#### Web UI & Access
+| Field | Description | Example |
+|---|---|---|
+| `webui` | Direct access link (sidebar button) | `"[PROTO:http]://[HOST]:[PORT:8080]"` |
+| `ingress` | Enable embedded access via ingress panel | `true` |
+| `ingress_port` | Container port for ingress traffic | `8080` |
+| `ingress_entry` | Custom ingress path | `"/web"` |
+| `panel_icon` | Icon for ingress panel | `"mdi:application"` |
+| `panel_title` | Title for ingress panel | `"My App"` |
+| `panel_admin` | Restrict ingress to admins | `true` |
+
+#### Port Mappings
+| Field | Description | Example |
+|---|---|---|
+| `ports` | Port mappings (host: container, null=disabled) | `8080/tcp: 8080` |
+| `ports_description` | Port descriptions | `8080/tcp: "Web UI"` |
+
+#### Network & Security
+| Field | Description |
+|---|---|
+| `host_network` | Use host network stack |
+| `host_pid` / `host_ipc` / `host_uts` / `host_dbus` | Share host namespaces |
+
+#### Permissions & Capabilities
+| Field | Description | Example |
+|---|---|---|
+| `privileged` | NET_ADMIN capabilities | `[NET_ADMIN, SYS_ADMIN]` |
+| `full_access` | Full system access (use sparingly) | `true` |
+| `apparmor` | AppArmor profile (true/false/path) | `true` |
+| `devices` | Device access | `[/dev/ttyUSB0, /dev/sda1:/dev/xvdc:rwm]` |
+
+#### Storage & Mounts
+| Field | Description | Example |
+|---|---|---|
+| `map` | Volume mounts | `[share:rw, ssl:ro, config:rw, media:ro, backup:rw, addon_config:rw]` |
+| `tmpfs` | Use tmpfs for /tmp | `true` |
+
+**Common mount points:**
+- `share:rw` - Cross-addon storage (`/share`)
+- `ssl:ro` - Certificates (`/ssl`)
+- `config:rw` - HA config folder (use sparingly)
+- `addon_config:rw` - Addon config inside container (`/config`)
+
+#### Environment Variables
+```yaml
+environment:
+  KEY: "value"
+  PATH: "/custom/path:$PATH"
+```
+
+#### User Configuration
+| Field | Description | Type Examples |
+|---|---|---|
+| `options` | Default values | `log_level: info` |
+| `schema` | Type definitions | `bool`, `str`, `int`, `port`, `url`, `password`, `email`, `list(a\|b\|c)?` |
+
+Add `?` suffix for optional fields.
+
+#### Home Assistant Integration
+| Field | Description |
+|---|---|
+| `homeassistant` | Minimum HA Core version (e.g., `2024.1.0`) |
+| `hassio_api` | Access Supervisor API |
+| `hassio_role` | API role: `default`, `homeassistant`, `manager`, `admin` |
+| `homeassistant_api` | Access HA Core API via Supervisor proxy |
+| `auth_api` | Access HA authentication system |
+| `ingress_stream` | Enable ingress streaming (WebSocket/SSE) |
+
+#### Hardware & Devices
+| Field | Description |
+|---|---|
+| `audio` / `gpio` / `devicetree` / `uart` / `usb` / `udev` | Enable hardware access |
+| `kernel_modules` | Load kernel modules |
+| `video` / `realtime` | Video devices / realtime scheduling |
+
+#### Advanced Options
+| Field | Description |
+|---|---|
+| `docker_api` | Access Docker socket |
+| `stdin` / `legacy` | Keep stdin / support legacy HA |
+| `machine` | Limit to specific hardware (e.g., `[odroid-n2, !generic-x86-64]`) |
+| `services` | Required services: `mqtt:need`, `mysql:want` |
+| `discovery` | Publish service discovery |
+| `watchdog` | External healthcheck URL (Supervisor polls) |
+| `journald` | Send logs to journald |
+| `advanced` | Show in advanced view only |
+
+### Field selection guidelines
+
+**Minimal web app (typical):**
+```yaml
+name: "App Name"
+slug: app-slug
+version: "1.0.0"
+image: ghcr.io/solarflows/app-slug
+description: "Short description"
+arch: [aarch64, amd64]
+webui: "[PROTO:http]://[HOST]:[PORT:8080]"
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: "Web UI"
+ingress: true
+ingress_port: 8080
+```
+
+**Network tools (socat, proxy, DDNS):**
+- Add `host_network: true`
+- May need `privileged: [NET_ADMIN, NET_RAW]`
+
+**Apps with user config:**
+- Add `options` with defaults
+- Add `schema` with type definitions
+
+**Delete unused fields** — keep configs minimal and readable.
+
 ## S6 service setup
 
 S6 is the process supervisor built into `debian-base`. Two files control the addon's service:
