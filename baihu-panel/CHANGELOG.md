@@ -1,3 +1,7 @@
+### 1.1.23-build.9 (2026-07-28)
+Dockerfile + rootfs 变更
+- fix(baihu-panel): healthcheck 使用原生 /api/v1/ping 端点
+
 ### 1.1.23-build.8 (2026-07-28)
 Dockerfile + rootfs 变更
 - fix(baihu-panel): 修复 Ingress 子路径并持久化到 /config/baihu-panel/
