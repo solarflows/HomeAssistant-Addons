@@ -32,8 +32,8 @@
 
 ## 数据持久化
 
-- `/config/baihu/data` — SQLite 数据库
-- `/config/baihu/configs` — 配置文件
+- `/config/baihu-panel/data` — SQLite 数据库
+- `/config/baihu-panel/configs` — 配置文件
 - `/app/envs` — 环境变量文件
 
 > 脚本文件建议放在 `/share` 或 `/config` 目录中通过绝对路径引用。

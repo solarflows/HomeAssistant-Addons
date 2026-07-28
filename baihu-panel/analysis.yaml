@@ -79,8 +79,7 @@ runtime:
   env:
     BH_SERVER_PORT: "8052"
     BH_SERVER_HOST: "0.0.0.0"
-    BH_DB_PATH: /config/baihu/data/baihu.db
-    BH_SERVER_URL_PREFIX: ""  # auto-detected from bashio::addon.ingress_entry in 00-init.sh
+    BH_DB_PATH: /config/baihu-panel/data/baihu.db
     MISE_TRUSTED_CONFIG_PATHS: /app/data/scripts
   data_dir: /app/data
 
@@ -97,15 +96,11 @@ filesystem:
     - container: /app/configs
       ha: /config/baihu-panel/configs
       type: symlink
-      reason: Plugin configs persisted
+      reason: config.ini and plugin configs
     - container: /app/envs
       ha: /config/baihu-panel/envs
       type: symlink
-      reason: Virtual environments for task execution
-    - container: /www/baihu
-      ha: /config/baihu-panel/www
-      type: symlink
-      reason: Frontend static files (can be updated)
+      reason: mise runtimes and virtual environments for task execution
   hardcoded_paths: []
   cwd_matters: false
   generated_files: []
@@ -120,8 +115,8 @@ adaptations:
   - Configs and static files copied to dedicated directories in builder
   - Runtime uses mise for Python/Node version management (pre-installed to /opt/mise-base at build time)
   - Baihu binary copied to /usr/local/bin/baihu
-  - Data directories: /app/data (DB, logs), /app/configs (plugins), /app/envs (venvs), /www/baihu (frontend) → all symlinked to /config/baihu-panel/
+  - Data directories: /app/data (DB, logs, scripts), /app/configs (config.ini), /app/envs (venvs, mise runtimes) → all symlinked to /config/baihu-panel/
+  - Frontend static files (/www/baihu) baked into image at build time; not persisted to /config
   - S6 overlay manages baihu process as longrun
   - Healthcheck/ingress on port 8052
-  - Environment variables configured for DB path and mise trusted paths
-  - Ingress sub-path: BH_SERVER_URL_PREFIX auto-detected via bashio::addon.ingress_entry, upstream baihu injects <base href> + window.__BASE_URL__ based on this prefix
+  - Ingress sub-path: run script writes url_prefix into /app/configs/config.ini via bashio::addon.ingress_entry before exec baihu server (env var override skipped when config.ini exists)

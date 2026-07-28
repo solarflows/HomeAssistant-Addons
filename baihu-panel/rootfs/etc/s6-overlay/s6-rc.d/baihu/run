@@ -11,5 +11,25 @@ export MISE_DATA_DIR=/app/envs/mise
 export MISE_CONFIG_DIR=/app/envs/mise
 export PATH="/app/envs/mise/shims:/app/envs/mise/bin:${PATH}"
 
+# ---- Ingress 子路径: 写入 config.ini(baihu LoadConfig 优先读文件, env var 仅在无文件时生效) ----
+INGRESS_ENTRY=$(bashio::addon.ingress_entry)
+if [ -n "$INGRESS_ENTRY" ] && [ "$INGRESS_ENTRY" != "/" ]; then
+    bashio::log.info "Setting Ingress URL prefix: ${INGRESS_ENTRY}"
+    CONFIG_INI="/app/configs/config.ini"
+    if [ ! -f "${CONFIG_INI}" ]; then
+        cat > "${CONFIG_INI}" << 'INI'
+[server]
+port = 8052
+host = 0.0.0.0
+url_prefix =
+INI
+    fi
+    if grep -qE '^url_prefix\s*=' "${CONFIG_INI}" 2>/dev/null; then
+        sed -i "s|^url_prefix\s*=.*|url_prefix = ${INGRESS_ENTRY}|" "${CONFIG_INI}"
+    else
+        sed -i "/^port\s*=/a url_prefix = ${INGRESS_ENTRY}" "${CONFIG_INI}"
+    fi
+fi
+
 cd /app
 exec baihu server

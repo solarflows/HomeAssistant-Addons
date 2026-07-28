@@ -96,8 +96,7 @@ ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 # 环境变量
 ENV BH_SERVER_PORT=8052 \
     BH_SERVER_HOST=0.0.0.0 \
-    BH_DB_PATH=/config/baihu/data/baihu.db \
-    BH_SERVER_URL_PREFIX="" \
+    BH_DB_PATH=/config/baihu-panel/data/baihu.db \
     MISE_TRUSTED_CONFIG_PATHS=/app/data/scripts \
     NODE_OPTIONS="--max-old-space-size=256" \
     PYTHONPATH=/app/data/scripts
