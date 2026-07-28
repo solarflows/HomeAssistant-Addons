@@ -54,13 +54,6 @@ yq e -i '.server.listen = "0.0.0.0"'               "$FILEBROWSER_CONFIG"
 yq e -i '.server.database = "/config/filebrowser-quantum/database.db"' "$FILEBROWSER_CONFIG"
 yq e -i '.server.cacheDir = "/cache"'               "$FILEBROWSER_CONFIG"
 
-# Ingress baseURL
-INGRESS_ENTRY=$(bashio::addon.ingress_entry)
-if [ -n "$INGRESS_ENTRY" ] && [ "$INGRESS_ENTRY" != "/" ]; then
-    bashio::log.info "Setting baseURL to ${INGRESS_ENTRY}"
-    yq e -i ".server.baseURL = \"${INGRESS_ENTRY}\"" "$FILEBROWSER_CONFIG"
-fi
-
 ################
 # USER SCOPE   #
 ################

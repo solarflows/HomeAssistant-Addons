@@ -222,8 +222,32 @@ ports:
   8080/tcp: 8080
 ports_description:
   8080/tcp: "Web UI"
-ingress: true
-ingress_port: 8080
+```
+
+**When to use ingress:**
+Ingress provides embedded access via HA's sidebar panel without exposing ports. However, **not all apps support it**.
+
+✅ **Use ingress when:**
+- App natively supports `baseURL` / path prefix (e.g., Home Assistant, Uptime Kuma)
+- You can add Nginx reverse proxy layer to handle path rewriting
+- Upstream docs explicitly mention reverse proxy / subpath support
+
+❌ **Avoid ingress when:**
+- App assumes root path `/` for all resources (common issue: hardcoded `/assets`, `/api`)
+- Ingress causes redirect loops or broken resources
+- App uses complex WebSocket/SSE without `ingress_stream` support
+
+**Ingress troubleshooting symptoms:**
+- "Too many redirects" error → App doesn't respect `baseURL`
+- 404 on static assets → Hardcoded absolute paths
+- WebSocket connection fails → Missing `ingress_stream: true`
+
+**If ingress fails**, fall back to direct port access with `webui` only:
+```yaml
+webui: "[PROTO:http]://[HOST]:[PORT:8080]"
+ports:
+  8080/tcp: 8080
+# No ingress/ingress_port
 ```
 
 **Network tools (socat, proxy, DDNS):**
