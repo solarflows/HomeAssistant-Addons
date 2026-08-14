@@ -1,7 +1,7 @@
 ---
 name: addon-troubleshooting
-description: Cross-addon known issues, fixes, and lessons learned. Consult when debugging build failures or runtime problems.
-applyTo: "**/*.sh **/Dockerfile **/config.yaml **/version.yaml"
+description: "HomeAssistant-Addons 的 Dockerfile、Shell、config.yaml、version.yaml 构建或运行故障经验。"
+applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 ---
 
 # Addon Troubleshooting & Lessons Learned
@@ -18,10 +18,12 @@ applyTo: "**/*.sh **/Dockerfile **/config.yaml **/version.yaml"
 ### Python (qdtoday)
 - C-extensions (pycurl, ddddocr) must compile at runtime, not in builder.
   → `sed -i '/^pkg/d' requirements.txt` in builder; pip install at runtime.
+- A `pip --prefix` builder must use the same Python minor version as the runtime. Otherwise packages land under a versioned `site-packages` directory that the runtime does not scan.
 
 ### Node.js (qinglong, uptime-kuma)
 - Native modules (sqlite3, cpu-features) need `npm rebuild` at runtime.
   → Don't COPY builder's `node_modules`; run `npm rebuild` in runtime stage.
+- Builder and runtime stages that reuse native modules must use the same libc family. Never copy Alpine/musl `node_modules` into a Debian/glibc runtime; reinstall or rebuild them in the runtime stage.
 
 ### Go (baihu-panel, lucky)
 - `CGO_ENABLED=0` → static binary, no libc concerns. Safe to COPY from any builder.
@@ -50,6 +52,10 @@ applyTo: "**/*.sh **/Dockerfile **/config.yaml **/version.yaml"
 - **S6 Stage 2 Hook required**: `S6_STAGE2_HOOK` env + hook script to remove `down` files. Do NOT use cont-init `rm -f down` workarounds — they race with s6 startup.
 - **`set -e` in upstream scripts**: any missing file kills the entire init process.
 - **chmod after COPY rootfs**: always run `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run`.
+
+## Chromium Addons
+- Grant `SYS_ADMIN` or `IPC_LOCK` only when the addon's documented Chromium runtime requires it; do not apply these capabilities to unrelated addons.
+- Chromium 140+ wrappers used by FlareSolverr require Bash when they contain Bash-only conditionals. Keep the repository's entrypoint compatibility patch aligned with the upstream wrapper.
 
 ## Upstream Integration Principles (alist-tvbox)
 - **00-init.sh = upstream entrypoint.sh init portion** (minus `exec java`). Do NOT reimplement upstream's init_directories/setup_symlinks logic.
