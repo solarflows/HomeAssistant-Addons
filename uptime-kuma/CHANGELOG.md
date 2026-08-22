@@ -1,3 +1,8 @@
+### 2.5.3 (2026-08-22)
+### 🐞 Bug Fixes
+- #7754 fix: release with wrong version number 
+
+
 ### 2.5.0-build.1 (2026-08-18)
 底包更新至 9.4.0，无功能变更
 
