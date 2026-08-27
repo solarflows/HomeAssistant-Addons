@@ -1,6 +1,6 @@
 name: AList-TvBox
 slug: alist-tvbox
-version: "1.58.0"
+version: "1.59.0"
 image: ghcr.io/solarflows/alist-tvbox
 description: "AList proxy server for TvBox, support playlist and search."
 url: https://github.com/power721/alist-tvbox
