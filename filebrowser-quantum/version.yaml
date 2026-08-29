@@ -1,5 +1,5 @@
 # filebrowser-quantum 版本检查配置
-version: "1.5.3-stable"
+version: "1.5.4-stable"
 source: github
 repo: gtsteffaniak/filebrowser
 build_args:
@@ -10,5 +10,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.4.0"
-  file_sha: "ff641bc4aa365039cc14cdf2e370050164aba322"
+  file_sha: "bd00a1d8efec02c925124ecaedb01c64430bbf9b"
   build_num: 0
