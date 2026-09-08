@@ -12,6 +12,7 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 ## Repository-wide
 - 2026-07-26: `ha-addon-conventions` skill merged into `create-addon`. AGENTS.md references updated.
 - 2026-07-26: New workflow established: `create-addon` (skeleton + empty analysis.yaml) → `plan-addon` (fill data) → push → CI build.
+- 2026-09-08: `alist-tvbox-standalone` CI failed on `ADD https://.../alist-tvbox-1.0.jar` with `connection reset by peer`. Bare `ADD` has no retry. Use `curl --retry` in Dockerfiles; Version Check / Release retry GitHub API, image build/push, and git push with backoff.
 
 ## Build Strategies
 
