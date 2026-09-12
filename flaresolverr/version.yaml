@@ -1,5 +1,5 @@
 # flaresolverr 版本检查配置
-version: "3.5.0"
+version: "3.5.2"
 source: github
 repo: FlareSolverr/FlareSolverr
 build_args:
@@ -10,5 +10,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "cb5eb0fab885f2990d04bb0d15d2bbd3c856ba8f"
-  build_num: 24
+  file_sha: "a97b5934d597fe1ebc6f60aef0de2b150420779c"
+  build_num: 0
