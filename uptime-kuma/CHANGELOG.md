@@ -1,3 +1,10 @@
+### 2.5.5 (2026-09-16)
+### 🐞 Bug Fixes
+- #7848 fix: Memory leak from tcp monitor 
+
+
+
+
 ### 2.5.4 (2026-09-11)
 ### 🆕 New Features
 - #7801 feat(notification): add Signalgrid as notification provider (Thanks @signalgridco)

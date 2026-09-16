@@ -1,5 +1,5 @@
 # uptime-kuma 版本检查配置
-version: "2.5.4"
+version: "2.5.5"
 source: github
 repo: louislam/uptime-kuma
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.4.0"
-  file_sha: "6bbe67d75a169ffb83ea003f665e6f9b57313078"
+  file_sha: "6aea205121810f94ac2a685ca67f321b79591fa6"
   build_num: 0
