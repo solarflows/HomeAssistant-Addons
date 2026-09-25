@@ -1,5 +1,5 @@
 # qinglong 版本检查配置（仅有 tags，无 Release）
-version: "2.21.0"
+version: "2.22.0"
 source: github_tags
 repo: whyour/qinglong
 build_args:
@@ -10,5 +10,5 @@ changelog:
   mode: replace
 tracking:
   base_tag: "9.4.0"
-  file_sha: "db5b0c30750f160a4754a52a367bb957a99ad4ab"
-  build_num: 29
+  file_sha: "8fdc2336ffec884952899b68f4fba7c57ae5925f"
+  build_num: 0
