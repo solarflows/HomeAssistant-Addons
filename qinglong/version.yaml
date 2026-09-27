@@ -9,6 +9,6 @@ changelog:
   file_path: "CHANGELOG.md"
   mode: replace
 tracking:
-  base_tag: "9.4.0"
-  file_sha: "8fdc2336ffec884952899b68f4fba7c57ae5925f"
-  build_num: 0
+  base_tag: "9.5.0"
+  file_sha: "04b05c6904131da4893ea005c40df10208454bea"
+  build_num: 1
