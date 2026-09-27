@@ -1,3 +1,6 @@
+### 2.5.5-build.1 (2026-09-27)
+底包更新至 9.5.0，无功能变更
+
 ### 2.5.5 (2026-09-16)
 ### 🐞 Bug Fixes
 - #7848 fix: Memory leak from tcp monitor 

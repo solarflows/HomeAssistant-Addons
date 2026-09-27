@@ -8,6 +8,6 @@ changelog:
   source: release_body
   mode: prepend
 tracking:
-  base_tag: "9.4.0"
-  file_sha: "6aea205121810f94ac2a685ca67f321b79591fa6"
-  build_num: 0
+  base_tag: "9.5.0"
+  file_sha: "04b05c6904131da4893ea005c40df10208454bea"
+  build_num: 1
