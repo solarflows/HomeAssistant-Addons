@@ -9,6 +9,6 @@ changelog:
   file_url: "https://github.com/gtsteffaniak/filebrowser/raw/refs/heads/main/CHANGELOG.md"
   mode: prepend
 tracking:
-  base_tag: "9.4.0"
-  file_sha: "7ec42d345bb1a648087c4d24ff4070ecf579b998"
-  build_num: 0
+  base_tag: "9.5.0"
+  file_sha: "04b05c6904131da4893ea005c40df10208454bea"
+  build_num: 1
