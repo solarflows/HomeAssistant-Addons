@@ -1,5 +1,5 @@
 # baihu-panel 版本检查配置
-version: "1.4.1"
+version: "1.4.2"
 source: github
 repo: engigu/baihu-panel
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.0"
-  file_sha: "610077d8c1ca28dddc21492937a7aa97f8e9448e"
+  file_sha: "aac70156ac4f174fc1b189b3b8823600e670a2d6"
   build_num: 0
