@@ -1,3 +1,10 @@
+### 2.5.6 (2026-10-09)
+### 🐞 Bug Fixes
+- #7886 fix: use UptimeCalculator for avg-response badge endpoint 
+
+### ⬆️ Security Fixes
+- #7858 chore: Update dependencies 
+
 ### 2.5.5-build.1 (2026-09-27)
 底包更新至 9.5.0，无功能变更
 
