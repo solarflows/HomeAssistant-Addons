@@ -1,3 +1,15 @@
+### 1.112.0-build.2 (2026-10-10)
+CI 变更
+- chore(alist-tvbox-standalone): upstream 1.111.0 → 1.112.0
+- chore(alist-tvbox-standalone): upstream 1.110.0 → 1.111.0
+- chore(alist-tvbox-standalone): upstream 1.109.0 → 1.110.0
+- chore(alist-tvbox-standalone): upstream 1.106.0 → 1.109.0
+- chore(alist-tvbox-standalone): upstream 1.105.0 → 1.106.0
+- chore(alist-tvbox-standalone): upstream 1.104.0 → 1.105.0
+- chore(alist-tvbox-standalone): upstream 1.103.0 → 1.104.0
+- chore(alist-tvbox-standalone): upstream 1.102.0 → 1.103.0
+- chore(alist-tvbox-standalone): upstream 1.101.0 → 1.102.0
+
 ### 1.112.0-build.1 (2026-10-10)
 CI 变更
 - chore(alist-tvbox-standalone): upstream 1.111.0 → 1.112.0
