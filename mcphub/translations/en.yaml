@@ -1,0 +1,14 @@
+---
+configuration:
+  ADMIN_PASSWORD:
+    name: Admin Password
+    description: >-
+      Password for the panel admin user. Leave empty to let MCPHub generate a
+      random one, printed once in the add-on log on first start.
+  NPM_REGISTRY:
+    name: npm Registry
+    description: >-
+      Registry used by npx when starting stdio MCP servers.
+      Change to a mirror (e.g. https://registry.npmmirror.com) on restricted networks.
+network:
+  3000/tcp: Web dashboard / MCP endpoints

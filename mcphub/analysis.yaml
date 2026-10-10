@@ -1,0 +1,106 @@
+# analysis.yaml — mcphub addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+# 证据: 上游 Dockerfile / entrypoint.sh / .env.example / Docker Hub 镜像 tags 实测
+---
+upstream:
+  repo: samanhappy/mcphub
+  description: >-
+    自托管 MCP 网关与控制台：统一连接、管理与路由 MCP 服务器
+    （认证/分组/Smart Routing/监控；Node.js + React）。
+  license: Apache-2.0
+
+build:
+  strategy: upstream-image
+  upstream_image: samanhappy/mcphub
+  upstream_tag: "${version}"      # Docker Hub tag 与 GitHub release 同号为 1.1.2（无 v 前缀）
+  image_variant: 标准版（非 latest-full）：
+    官方 latest-full 含 Rust/DinD/Playwright（amd64 约 1.3GB），本场景不需要
+  image_archs: [amd64, arm64]
+  additions:
+    apt:
+      - dumb-init   # stdio server 子进程回收
+
+runtime:
+  language: node
+  entrypoint: /ha-entrypoint.sh → dumb-init -- /usr/local/bin/entrypoint.sh node dist/index.js
+  upstream_entrypoint: |
+    上游 entrypoint.sh 负责：MCPHUB_SETTING_PATH 默认值（/app/data/mcp_settings.json）、
+    npm registry 写入、HTTP(S)_PROXY 传递给 npm、可选 dockerd 自启（本镜像未装 Docker），
+    最后 exec "$@"。本 addon 保留并链式调用。
+  working_dir: /app
+  user: root（上游默认）
+  env_added:
+    - ADMIN_PASSWORD: "HA 选项透传（上游：不设则随机生成打印到日志）"
+    - NPM_REGISTRY: "HA 选项透传"
+
+network:
+  port: 3000
+  protocol: tcp
+  health: "http://127.0.0.1:3000/ 首页（MCP 端点默认需 Bearer，不宜作探活）"
+  ingress: false   # 本轮明确不启用；上游支持 BASE_PATH 子路径，后续可评估
+
+filesystem:
+  persistent_dirs:
+    - container: /app/data
+      ha: /config/mcphub
+      type: symlink
+      reason: >-
+        上游数据目录。全部持久状态实测集中于 mcp_settings.json（上游架构文档：
+        "All persistent state lives in mcp_settings.json"，含 users/servers/groups/
+        OAuth tokens/bearer keys/prompts/resources），以及同目录兄弟文件
+        （mcp_settings.json.credentials.json / .credentials.key）与上传目录
+        /app/data/uploads/mcpb（mcpbController.ts: path.join(process.cwd(),'data/uploads/mcpb')）。
+        MCPHUB_SETTING_PATH 由上游 entrypoint 固定为 /app/data/mcp_settings.json → 穿透本软链
+    - container: /root/.npm
+      ha: /data/mcphub/npm
+      type: symlink
+      reason: npx 拉取的包缓存；addon 更新后保留，冷启动更快（不参与备份）
+    - container: /root/.cache
+      ha: /data/mcphub/cache
+      type: symlink
+      reason: uv/uvx 等缓存（不参与备份）
+    - container: /root/.config/mcphub
+      ha: /data/mcphub/cli-config
+      type: symlink
+      reason: mcphub CLI profile config（上游 src/cli/profile.ts，XDG；仅交互式 CLI 使用）
+    - container: /root/.local/share/mcphub
+      ha: /data/mcphub/cli-data
+      type: symlink
+      reason: mcphub CLI credentials（XDG data；仅交互式 CLI 使用）
+  write_path_audit:
+    # 源码级全量审计（2026-10-10），非测试代码写入点穷举:
+    - mcp_settings.json（含所有 DAO 状态写入）→ /app/data → /config ✓（随备份）
+    - mcp_settings.json.credentials.json / .credentials.key → 同目录 ✓
+    - data/uploads/mcpb（MCPB 上传包）→ /app/data/uploads → /config ✓
+    - npm/uv 缓存（~/.npm、~/.cache）→ /data ✓
+    - CLI profile（~/.config/mcphub、~/.local/share/mcphub）→ /data ✓（本次审计补齐）
+    - proxychains4 临时配置 → os.tmpdir（请求级临时物，容器重建即弃，符合预期）n/a
+    - 日志（/api/logs、SSE）→ 进程内环形缓冲，无落盘 ✓
+  hardcoded_paths:
+    - path: /app/mcp_settings.json
+      note: 上游镜像已删除该文件（仅保留给挂载覆盖用法）；本 addon 不创建
+  cwd_matters: true   # dist/index.js 以 CWD=/app 运行（镜像 WORKDIR 固定）
+  backup_note: /config/mcphub 含用户、凭据绑定（加密存储）与 MCPB 上传包，随 HA 快照备份
+
+config:
+  options:
+    ADMIN_PASSWORD:
+      type: password?
+      default: ""
+      description: 面板 admin 密码；留空则随机生成并打印到日志（仅首次）
+    NPM_REGISTRY:
+      type: str?
+      default: "https://registry.npmjs.org/"
+      description: npm 源（镜像源可加速 npx 安装）
+
+adaptations:
+  - 上游镜像策略；标准版镜像覆盖 Node/Python/uv/Git 工具链，满足绝大多数 npx/uvx MCP server
+  - 自定义 entrypoint 链：目录接管 → HA 选项转环境变量 → exec 上游 entrypoint（dumb-init 回收子进程）
+  - HA 选项经 /data/options.json + python3（镜像自带）解析导出，字符串用 shlex 安全引用
+  - 数据迁移保护：/app/data 若已是实体目录则先迁移内容再建软链
+  - HEALTHCHECK 用面板首页（/）而非 MCP 端点：端点默认要求 Bearer，匿名探活会误报
+
+open_questions:
+  - 面板「数据库模式」（PostgreSQL）未在 addon 中启用；使用纯文件模式
+  - latest-full 变体功能（Rust server / DinD）不支持，文档已注明
+  - 上游 BASE_PATH 子路径能力存在，ingress 评估留待后续轮次

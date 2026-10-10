@@ -1,0 +1,14 @@
+---
+configuration:
+  ADMIN_PASSWORD:
+    name: 管理员密码
+    description: >-
+      面板 admin 用户密码。留空则由 MCPHub 生成随机密码，
+      并在首次启动时打印到加载项日志中（仅一次）。
+  NPM_REGISTRY:
+    name: npm 源
+    description: >-
+      npx 启动 stdio MCP 服务器时使用的 npm 源。
+      国内或受限网络可改为镜像源，如 https://registry.npmmirror.com
+network:
+  3000/tcp: Web 面板 / MCP 端点

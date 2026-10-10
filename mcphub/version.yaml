@@ -1,0 +1,13 @@
+# mcphub 版本检查配置
+version: "1.1.2"
+source: github
+repo: samanhappy/mcphub
+build_args:
+  MCPHUB_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: ""
+  file_sha: ""
+  build_num: 0

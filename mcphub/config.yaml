@@ -1,0 +1,26 @@
+---
+name: MCPHub for HA
+slug: mcphub
+version: "0.0.0-build.0"
+image: ghcr.io/solarflows/mcphub
+description: "MCP 网关与控制台：统一连接、管理与路由 MCP 服务器（认证/分组/Smart Routing/监控）"
+url: https://github.com/samanhappy/mcphub
+init: false
+startup: application
+boot: manual
+arch:
+  - aarch64
+  - amd64
+webui: "[PROTO:http]://[HOST]:[PORT:3000]"
+ports:
+  3000/tcp: 3000
+ports_description:
+  3000/tcp: "Web 面板 / MCP 端点"
+map:
+  - config:rw
+options:
+  ADMIN_PASSWORD: ""
+  NPM_REGISTRY: "https://registry.npmjs.org/"
+schema:
+  ADMIN_PASSWORD: password?
+  NPM_REGISTRY: str?
