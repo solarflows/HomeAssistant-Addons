@@ -1,7 +1,7 @@
 ---
 name: TRAWL for HA
 slug: trawl
-version: "1.8.0"
+version: "1.8.0-build.1"
 image: ghcr.io/solarflows/trawl
 description: "自托管反爬抓取引擎：绕过 Cloudflare/Turnstile/reCAPTCHA 等 JS 挑战与验证码（FlareSolverr 替代）"
 url: https://github.com/germondai/trawl
