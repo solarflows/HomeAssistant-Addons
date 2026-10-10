@@ -1,0 +1,26 @@
+---
+configuration:
+  MANAGEMENT_KEY:
+    name: 管理密钥
+    description: >-
+      管理 API 与轻量面板（:8317）登录密钥。留空则自动生成随机密钥
+      （保存于 /config/cliproxyapi-cpamp/management_key.txt，并打印在日志中）。
+      仅在首次生成配置文件时生效。
+  CPAMP_ADMIN_KEY:
+    name: CPAMP 管理员密钥
+    description: >-
+      CPAMP 完整面板（:18317）登录密钥。留空则首次启动自动生成
+      （保存于 /config/cliproxyapi-cpamp/cpamp_admin_key.txt，并在日志中打印一次）。
+  PROXY_URL:
+    name: 代理地址
+    description: >-
+      可选的上游请求与管理面板下载代理，如 http://127.0.0.1:7890。
+      仅在首次生成配置文件时写入；之后可在管理面板中修改。
+network:
+  8317/tcp: API / 轻量面板端口
+  18317/tcp: CPAMP 完整管理面板（监控/用量/成本）
+  1455/tcp: Codex OAuth 回调端口（默认关闭）
+  54545/tcp: Antigravity OAuth 回调端口（默认关闭）
+  8085/tcp: OAuth 回调端口（默认关闭）
+  51121/tcp: OAuth 回调端口（默认关闭）
+  11451/tcp: OAuth 回调端口（默认关闭）

@@ -1,0 +1,40 @@
+---
+name: CLIProxyAPI + CPAMP for HA
+slug: cliproxyapi-cpamp
+version: "0.0.0-build.0"
+image: ghcr.io/solarflows/cliproxyapi-cpamp
+description: "多账号 AI CLI 网关 + CPAMP 完整管理面板（请求监控/用量统计/成本分析/配额巡检）"
+url: https://github.com/seakee/CPA-Manager-Plus
+init: false
+startup: application
+boot: manual
+arch:
+  - aarch64
+  - amd64
+webui: "[PROTO:http]://[HOST]:[PORT:18317]/management.html"
+ports:
+  8317/tcp: 8317
+  18317/tcp: 18317
+  1455/tcp: null
+  54545/tcp: null
+  8085/tcp: null
+  51121/tcp: null
+  11451/tcp: null
+ports_description:
+  8317/tcp: "API / 轻量面板端口"
+  18317/tcp: "CPAMP 完整管理面板（监控/用量/成本）"
+  1455/tcp: "Codex OAuth 回调端口（默认关闭，按需启用）"
+  54545/tcp: "Antigravity OAuth 回调端口（默认关闭，按需启用）"
+  8085/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
+  51121/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
+  11451/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
+map:
+  - config:rw
+options:
+  MANAGEMENT_KEY: ""
+  CPAMP_ADMIN_KEY: ""
+  PROXY_URL: ""
+schema:
+  MANAGEMENT_KEY: password?
+  CPAMP_ADMIN_KEY: password?
+  PROXY_URL: str?

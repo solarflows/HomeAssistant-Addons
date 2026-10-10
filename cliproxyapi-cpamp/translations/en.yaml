@@ -1,0 +1,27 @@
+---
+configuration:
+  MANAGEMENT_KEY:
+    name: Management Key
+    description: >-
+      Key for the management API and panel login. Leave empty to auto-generate
+      one (stored at /config/cliproxyapi-cpamp/management_key.txt and printed
+      in the log). Applied only when the config file is first created.
+  CPAMP_ADMIN_KEY:
+    name: CPAMP Admin Key
+    description: >-
+      Login key for the CPAMP full panel (:18317). Leave empty to auto-generate
+      one on first start (stored at /config/cliproxyapi-cpamp/cpamp_admin_key.txt
+      and printed once in the log).
+  PROXY_URL:
+    name: Proxy URL
+    description: >-
+      Optional HTTP/SOCKS5 proxy for upstream requests and panel downloads,
+      e.g. http://127.0.0.1:7890. Seed value only; editable later in the panel.
+network:
+  8317/tcp: API / lightweight panel port
+  18317/tcp: CPAMP full panel (monitoring/usage/cost)
+  1455/tcp: Codex OAuth callback port (disabled by default)
+  54545/tcp: Antigravity OAuth callback port (disabled by default)
+  8085/tcp: OAuth callback port (disabled by default)
+  51121/tcp: OAuth callback port (disabled by default)
+  11451/tcp: OAuth callback port (disabled by default)

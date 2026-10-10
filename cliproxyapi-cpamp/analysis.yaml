@@ -1,0 +1,158 @@
+# analysis.yaml — cliproxyapi-cpamp addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+# 证据: 上游 Dockerfile / docker-compose.yml / docker-compose.manager.yml /
+#       文档 (cpa-panel / docker 部署页) / 二进制与 release 资产实测
+# 与 cliproxyapi（轻量版）的区别: 额外集成 CPAMP Manager Server（完整面板）
+---
+upstream:
+  gateway:
+    repo: router-for-me/CLIProxyAPI
+    license: MIT
+  panel:
+    repo: seakee/CPA-Manager-Plus
+    license: MIT
+    editions:
+      - full: Manager Server（seakee/cpa-manager-plus，独立服务 :18317，SQLite 持久化）
+      - lightweight: management.html 单文件（嵌入 CPA :8317，本 addon 同样包含作为兜底面板）
+    version_arg: PANEL_VERSION   # 完整版二进制 + 轻量面板种子共用；手动 bump
+
+build:
+  strategy: binary-download
+  version_arg: CPA_VERSION
+  runtime_apt_deps:
+    - curl
+    - ca-certificates
+  build_steps:
+    - 架构映射: CPA tarball 用 aarch64 命名；CPAMP 原生包用 linux_arm64 命名（两者不同）
+    - 下载 CPA release tarball → /CLIProxyAPI/cli-proxy-api （同轻量版）
+    - 下载 CPAMP 轻量面板种子 → /opt/cliproxyapi-seed/management.html
+    - 下载 cpa-manager-plus_v${PANEL_VERSION}_linux_${TARGETARCH}.tar.gz → /usr/local/bin/cpa-manager-plus
+      （tar 内为单目录 cpa-manager-plus_v..._linux_xxx/cpa-manager-plus，--strip-components=1 提取）
+  artifacts:
+    - /CLIProxyAPI/cli-proxy-api
+    - /usr/local/bin/cpa-manager-plus
+    - /opt/cliproxyapi-seed/management.html
+
+runtime:
+  language: binary
+  services:
+    cliproxyapi:
+      type: longrun
+      command: cli-proxy-api -config /CLIProxyAPI/config.yaml (CWD=/CLIProxyAPI)
+      port: 8317
+      health: http://127.0.0.1:8317/healthz
+    cpamp:
+      type: longrun
+      command: cpa-manager-plus
+      port: 18317
+      health: http://127.0.0.1:18317/health
+      env:
+        HTTP_ADDR: 0.0.0.0:18317
+        USAGE_DATA_DIR: /config/cliproxyapi-cpamp/cpamp
+        USAGE_DB_PATH: /config/cliproxyapi-cpamp/cpamp/usage.sqlite
+        CPA_MANAGER_DATA_KEY_PATH: /config/cliproxyapi-cpamp/cpamp/data.key
+        USAGE_COLLECTOR_MODE: auto   # RESP→HTTP 自动回退（同容器 loopback 可直连 8317）
+        CPA_UPSTREAM_URL: http://127.0.0.1:8317
+        CPA_MANAGEMENT_KEY: <首启生成的明文密钥（management_key.txt）>
+        CPA_MANAGER_ADMIN_KEY: <option|file|generated>
+      notes:
+        - 两个服务独立启动，无启动顺序保证；CPAMP 在 CPA 未就绪时仍可打开面板
+        - usage 队列为单消费者语义，禁止再接第二个采集器
+
+network:
+  ports:
+    - port: 8317
+      purpose: API / 轻量面板
+      default: enabled
+    - port: 18317
+      purpose: CPAMP 完整面板
+      default: enabled
+    - port: 1455
+      purpose: Codex OAuth callback
+      default: disabled
+    - port: 54545
+      purpose: Antigravity OAuth callback
+      default: disabled
+    - port: 8085
+      purpose: OAuth callback (备用)
+      default: disabled
+    - port: 51121
+      purpose: OAuth callback (备用)
+      default: disabled
+    - port: 11451
+      purpose: OAuth callback (备用)
+      default: disabled
+  ingress: false   # 本轮明确不启用
+
+filesystem:
+  persistent_dirs:
+    - container: /config/cliproxyapi-cpamp/config.yaml
+      ha: same
+      type: file
+      reason: 主配置（seed-once；含 usage-statistics-enabled=true 供 CPAMP 监控）
+    - container: /config/cliproxyapi-cpamp/auths
+      ha: same
+      type: dir
+      reason: OAuth 凭据
+    - container: /config/cliproxyapi-cpamp/cpamp
+      ha: same
+      type: dir
+      reason: CPAMP usage.sqlite + data.key（成对备份；data.key 丢失则库内 CPA 密钥不可解密）
+    - container: /root/.cli-proxy-api
+      ha: /config/cliproxyapi-cpamp/auths
+      type: symlink
+      reason: 上游默认 auth-dir 双保险
+    - container: /CLIProxyAPI/{config.yaml,logs,plugins}
+      ha: /config/cliproxyapi-cpamp/config.yaml + /data/cliproxyapi-cpamp/{logs,plugins}
+      type: symlink
+      reason: 同轻量版
+    - container: /data/cliproxyapi-cpamp/static
+      ha: same
+      type: dir
+      reason: 轻量面板缓存（MANAGEMENT_STATIC_PATH）
+  write_path_audit:
+    # 源码级全量审计（2026-10-10）:
+    # --- CPA 侧（同轻量版）---
+    - CPA: config/auths/.cds → /config ✓；logs/static/discovery → WRITABLE_PATH=/data ✓（见轻量版审计）
+    # --- CPAMP Manager Server 侧（config.go / context.go 派生）---
+    - usage.sqlite(+wal/shm) → USAGE_DB_PATH=/config/.../cpamp/usage.sqlite ✓（含加密后的 CPA 连接配置）
+    - data.key → CPA_MANAGER_DATA_KEY_PATH=/config/.../cpamp/data.key ✓（丢失则库内 CPA 密钥不可解密）
+    - usage-archives → USAGE_DATA_DIR/usage-archives（dataDirExplicit 时）→ /config ✓
+    - usage-imports → USAGE_DATA_DIR/usage-imports → /config ✓
+    - admin key / CPA management key → env 每启动注入（持久化副本在 /config/*.txt）✓
+    - <二进制旁>/config.json → 上游引导默认文件（recreate-from-defaults，全部有效设置走 env+SQLite），
+      更新后自动重建，无功能损失 —— 与上游 Docker 行为一致，不额外持久化
+    - managerdatasnapshot / sanitize-runtime-config → 离线命令（用户手动执行），非运行时写入 n/a
+  cwd_matters: true
+  generated_files:
+    - /config/cliproxyapi-cpamp/management_key.txt
+    - /config/cliproxyapi-cpamp/cpamp_admin_key.txt
+
+config:
+  options:
+    MANAGEMENT_KEY:
+      type: password?
+      default: ""
+    CPAMP_ADMIN_KEY:
+      type: password?
+      default: ""
+      description: CPAMP 完整面板登录密钥；留空自动生成
+    PROXY_URL:
+      type: str?
+      default: ""
+  seed_config_diffs_vs_light:
+    - observability.usage.usage-statistics-enabled: true   # CPAMP 监控依赖
+
+adaptations:
+  - 单容器双服务（S6 longrun ×2 + stage2_hook 拉起全部用户服务）
+  - CPAMP 与 CPA 通过 loopback 通信，无需暴露管理 API 到宿主网络即可采集
+  - CPA 管理密钥与 CPAMP 连接预接线（management_key.txt → CPA_MANAGEMENT_KEY env），减少首次设置步骤
+  - CPAMP 管理员密钥三级解析：HA 选项 > cpamp_admin_key.txt > 随机生成（打印一次并落盘）
+  - 数据落在 /config（随 HA 备份），含 data.key + usage.sqlite（必须成对恢复）
+  - 面板种子与完整版二进制同为 PANEL_VERSION，手动 bump（不参与 CI 自动跟踪）
+
+open_questions:
+  - CPA_MANAGEMENT_KEY env 与面板内保存的连接配置的优先级未实测（更换 CPA 密钥后的更新路径需验证）
+  - RESP collector 在容器内 loopback 的实际可用性（auto 模式应可回退 HTTP queue）
+  - 18317 与 HA 常见 addon 端口无已知冲突（如与其他 addon 冲突可自行改宿主端口）
+  - ingress 明确本轮不启用

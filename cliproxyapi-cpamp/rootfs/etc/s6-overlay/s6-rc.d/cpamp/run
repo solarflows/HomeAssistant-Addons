@@ -1,0 +1,43 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# CPAMP Manager Server 启动脚本 (S6 longrun)
+# ==============================================================================
+# 说明:
+#   与 CLIProxyAPI 同容器运行，通过 loopback 连接 CPA (:8317)。
+#   - CPA 管理密钥: 由 00-init.sh 首启写入 management_key.txt，此处注入用于自动连接
+#   - CPAMP 管理员密钥: 选项 > 持久化文件 > 随机生成（写入 cpamp_admin_key.txt 并打印一次）
+# ==============================================================================
+set -e
+
+bashio::log.info "Starting CPAMP Manager Server..."
+
+export HTTP_ADDR="0.0.0.0:18317"
+export USAGE_DATA_DIR="/config/cliproxyapi-cpamp/cpamp"
+export USAGE_DB_PATH="/config/cliproxyapi-cpamp/cpamp/usage.sqlite"
+export CPA_MANAGER_DATA_KEY_PATH="/config/cliproxyapi-cpamp/cpamp/data.key"
+export USAGE_COLLECTOR_MODE="auto"
+
+# CPA 连接（同容器 loopback；无密钥时留待面板首次设置）
+export CPA_UPSTREAM_URL="http://127.0.0.1:8317"
+if [ -s /config/cliproxyapi-cpamp/management_key.txt ]; then
+    CPA_MANAGEMENT_KEY="$(cat /config/cliproxyapi-cpamp/management_key.txt)"
+    export CPA_MANAGEMENT_KEY
+fi
+
+# CPAMP 管理员密钥：选项 > 持久化文件 > 随机生成
+ADMIN_KEY=$(bashio::config 'CPAMP_ADMIN_KEY' '')
+KEY_FILE="/config/cliproxyapi-cpamp/cpamp_admin_key.txt"
+if [ -z "${ADMIN_KEY}" ] && [ -s "${KEY_FILE}" ]; then
+    ADMIN_KEY="$(cat "${KEY_FILE}")"
+fi
+if [ -z "${ADMIN_KEY}" ]; then
+    ADMIN_KEY="cpamp_$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    printf '%s' "${ADMIN_KEY}" > "${KEY_FILE}"
+    chmod 600 "${KEY_FILE}"
+    bashio::log.warning "已生成 CPAMP 管理员密钥: ${ADMIN_KEY}"
+    bashio::log.warning "该密钥同时保存于 ${KEY_FILE}（完整面板登录使用，请妥善保存）"
+fi
+export CPA_MANAGER_ADMIN_KEY="${ADMIN_KEY}"
+
+exec /usr/local/bin/cpa-manager-plus
