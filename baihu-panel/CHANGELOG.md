@@ -1,3 +1,14 @@
+### 1.5.1-build.2 (2026-10-10)
+CI 变更
+- chore(baihu-panel): upstream 1.5.0 → 1.5.1
+- chore(baihu-panel): upstream 1.4.2 → 1.5.0
+- chore(baihu-panel): upstream 1.4.1 → 1.4.2
+- chore(baihu-panel): upstream 1.4.0 → 1.4.1
+- chore(baihu-panel): upstream 1.3.0 → 1.4.0
+- chore(baihu-panel): upstream 1.2.0 → 1.3.0
+- chore(baihu-panel): upstream 1.1.30 → 1.2.0
+- chore(baihu-panel): upstream 1.1.29 → 1.1.30
+
 ### 1.5.1-build.1 (2026-10-10)
 CI 变更
 - chore(baihu-panel): upstream 1.5.0 → 1.5.1
