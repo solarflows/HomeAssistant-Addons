@@ -1,0 +1,40 @@
+---
+configuration:
+  LOG_LEVEL:
+    name: 日志级别
+    description: 运行日志级别。
+  BROWSER_POOL_SIZE:
+    name: 浏览器池大小
+    description: >-
+      预热的 Camoufox 浏览器实例数（并发求解用）。
+      每实例约 300–400MB 内存，小内存设备建议保持 1。
+  METRICS_DASHBOARD_ENABLED:
+    name: 启用本地仪表盘
+    description: 开启 /dashboard 请求历史与统计面板。
+  METRICS_DASHBOARD_TOKEN:
+    name: 仪表盘令牌
+    description: >-
+      保护仪表盘（及其 JSON/实时端点）的令牌。
+      建议使用 ≥32 字符的随机字符串。
+  MITM_ENABLED:
+    name: MITM 反爬代理
+    description: >-
+      启用 8192 端口的 HTTP/HTTPS 反向代理（绕过与连接指纹绑定的挑战）。
+      使用前需把 /proxy-ca.crt 安装到客户端信任库。
+  CAPTCHA_SOLVER:
+    name: 验证码兜底求解
+    description: 本地求解失败后，可选尝试付费兜底。
+  TWOCAPTCHA_API_KEY:
+    name: 2Captcha 密钥
+    description: 验证码兜底选择 2captcha 时必填。
+  PROXY_URL:
+    name: 数据中心代理（Tier 3）
+    description: >-
+      可选 HTTP/SOCKS5 代理，用于 Tier 3 升级。
+      多个端点用逗号分隔组成代理池。
+  RESIDENTIAL_PROXY_URL:
+    name: 住宅代理（Tier 4）
+    description: 启用 Tier 4：当目标 IP 被标记时跨代理升级。
+network:
+  8191/tcp: API / FlareSolverr 兼容端点（/v1）+ 仪表盘
+  8192/tcp: MITM 代理端口（需开启 MITM_ENABLED）

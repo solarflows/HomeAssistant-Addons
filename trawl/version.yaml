@@ -1,0 +1,13 @@
+# trawl 版本检查配置
+version: "1.8.0"
+source: github
+repo: germondai/trawl
+build_args:
+  TRAWL_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: ""
+  file_sha: ""
+  build_num: 0

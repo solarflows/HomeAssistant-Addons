@@ -1,0 +1,40 @@
+---
+configuration:
+  LOG_LEVEL:
+    name: Log Level
+    description: Operational log level.
+  BROWSER_POOL_SIZE:
+    name: Browser Pool Size
+    description: >-
+      Number of warm Camoufox instances for concurrent browser solves.
+      Each instance costs roughly 300-400 MB RAM; keep 1 on small devices.
+  METRICS_DASHBOARD_ENABLED:
+    name: Metrics Dashboard
+    description: Enable the local dashboard at /dashboard.
+  METRICS_DASHBOARD_TOKEN:
+    name: Dashboard Token
+    description: >-
+      Token protecting the dashboard (and its JSON/live endpoints).
+      Recommended: a random string of at least 32 characters.
+  MITM_ENABLED:
+    name: MITM Proxy
+    description: >-
+      Enable the challenge-bypassing HTTP/HTTPS forward proxy on port 8192.
+      Install /proxy-ca.crt into each client's trust store before use.
+  CAPTCHA_SOLVER:
+    name: Captcha Solver
+    description: Optional paid fallback after local solving fails.
+  TWOCAPTCHA_API_KEY:
+    name: 2Captcha API Key
+    description: Required when Captcha Solver is set to 2captcha.
+  PROXY_URL:
+    name: Datacenter Proxy (Tier 3)
+    description: >-
+      Optional HTTP/SOCKS5 proxy for Tier 3 escalation. Comma-separate
+      multiple endpoints to form a pool.
+  RESIDENTIAL_PROXY_URL:
+    name: Residential Proxy (Tier 4)
+    description: Enables Tier 4 escalation when the target IP is flagged.
+network:
+  8191/tcp: API / FlareSolverr-compatible endpoint (/v1) + dashboard
+  8192/tcp: MITM forward proxy (enable MITM_ENABLED to use)

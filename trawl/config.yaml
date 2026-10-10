@@ -1,0 +1,44 @@
+---
+name: TRAWL for HA
+slug: trawl
+version: "0.0.0-build.0"
+image: ghcr.io/solarflows/trawl
+description: "自托管反爬抓取引擎：绕过 Cloudflare/Turnstile/reCAPTCHA 等 JS 挑战与验证码（FlareSolverr 替代）"
+url: https://github.com/germondai/trawl
+init: false
+startup: application
+boot: manual
+arch:
+  - aarch64
+  - amd64
+webui: "[PROTO:http]://[HOST]:[PORT:8191]/dashboard"
+ports:
+  8191/tcp: 8191
+  8192/tcp: 8192
+ports_description:
+  8191/tcp: "API / FlareSolverr 兼容端点（/v1）+ 本地仪表盘"
+  8192/tcp: "MITM 反爬代理端口（需开启 MITM_ENABLED）"
+cap_add:
+  - SYS_ADMIN
+  - IPC_LOCK
+tmpfs: true
+options:
+  LOG_LEVEL: info
+  BROWSER_POOL_SIZE: 1
+  METRICS_DASHBOARD_ENABLED: false
+  METRICS_DASHBOARD_TOKEN: ""
+  MITM_ENABLED: false
+  CAPTCHA_SOLVER: none
+  TWOCAPTCHA_API_KEY: ""
+  PROXY_URL: ""
+  RESIDENTIAL_PROXY_URL: ""
+schema:
+  LOG_LEVEL: list(error|warn|info|debug|silent)
+  BROWSER_POOL_SIZE: int(1,8)
+  METRICS_DASHBOARD_ENABLED: bool
+  METRICS_DASHBOARD_TOKEN: password?
+  MITM_ENABLED: bool
+  CAPTCHA_SOLVER: list(none|2captcha)
+  TWOCAPTCHA_API_KEY: password?
+  PROXY_URL: str?
+  RESIDENTIAL_PROXY_URL: str?

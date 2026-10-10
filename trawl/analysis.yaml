@@ -1,0 +1,99 @@
+# analysis.yaml — trawl addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+# 证据: 上游 docker-compose.yml / docker-compose.minimal.yml / .env.example /
+#       apps/api/Dockerfile(.baseline) / 配置文档 (shm_size=1gb, CAPTCHA_SOLVER 取值) /
+#       ghcr 镜像 tag 实测 (:1.8.0 存在, amd64+arm64)
+---
+upstream:
+  repo: germondai/trawl
+  description: >-
+    自托管反爬抓取引擎：绕过 Cloudflare/Turnstile/reCAPTCHA/hCaptcha/GeeTest
+    等 JS 挑战与验证码；FlareSolverr & Byparr 替代，*arr 生态 drop-in 兼容
+    （Bun + Elysia + Camoufox Firefox）。
+  license: AGPL-3.0（仅以未修改上游镜像方式运行，符合许可边界）
+
+build:
+  strategy: upstream-image
+  upstream_image: ghcr.io/germondai/trawl
+  upstream_tag: "${version}"      # 发布 v1.8.0 → 镜像 tag 1.8.0（un-prefixed）
+  image_variants:
+    - "1.8.0（标准，AVX2/新内核）"
+    - "1.8.0-baseline（老 CPU：Bun baseline / 无 AVX2）"
+  image_archs: [amd64, arm64]
+  additions:
+    apt:
+      - jq   # /data/options.json → 环境变量
+
+runtime:
+  language: binary   # bun 运行时；镜像内自包含
+  entrypoint: /ha-entrypoint.sh → tini -- bun run apps/api/src/index.ts
+  working_dir: /app
+  env_defaults_set:
+    SESSION_CACHE_DRIVER: memory   # 单容器无 Redis（对应上游 minimal compose）
+    REDIS_URL: ""
+    PORT: 8191
+    METRICS_DB_PATH: /data/trawl/metrics/trawl.sqlite
+    MITM_CA_DIR: /data/trawl/proxy-ca
+  upstream_notes:
+    - 上游 ENTRYPOINT 为 tini（浏览器子进程回收），本 addon 链接调用保留
+    - 上游 HOME=/tmp、CAMOUFOX_INSTALL_DIR=/opt/camoufox 由镜像自带
+
+network:
+  port: 8191
+  aux_ports:
+    - port: 8192
+      purpose: MITM 反爬代理（MITM_ENABLED 控制，默认关闭但映射常开）
+  protocol: tcp
+  health: "http://127.0.0.1:8191/health"
+  ingress: false   # 本轮明确不启用
+
+filesystem:
+  persistent_dirs:
+    - container: /data/trawl/metrics
+      ha: same   # HA /data 为 addon 隔离持久化目录
+      type: dir
+      reason: 请求历史 SQLite（上游 compose 挂载命名卷 trawl_metrics）
+    - container: /data/trawl/proxy-ca
+      ha: same
+      type: dir
+      reason: MITM 根证书与私钥（上游 compose 挂载命名卷 trawl_proxy_ca）
+  write_path_audit:
+    # 源码级全量审计（2026-10-10），非测试代码磁盘写入点穷举:
+    - metrics SQLite（apps/api/src/metrics.ts，METRICS_DB_PATH）→ /data/trawl/metrics ✓
+    - MITM CA cert+key（apps/api/src/proxy/ca.ts，MITM_CA_DIR）→ /data/trawl/proxy-ca ✓
+    - 浏览器 profile/缓存 → 镜像自带 HOME=/tmp（设计为临时，重启即弃，无需持久化）✓
+    - session cache（求解 cookie）→ memory 驱动（单容器模式）或 Redis，无独立落盘 ✓
+    - 截图/抓取内容 → 随响应返回，不落盘 ✓
+    # 结论: 仅上述两处需要持久化，均已覆盖；与上游两份 compose 的 VOLUME 完全一致
+  hardcoded_paths: []
+  cwd_matters: true   # CWD=/app 运行 bun（镜像 WORKDIR）
+  backup_note: >-
+    metrics 与 proxy-ca 均为可再生数据，放 /data（不备份）；
+    MITM CA 重新生成后客户端需重新信任
+
+config:
+  options:
+    - LOG_LEVEL: list(error|warn|info|debug|silent)
+    - BROWSER_POOL_SIZE: int(1,8)（每实例 300–400MB）
+    - METRICS_DASHBOARD_ENABLED: bool
+    - METRICS_DASHBOARD_TOKEN: password?（建议 ≥32 字符）
+    - MITM_ENABLED: bool
+    - CAPTCHA_SOLVER: list(none|2captcha)（上游文档确认取值）
+    - TWOCAPTCHA_API_KEY: password?
+    - PROXY_URL: str?（Tier 3，可逗号分隔池）
+    - RESIDENTIAL_PROXY_URL: str?（Tier 4）
+  options_mechanism: jq 读取 /data/options.json → shlex 安全引用 → set -a 导出
+
+adaptations:
+  - "上游要求 shm_size: 1gb（compose 两份均声明）；HA 无 shm_size 配置 →
+     entrypoint 用 SYS_ADMIN 尝试 mount -o remount,size=1g /dev/shm，失败仅告警"
+  - cap_add [SYS_ADMIN, IPC_LOCK] + tmpfs: true（与 flaresolverr addon 同域先例）
+  - "与 flaresolverr addon 端口冲突（8191/8192）：文档明确二选一或改宿主端口"
+  - 桥接链保留上游 tini（浏览器进程回收）
+  - 官方发布含 -baseline 变体：文档指引老 CPU 场景（不默认使用）
+
+open_questions:
+  - /dev/shm remount 在 HAOS（apparmor/seccomp）内的实际成功率需运行验证；失败时
+    文档已给出降级路径（降低浏览器数/内存占用）
+  - MITM 代理端到端（CA 安装 + Prowlarr 场景）未实测，列入后续验证
+  - BROWSER_POOL_SIZE 上限 8 为经验值（内存约束）
