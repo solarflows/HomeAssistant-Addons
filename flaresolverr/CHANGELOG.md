@@ -1,3 +1,8 @@
+### 3.5.2-build.2 (2026-10-10)
+CI 变更
+- chore(flaresolverr): upstream 3.5.0 → 3.5.2
+- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
+
 ### 3.5.2-build.1 (2026-10-10)
 CI 变更
 - chore(flaresolverr): upstream 3.5.0 → 3.5.2
