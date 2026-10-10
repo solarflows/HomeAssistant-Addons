@@ -1,17 +1,6 @@
 ### 1.5.1-build.2 (2026-10-10)
 CI 变更
-- chore(baihu-panel): upstream 1.5.0 → 1.5.1
-- chore(baihu-panel): upstream 1.4.2 → 1.5.0
-- chore(baihu-panel): upstream 1.4.1 → 1.4.2
-- chore(baihu-panel): upstream 1.4.0 → 1.4.1
-- chore(baihu-panel): upstream 1.3.0 → 1.4.0
-- chore(baihu-panel): upstream 1.2.0 → 1.3.0
-- chore(baihu-panel): upstream 1.1.30 → 1.2.0
-- chore(baihu-panel): upstream 1.1.29 → 1.1.30
-
-### 1.5.1-build.1 (2026-10-10)
-CI 变更
-- chore(baihu-panel): upstream 1.5.0 → 1.5.1
+（本次构建无代码变更）
 
 ### 1.5.1 (2026-10-09)
 # 更新日志 (v1.5.1)
@@ -1184,19 +1173,6 @@ Dockerfile + rootfs 变更
 Dockerfile + rootfs 变更
 - fix(baihu-panel): 修复 Ingress 静态资源加载并清理内部配置暴露
 - docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
-
-### 1.1.23-build.6 (2026-07-25)
-rootfs 变更
-- fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
-- build(baihu-panel): CI 变更 → 1.1.23-build.5
-
-### 1.1.23-build.5 (2026-07-25)
-CI 变更
-- build(baihu-panel): CI 变更 → 1.1.23-build.4
-
-### 1.1.23-build.4 (2026-07-25)
-CI 变更
-- build(baihu-panel): CI 工作流变更 → 1.1.23-build.3
 
 ### 1.1.23-build.3 (2026-07-25)
 CI 工作流变更

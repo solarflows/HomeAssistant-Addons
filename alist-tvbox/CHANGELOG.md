@@ -1,18 +1,6 @@
 ### 1.112.0-build.2 (2026-10-10)
 CI 变更
-- chore(alist-tvbox): upstream 1.111.0 → 1.112.0
-- chore(alist-tvbox): upstream 1.110.0 → 1.111.0
-- chore(alist-tvbox): upstream 1.109.0 → 1.110.0
-- chore(alist-tvbox): upstream 1.106.0 → 1.109.0
-- chore(alist-tvbox): upstream 1.105.0 → 1.106.0
-- chore(alist-tvbox): upstream 1.104.0 → 1.105.0
-- chore(alist-tvbox): upstream 1.103.0 → 1.104.0
-- chore(alist-tvbox): upstream 1.102.0 → 1.103.0
-- chore(alist-tvbox): upstream 1.101.0 → 1.102.0
-
-### 1.112.0-build.1 (2026-10-10)
-CI 变更
-- chore(alist-tvbox): upstream 1.111.0 → 1.112.0
+（本次构建无代码变更）
 
 ### 1.112.0 (2026-10-10)
 # Release Notes - 1.112.0
@@ -1101,10 +1089,6 @@ Dockerfile + rootfs 变更
 Dockerfile + rootfs 变更
 - fix: 创建 /jre/bin/java symlink，修复上游 H2 升级脚本找不到 java
 - fix: 创建 /data/atv/config/ 目录，修复清空 data 后 Spring Boot 启动失败
-
-### 1.28.0-build.14 (2026-07-25)
-CI 变更
-- fix: 修复小雅数据未导入 + CI CHANGELOG commit message 提取
 
 ### 1.28.0-build.13 (2026-07-26)
 - 修复 init-xiaoya.sh 因缺少 `/app_version` 导致 `set -e` 中断，小雅数据未导入

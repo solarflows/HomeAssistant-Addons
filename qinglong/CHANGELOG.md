@@ -1,26 +1,12 @@
 ### 2.22.0-build.3 (2026-10-10)
 CI 变更
-- chore(qinglong): upstream 2.21.0 → 2.22.0
-- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
-
-### 2.22.0-build.2 (2026-10-10)
-CI 变更
-- chore(qinglong): upstream 2.21.0 → 2.22.0
-- chore(alist-tvbox): upstream 1.72.1 → 1.73.0
+（本次构建无代码变更）
 
 ### 2.22.0-build.1 (2026-09-27)
 底包更新至 9.5.0，无功能变更
 
 ### 2.21.0-build.29 (2026-08-18)
 底包更新至 9.4.0，无功能变更
-
-### 2.21.0-build.28 (2026-07-25)
-CI 变更
-- build(qinglong): CI 变更 → 2.21.0-build.27
-
-### 2.21.0-build.27 (2026-07-25)
-CI 变更
-- build(qinglong): CI 工作流变更 → 2.21.0-build.26
 
 ### 2.21.0-build.26 (2026-07-25)
 CI 工作流变更

@@ -1,13 +1,6 @@
 ### 2.0.0-stable-build.2 (2026-10-10)
 CI 变更
-- chore(filebrowser-quantum): upstream 1.5.8-stable → 2.0.0-stable
-- chore(filebrowser-quantum): upstream 1.5.7-stable → 1.5.8-stable
-- chore(filebrowser-quantum): upstream 1.5.6-stable → 1.5.7-stable
-- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
-
-### 2.0.0-stable-build.1 (2026-10-10)
-CI 变更
-- chore(filebrowser-quantum): upstream 1.5.8-stable → 2.0.0-stable
+（本次构建无代码变更）
 
 ### 2.0.0-stable (2026-10-09)
 # Changelog
@@ -20677,14 +20670,6 @@ rootfs 变更
 rootfs 变更
 - fix(filebrowser-quantum): 修复启动参数错误，改用 FILEBROWSER_CONFIG 环境变量
 - docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
-
-### 1.5.0-stable-build.28 (2026-07-25)
-CI 变更
-- build(filebrowser-quantum): CI 变更 → 1.5.0-stable-build.27
-
-### 1.5.0-stable-build.27 (2026-07-25)
-CI 变更
-- build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.26
 
 ### 1.5.0-stable-build.26 (2026-07-25)
 CI 工作流变更

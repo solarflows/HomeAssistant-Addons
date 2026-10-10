@@ -1,11 +1,6 @@
 ### 3.5.2-build.2 (2026-10-10)
 CI 变更
-- chore(flaresolverr): upstream 3.5.0 → 3.5.2
-- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
-
-### 3.5.2-build.1 (2026-10-10)
-CI 变更
-- chore(flaresolverr): upstream 3.5.0 → 3.5.2
+（本次构建无代码变更）
 
 ### 3.5.2 (2026-09-12)
 # Changelog
@@ -493,14 +488,6 @@ Complete changelog:
 * CI/CD: Build the Docker images with GitHub Actions (#13)
 * Update dependencies
 * Backport changes from Cloudproxy (#11)
-
-### 3.5.0-build.24 (2026-07-25)
-CI 变更
-- build(flaresolverr): CI 变更 → 3.5.0-build.23
-
-### 3.5.0-build.23 (2026-07-25)
-CI 变更
-- build(flaresolverr): CI 工作流变更 → 3.5.0-build.22
 
 ### 3.5.0-build.22 (2026-07-25)
 CI 工作流变更

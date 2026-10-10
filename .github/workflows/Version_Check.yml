@@ -243,13 +243,16 @@ jobs:
             NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
 
             # 捕获影响该 addon 的 commit message（Release 用于 CHANGELOG）
-            # 排除 CI 自动提交（build(...) 开头），这些是旧版元数据，不应出现在新版条目中
+            # 只取 file_sha..HEAD 范围内该目录的提交，并排除 CI 自动提交
+            # （build(...) 与 chore(<addon>): upstream ...）。
+            # 绝不回退到全量历史：那会把与本次构建无关的旧提交塞进 CHANGELOG
+            # （曾导致"CI 变更"条目列出 9 条历史版本迭代）。
             ADDON_COMMITS=""
             FILE_SHA=$(yq eval '.tracking.file_sha // ""' "${ADDON_DIR}/version.yaml")
             if [ -n "$FILE_SHA" ] && [ "$FILE_SHA" != "null" ]; then
-              ADDON_COMMITS=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null | grep -v '^- build(' || echo "")
+              ADDON_COMMITS=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null \
+                | grep -vE '^- (build\(|chore\([^)]*\): upstream )' || echo "")
             fi
-            [ -z "$ADDON_COMMITS" ] && ADDON_COMMITS=$(git log --pretty=format:"- %s" -10 -- "${ADDON_DIR}/" 2>/dev/null | grep -v '^- build(' || echo "")
 
             MATRIX=$(echo "$MATRIX" | jq -c \
               --arg addon "$ADDON_DIR" \

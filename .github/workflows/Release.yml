@@ -150,11 +150,12 @@ jobs:
           COMMIT_MSG="${{ matrix.commit_msg || '' }}"
           if [ -z "$COMMIT_MSG" ] && [ "$IS_FILE_TRIGGER" = "true" ]; then
             # fallback: 从 git log 重新计算（可能因 shallow clone 失败）
+            # 同样限定在 file_sha..HEAD 并排除 CI 自动提交；不回退到全量历史
             FILE_SHA=$(yq eval '.tracking.file_sha // ""' "$VERSION_FILE")
             if [ -n "$FILE_SHA" ] && [ "$FILE_SHA" != "null" ]; then
-              COMMIT_MSG=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null || echo "")
+              COMMIT_MSG=$(git log --pretty=format:"- %s" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/" 2>/dev/null \
+                | grep -vE '^- (build\(|chore\([^)]*\): upstream )' || echo "")
             fi
-            [ -z "$COMMIT_MSG" ] && COMMIT_MSG=$(git log --pretty=format:"- %s" -10 -- "${ADDON_DIR}/" 2>/dev/null || echo "")
           fi
 
           echo "addon=$ADDON" >> $GITHUB_OUTPUT
@@ -270,7 +271,7 @@ jobs:
               CHANGELOG_TAG="${CHANGELOG_TAG}${TAG_PART}"
             done
             CHANGELOG_TAG="${CHANGELOG_TAG} 变更"
-            CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-无提交信息}"
+            CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-（本次构建无代码变更）}"
             if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
               printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
               cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"

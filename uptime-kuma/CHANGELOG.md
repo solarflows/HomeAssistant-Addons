@@ -1,13 +1,6 @@
 ### 2.5.6-build.2 (2026-10-10)
 CI 变更
-- chore(uptime-kuma): upstream 2.5.5 → 2.5.6
-- chore(uptime-kuma): upstream 2.5.4 → 2.5.5
-- chore(uptime-kuma): upstream 2.5.3 → 2.5.4
-- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
-
-### 2.5.6-build.1 (2026-10-10)
-CI 变更
-- chore(uptime-kuma): upstream 2.5.5 → 2.5.6
+（本次构建无代码变更）
 
 ### 2.5.6 (2026-10-09)
 ### 🐞 Bug Fixes
@@ -112,14 +105,6 @@ CI 变更
 - #7535 chore: Remove meaningless entries from en.json 
 - #7496 chore: Login form minor changes 
 
-
-### 2.4.0-build.27 (2026-07-25)
-CI 变更
-- build(uptime-kuma): CI 变更 → 2.4.0-build.26
-
-### 2.4.0-build.26 (2026-07-25)
-CI 变更
-- build(uptime-kuma): CI 工作流变更 → 2.4.0-build.25
 
 ### 2.4.0-build.25 (2026-07-25)
 CI 工作流变更
