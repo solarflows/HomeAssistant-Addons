@@ -1,0 +1,13 @@
+# workbuddy2api-panel 版本检查配置
+version: "1.13.0"
+source: github
+repo: linguo2625469/workbuddy2api-panel
+build_args:
+  WB2API_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: ""
+  file_sha: ""
+  build_num: 0

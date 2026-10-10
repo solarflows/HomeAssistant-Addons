@@ -1,0 +1,106 @@
+# analysis.yaml — workbuddy2api-panel addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+# 证据: 上游 README / Dockerfile (release ref) / config.example.json / go.mod /
+#       release 资产实测（v1.13.0：wb2api-panel-v1.13.0-linux-{amd64,arm64}.tar.gz）/ 包内容实测
+---
+upstream:
+  repo: linguo2625469/workbuddy2api-panel
+  description: >-
+    腾讯 CodeBuddy/WorkBuddy 账号池 → OpenAI 兼容 API 网关
+    （Go 单二进制 + 内嵌 Web 面板 + 积分任务体系）。
+  license: MIT
+  compliance_risk: >-
+    非官方逆向网关：违反上游平台 ToS、账号封禁风险；原上游仓库曾被删除，
+    分支作者声明可能随时停止维护。README/DOCS/config translation 均有显著提示。
+
+build:
+  strategy: binary-download
+  release_tag: "v${version}"     # release tag v1.13.0（clean semver，无 -panel 后缀）
+  asset_pattern: "wb2api-panel-v${version}-linux-${ARCH}.tar.gz"
+  asset_content:
+    - wb2api           → /usr/local/bin/wb2api
+    - config.example.json → /opt/wb2api/（运行时复制到 /config 供参考）
+    - README.md        → /opt/wb2api/
+  runtime_apt_deps:
+    - curl
+    - tzdata
+    - ca-certificates
+  not_included:
+    - CLI 辅助脚本（login.sh / signin.sh / credit.sh / probe_active.py 及配套 CLI 二进制）
+      上游 release 包不含；账号管理统一走面板（上游推荐方式 A）
+
+runtime:
+  language: go
+  entrypoint: S6 longrun → wb2api -config /config/workbuddy2api-panel/config.json (CWD=/app)
+  working_dir: /app
+  env: TZ（HA 选项，定时任务时区）
+  upstream_layout_facts:
+    - 上游 Dockerfile ENTRYPOINT: /app/wb2api -config /app/config.json，CWD=/app
+    - 上游以 app 用户(uid 10001)运行 —— 本 addon 以 root 运行（HA 默认），auths 0600
+    - config 保存为“深合并 + 原子替换” → 禁止软链 config.json（会破坏持久化）
+
+network:
+  port: 7863
+  protocol: tcp
+  health: >-
+    /panel/（页面无鉴权加载）；/healthz 无账号时 503（设计如此），
+    直接用它会导致首登前误报 unhealthy
+
+filesystem:
+  persistent_dirs:
+    - container: /config/workbuddy2api-panel/config.json
+      ha: same
+      type: file
+      reason: 主配置（seed-once；-config 直接指向实体文件）
+    - container: /config/workbuddy2api-panel/auths
+      ha: same
+      type: dir
+      reason: 账号凭据（明文 token；备份含敏感信息）
+    - container: /app/auths
+      ha: /config/workbuddy2api-panel/auths
+      type: symlink
+      reason: 兜底上游相对路径 ./auths
+    - container: /app/data
+      ha: /data/workbuddy2api-panel/data
+      type: symlink
+      reason: 兜底上游相对路径 ./data（全部 stateSibling 派生文件）
+  write_path_audit:
+    # 源码级全量审计（2026-10-10），非测试代码写入点穷举:
+    - config.json（+写盘瞬时 .tmp）→ -config 实体路径 /config ✓（面板原子替换安全，非软链）
+    - auths/workbuddy-<uid>.json（token 刷新 SaveAtomic 0600 写回）→ auth_dir=/config ✓
+    - state.json → /data/workbuddy2api-panel/data/state.json ✓
+    - usage.json（用量记录）→ stateSibling → /data/.../data ✓
+    - model.json（模型目录缓存）→ stateSibling → /data/.../data ✓
+    - output_probes.json（探测结果，面板只读）→ stateSibling → /data/.../data ✓
+    - request-logs/requests-*.jsonl（请求归档，默认 7 天/100MB 上限）
+      → reqlog.Config.Dir = stateSibling(stateFile, "request-logs") → /data/.../data/request-logs ✓
+      （main.go:251；本次审计关闭了此前的"待确认"项）
+    - 运行日志 → stdout（无落盘日志文件）✓
+    # 结论: 凭据/配置随 HA 备份；运行态文件全部落 /data（可再生，且位于 addon 隔离持久目录）
+  cwd_matters: true
+  generated_files:
+    - /config/workbuddy2api-panel/api_key.txt
+
+config:
+  options:
+    API_KEY: password?（留空随机；seed-once）
+    TZ: str?（默认 Asia/Shanghai；定时任务时区）
+  seed_config: |
+    {
+      "listen": ":7863",
+      "api_key": "<option|generated>",
+      "auth_dir": "/config/workbuddy2api-panel/auths",
+      "state_file": "/data/workbuddy2api-panel/data/state.json"
+    }
+
+adaptations:
+  - 选择上游官方 release 二进制（比自建镜像更接近官方镜像产物），版本跟踪干净（v1.13.0）
+  - "config.json 不软链：面板原子替换会 destory 软链（写入 tmp+rename），改用 -config 实体路径"
+  - auth_dir/state_file 用绝对路径写入种子配置，消除 CWD 依赖
+  - "/data 与 /config 分工：凭据随 HA 备份；池状态/归档放 /data（可再生、体积可控）"
+  - 健康检查用 /panel/ 而非 /healthz（无账号 503 语义不适合 addon 探活）
+  - TZ 由 HA 选项注入（定时任务跨时区正确性）
+
+open_questions:
+  - 面板添加账号（OAuth 设备授权）在 HA 子路径/LAN 场景的端到端流程未实测；失败模式需运行验证
+  - 上游 CLI 脚本未打包（面板路径覆盖全部功能）；如需 signin/credit 需扩展构建

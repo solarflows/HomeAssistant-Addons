@@ -1,0 +1,15 @@
+---
+configuration:
+  API_KEY:
+    name: Gateway API Key
+    description: >-
+      Bearer key for the gateway API and panel login. Leave empty to
+      auto-generate one (saved to /config/workbuddy2api-panel/api_key.txt and
+      printed in the log). Applied only when the config file is first created.
+  TZ:
+    name: Timezone
+    description: >-
+      Container timezone; controls when scheduled tasks (check-in, activity,
+      keep-alive) run.
+network:
+  7863/tcp: API / web panel port

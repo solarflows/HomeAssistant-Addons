@@ -1,0 +1,14 @@
+---
+configuration:
+  API_KEY:
+    name: 网关密钥
+    description: >-
+      网关 API 与面板登录密钥。留空则自动生成随机密钥
+      （保存于 /config/workbuddy2api-panel/api_key.txt，并打印在日志中）。
+      仅在首次生成配置文件时生效。
+  TZ:
+    name: 时区
+    description: >-
+      容器时区，决定签到 / 活跃上报 / 保活等定时任务的执行时刻。
+network:
+  7863/tcp: API / Web 管理面板端口

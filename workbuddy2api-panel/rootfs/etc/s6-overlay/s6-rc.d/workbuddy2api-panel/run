@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# WorkBuddy2API Panel 启动脚本 (S6 longrun)
+# ==============================================================================
+# 注意: -config 使用 /config 实体路径（非软链），保证面板配置原子写入可持久化。
+# ==============================================================================
+bashio::log.info "Starting WorkBuddy2API Panel..."
+
+export TZ="$(bashio::config 'TZ' 'Asia/Shanghai')"
+
+cd /app
+exec /usr/local/bin/wb2api -config /config/workbuddy2api-panel/config.json
