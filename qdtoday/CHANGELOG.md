@@ -1,3 +1,7 @@
+### 20250803-build.47 (2026-10-10)
+CI 变更
+- chore(alist-tvbox): upstream 1.72.1 → 1.73.0
+
 ### 20250803-build.46 (2026-07-25)
 CI 变更
 - build(qdtoday): CI 变更 → 20250803-build.45
