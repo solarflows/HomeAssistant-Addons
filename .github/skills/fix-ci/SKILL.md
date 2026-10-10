@@ -26,10 +26,11 @@ Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon bui
 - **Trigger**: workflow_call (from Version_Check) + workflow_dispatch (manual)
 - **Jobs**: build (matrix); each job does config update + changelog + git commit
 - **Matrix parse**: `fromJson(needs.check-versions.outputs.matrix || inputs.matrix || '{"include":[]})' `)
-- Release computes `build_version`/`build_num`/`base_tag` from version.yaml at runtime
+- Release computes `version` / `build_version` / `build_num` / `base_tag` from version.yaml at runtime
+- HA version derivation: `<upstream version>[-<version_suffix>][-build.N]`, then sanitized (digit-leading, `[0-9A-Za-z.-]` only). Must equal the pushed image tag.
 - CHANGELOG: uses matrix `commit_msg` first, falls back to `git log file_sha..HEAD`
-- Compound reason: `IFS=',' read -ra` splits → builds label like `Dockerfile + rootfs 变更`
-- `IS_FILE_TRIGGER` matches with glob: `dockerfile*|rootfs*|...`
+- **Compound reason**: split `REASON` on commas up front into `IS_VERSION_CHANGE` / `IS_FILE_TRIGGER` flags. Never prefix-match (`dockerfile*`) — a composite value starting with `version_changed,` would be missed.
+- File-trigger sub-labels: `IFS=',' read -ra` → label like `Dockerfile + rootfs 变更`
 
 ## GHA Common Pitfalls
 - `${{ }}` pipes `|` → use `jq -r` to read files

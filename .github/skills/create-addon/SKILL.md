@@ -77,6 +77,10 @@ source: github
 repo: owner/repo
 build_args:
   APP_VERSION: "${version}"
+# 可选：仅当加载项由「两个上游」组合而成时使用（如 cliproxyapi-cpamp）
+#   config.yaml.version = <version>-<version_suffix>，例：8.0.23-1.14.5
+#   ${KEY} 取 build_args 的键（另加 version 本身）
+# version_suffix: "${PANEL_VERSION}"
 changelog:
   source: release_body
   mode: prepend
@@ -85,6 +89,10 @@ tracking:
   file_sha: ""
   build_num: 0
 ```
+
+> `config.yaml.version` 由 CI 生成，规则见 [AGENTS.md](../../../AGENTS.md) 的 “Version and CI Contract”：
+> `<上游版本>[-<version_suffix>][-build.N]`，并按 HA 规则清洗（数字开头，仅 `[0-9A-Za-z.-]`）。
+> 加载项自身不要手改该字段（除骨架初始值与修复 CI 状态外）。
 
 
 ## Changelog sources

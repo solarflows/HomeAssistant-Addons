@@ -57,27 +57,69 @@ jobs:
           REASON="${{ matrix.reason || 'version_changed' }}"
           NEW_VER="${{ matrix.new_ver || '' }}"
 
-          # 文件触发类型统一标记（支持复合 reason 如 "dockerfile,rootfs"）
-          case "$REASON" in
-            dockerfile*|rootfs*|config*|workflow*|file_changed*) IS_FILE_TRIGGER=true ;;
-            *) IS_FILE_TRIGGER=false ;;
-          esac
+          # reason 可能是复合值（如新 addon 首次构建的 "version_changed,dockerfile,rootfs"）。
+          # 必须按逗号拆分后逐项匹配：不能用 "dockerfile*|rootfs*|..." 前缀匹配，否则以
+          # version_changed 开头的复合值会漏判，config.yaml 版本与 CHANGELOG 都不会回写。
+          IS_VERSION_CHANGE=false
+          IS_FILE_TRIGGER=false
+          IFS=',' read -ra REASON_PARTS <<< "$REASON"
+          for _part in "${REASON_PARTS[@]}"; do
+            case "$_part" in
+              version_changed) IS_VERSION_CHANGE=true ;;
+              dockerfile|rootfs|config|workflow|file_changed) IS_FILE_TRIGGER=true ;;
+            esac
+          done
+
           VERSION_FILE="${ADDON}/version.yaml"
           CONFIG_FILE="${ADDON}/config.yaml"
 
           # ---- 计算 version / build_version / build_num ----
+          # VERSION 始终是「上游版本」：用于上游 tag 查询（TAG）与 build_args 的 ${version}
           VERSION=$(yq eval '.version // ""' "$VERSION_FILE")
           OLD_VERSION="$VERSION"  # 保存旧版本号用于 commit 消息
           BUILD_NUM_CUR=$(yq eval '.tracking.build_num // 0' "$VERSION_FILE")
 
-          if [ "$REASON" = "version_changed" ]; then
+          if [ "$IS_VERSION_CHANGE" = "true" ]; then
             VERSION="$NEW_VER"
-            BUILD_VERSION="$VERSION"
             BUILD_NUM=0
           else
             BUILD_NUM=$((BUILD_NUM_CUR + 1))
-            BUILD_VERSION="${VERSION}-build.${BUILD_NUM}"
           fi
+
+          # ---- 组装 HA 版本号：<上游版本>[-<version_suffix>][-build.<N>] ----
+          # HA 官方约定：version 必须与镜像 tag 完全一致（下方 build 步骤用同一值打 tag）。
+          BUILD_VERSION="$VERSION"
+
+          VERSION_SUFFIX_TMPL=$(yq eval '.version_suffix // ""' "$VERSION_FILE")
+          if [ -n "$VERSION_SUFFIX_TMPL" ] && [ "$VERSION_SUFFIX_TMPL" != "null" ]; then
+            # 解析 ${KEY}：KEY 取自 build_args（另加 version 本身），与 Prepare build args 同口径
+            SUFFIX="$VERSION_SUFFIX_TMPL"
+            SUFFIX_PAIRS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
+              --arg v "$VERSION" 'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v))"')
+            SUFFIX_PAIRS=$(printf 'version=%s\n%s' "$VERSION" "$SUFFIX_PAIRS")
+            while IFS='=' read -r _sk _sv; do
+              [ -z "$_sk" ] && continue
+              SUFFIX="${SUFFIX//\$\{$_sk\}/$_sv}"
+            done <<< "$SUFFIX_PAIRS"
+            BUILD_VERSION="${BUILD_VERSION}-${SUFFIX}"
+            echo "version_suffix '${VERSION_SUFFIX_TMPL}' -> '${SUFFIX}'"
+          fi
+
+          if [ "$BUILD_NUM" -gt 0 ]; then
+            BUILD_VERSION="${BUILD_VERSION}-build.${BUILD_NUM}"
+          fi
+
+          # ---- HA 兼容清洗（经验规则）----
+          # 以数字开头，仅允许 [0-9A-Za-z.-]；首个非法字符处截断（如 1.2.3+build -> 1.2.3）
+          ADDON_VERSION=$(printf '%s' "$BUILD_VERSION" | sed 's/^[vV]//; s/^[^0-9]*//; s/[^0-9A-Za-z.-].*$//; s/[.-]*$//')
+          if [ -z "$ADDON_VERSION" ]; then
+            echo "::error::无法从 '${BUILD_VERSION}' 推导出 HA 兼容的版本号"
+            exit 1
+          fi
+          if [ "$ADDON_VERSION" != "$BUILD_VERSION" ]; then
+            echo "Version sanitized for HA: '${BUILD_VERSION}' -> '${ADDON_VERSION}'"
+          fi
+          BUILD_VERSION="$ADDON_VERSION"
 
           # ---- 获取 debian-base 最新 tag（全局共享，Release 自己 curl） ----
           BASE_TAG=$(curl -fsSL \
@@ -201,13 +243,15 @@ jobs:
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
-          if [ "$REASON" = "version_changed" ] || [ "$REASON" = "base_updated" ] || [ "$IS_FILE_TRIGGER" = "true" ] || [ "$REASON" = "force_rebuild" ]; then
+          if [ "$IS_VERSION_CHANGE" = "true" ] || [ "$IS_FILE_TRIGGER" = "true" ] || [ "$REASON" = "base_updated" ] || [ "$REASON" = "force_rebuild" ]; then
             yq eval ".version = \"${BUILD_VERSION}\"" -i "${ADDON_DIR}/config.yaml"
             echo "Updated ${ADDON_DIR}/config.yaml to version ${BUILD_VERSION}"
           fi
 
           # 更新 CHANGELOG.md
-          if [ "$IS_FILE_TRIGGER" = "true" ]; then
+          # 注：复合 reason（version_changed + 文件变更）优先按「上游版本变更」记录，
+          #     以便取到上游 release notes；纯文件变更才走文件分支。
+          if [ "$IS_FILE_TRIGGER" = "true" ] && [ "$IS_VERSION_CHANGE" != "true" ]; then
             # 文件变更：支持复合 reason（如 dockerfile,rootfs）
             CHANGELOG_TAG=""
             IFS=',' read -ra REASONS <<< "$REASON"
@@ -255,7 +299,7 @@ jobs:
             else
               printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
-          elif [ "$REASON" = "version_changed" ]; then
+          elif [ "$IS_VERSION_CHANGE" = "true" ]; then
             if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
               # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
               CHANGELOG_CONTENT=$(curl -fsSL \
@@ -268,7 +312,7 @@ jobs:
                 if [ "$CHANGELOG_MODE" = "replace" ]; then
                   echo "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
                 else
-                  printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
+                  printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
                   cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
                   mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
                   rm -f temp_changelog.md combined.md
@@ -280,7 +324,7 @@ jobs:
                 if [ "$CHANGELOG_MODE" = "replace" ]; then
                   echo "$FILE_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
                 else
-                  printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$FILE_CONTENT" > temp_changelog.md
+                  printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$FILE_CONTENT" > temp_changelog.md
                   cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
                   mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
                   rm -f temp_changelog.md combined.md
@@ -296,10 +340,10 @@ jobs:
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
 
               if [ "$CHANGELOG_MODE" = "replace" ]; then
-                printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" > "${ADDON_DIR}/CHANGELOG.md"
+                printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$RELEASE_BODY" > "${ADDON_DIR}/CHANGELOG.md"
               else
                 # prepend: 新条目添加到开头
-                printf "### %s (%s)\n%s\n\n" "$VERSION" "$TIMESTAMP" "$RELEASE_BODY" > temp_changelog.md
+                printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$RELEASE_BODY" > temp_changelog.md
                 cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
                 mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
                 rm -f temp_changelog.md combined.md
@@ -313,7 +357,7 @@ jobs:
           yq eval ".tracking.file_sha = \"${CURRENT_SHA}\"" -i "$VERSION_FILE"
           yq eval ".tracking.build_num = ${BUILD_NUM}" -i "$VERSION_FILE"
           # version_changed 时更新版本号（清洁版本号，用于下次比较基准）
-          if [ "$REASON" = "version_changed" ]; then
+          if [ "$IS_VERSION_CHANGE" = "true" ]; then
             yq eval ".version = \"${VERSION}\"" -i "$VERSION_FILE"
           fi
           # 仅 debian-base 系 addon 更新 base_tag
@@ -330,7 +374,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add "${ADDON_DIR}/"
-            if [ "$IS_FILE_TRIGGER" = "true" ]; then
+            if [ "$IS_FILE_TRIGGER" = "true" ] && [ "$IS_VERSION_CHANGE" != "true" ]; then
               # 文件变更：支持复合 reason，生成可读标签
               COMMIT_LABEL=""
               IFS=',' read -ra REASONS <<< "$REASON"
