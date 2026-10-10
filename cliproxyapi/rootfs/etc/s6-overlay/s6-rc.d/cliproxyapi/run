@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# CLIProxyAPI 启动脚本 (S6 longrun)
+# ==============================================================================
+bashio::log.info "Starting CLIProxyAPI..."
+
+cd /CLIProxyAPI
+exec /CLIProxyAPI/cli-proxy-api -config /CLIProxyAPI/config.yaml

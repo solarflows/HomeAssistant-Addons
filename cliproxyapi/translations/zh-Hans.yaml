@@ -1,0 +1,20 @@
+---
+configuration:
+  MANAGEMENT_KEY:
+    name: 管理密钥
+    description: >-
+      管理 API 与管理面板登录密钥。留空则自动生成随机密钥
+      （保存于 /config/cliproxyapi/management_key.txt，并打印在日志中）。
+      仅在首次生成配置文件时生效。
+  PROXY_URL:
+    name: 代理地址
+    description: >-
+      可选的上游请求与管理面板下载代理，如 http://127.0.0.1:7890。
+      仅在首次生成配置文件时写入；之后可在管理面板中修改。
+network:
+  8317/tcp: API / 管理面板端口
+  1455/tcp: Codex OAuth 回调端口（默认关闭）
+  54545/tcp: Antigravity OAuth 回调端口（默认关闭）
+  8085/tcp: OAuth 回调端口（默认关闭）
+  51121/tcp: OAuth 回调端口（默认关闭）
+  11451/tcp: OAuth 回调端口（默认关闭）
