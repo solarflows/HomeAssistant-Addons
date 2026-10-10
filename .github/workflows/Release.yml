@@ -181,6 +181,8 @@ jobs:
             echo "COMMIT_EOF"
           } >> $GITHUB_OUTPUT
           echo "is_file_trigger=$IS_FILE_TRIGGER" >> $GITHUB_OUTPUT
+          # 跨步骤传递：每个 step 是独立 shell，判断标志必须导出为 step output
+          echo "is_version_change=$IS_VERSION_CHANGE" >> $GITHUB_OUTPUT
 
       - name: Prepare build args
         id: buildargs
@@ -239,6 +241,7 @@ jobs:
           BASE_TAG="${{ steps.prep.outputs.base_tag }}"
           BUILD_NUM="${{ steps.prep.outputs.build_num }}"
           IS_FILE_TRIGGER="${{ steps.prep.outputs.is_file_trigger || 'false' }}"
+          IS_VERSION_CHANGE="${{ steps.prep.outputs.is_version_change || 'false' }}"
           OLD_VERSION="${{ steps.prep.outputs.old_version || '' }}"
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
