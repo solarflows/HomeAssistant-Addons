@@ -1,7 +1,7 @@
 ---
 name: CLIProxyAPI + CPAMP for HA
 slug: cliproxyapi-cpamp
-version: "8.0.23-build.1"
+version: "8.0.23-1.14.5"
 image: ghcr.io/solarflows/cliproxyapi-cpamp
 description: "多账号 AI CLI 网关 + CPAMP 完整管理面板（请求监控/用量统计/成本分析/配额巡检）"
 url: https://github.com/seakee/CPA-Manager-Plus

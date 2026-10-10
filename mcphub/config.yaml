@@ -1,7 +1,7 @@
 ---
 name: MCPHub for HA
 slug: mcphub
-version: "1.1.2-build.1"
+version: "1.1.2"
 image: ghcr.io/solarflows/mcphub
 description: "MCP 网关与控制台：统一连接、管理与路由 MCP 服务器（认证/分组/Smart Routing/监控）"
 url: https://github.com/samanhappy/mcphub
