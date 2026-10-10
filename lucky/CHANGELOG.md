@@ -1,3 +1,7 @@
+### 2.27.2-build.32 (2026-10-10)
+CI 变更
+- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
+
 ### 2.27.2-build.31 (2026-10-10)
 CI 变更
 - chore(alist-tvbox): upstream 1.72.1 → 1.73.0
