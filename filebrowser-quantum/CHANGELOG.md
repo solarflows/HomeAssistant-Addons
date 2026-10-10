@@ -1,3 +1,7 @@
+### 2.0.0-stable-build.1 (2026-10-10)
+CI 变更
+- chore(filebrowser-quantum): upstream 1.5.8-stable → 2.0.0-stable
+
 ### 2.0.0-stable (2026-10-09)
 # Changelog
 
