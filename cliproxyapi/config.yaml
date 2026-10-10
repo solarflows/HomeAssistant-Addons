@@ -1,7 +1,7 @@
 ---
 name: CLIProxyAPI for HA
 slug: cliproxyapi
-version: "0.0.0-build.0"
+version: "8.0.23-build.1"
 image: ghcr.io/solarflows/cliproxyapi
 description: "多账号 AI CLI 网关：OpenAI/Gemini/Claude/Codex 兼容 API（内置 CPAMP 轻量管理面板）"
 url: https://github.com/router-for-me/CLIProxyAPI

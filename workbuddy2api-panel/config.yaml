@@ -1,7 +1,7 @@
 ---
 name: WorkBuddy2API Panel for HA
 slug: workbuddy2api-panel
-version: "0.0.0-build.0"
+version: "1.13.0-build.1"
 image: ghcr.io/solarflows/workbuddy2api-panel
 description: "腾讯 CodeBuddy/WorkBuddy 账号池 → OpenAI 兼容 API 网关（Web 管理面板 / 积分任务 / 多账号调度）"
 url: https://github.com/linguo2625469/workbuddy2api-panel
