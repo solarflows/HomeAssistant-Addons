@@ -1,3 +1,7 @@
+### 2.5.6-build.1 (2026-10-10)
+CI 变更
+- chore(uptime-kuma): upstream 2.5.5 → 2.5.6
+
 ### 2.5.6 (2026-10-09)
 ### 🐞 Bug Fixes
 - #7886 fix: use UptimeCalculator for avg-response badge endpoint 
