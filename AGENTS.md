@@ -18,7 +18,7 @@ Each addon normally contains `analysis.yaml`, `config.yaml`, `Dockerfile`, `vers
 
 The repository has no single project-wide test command. The normal local verification is targeted YAML parsing, shell syntax checks, a single-platform Docker build, and a cold-start smoke test against the image health endpoint. See [Validation](#validation).
 
-## Addons (9)
+## Addons (14)
 
 | slug | upstream | strategy | port | S6 |
 |---|---|---|---|---|
@@ -31,6 +31,11 @@ The repository has no single project-wide test command. The normal local verific
 | baihu-panel | engigu/baihu-panel | Go src build | 8052 | yes |
 | filebrowser-quantum | gtsteffaniak/filebrowser | binary download | 8080 | yes |
 | uptime-kuma | louislam/uptime-kuma | Node.js src build | 3001 | yes |
+| cliproxyapi | router-for-me/CLIProxyAPI | binary download (+CPAMP light panel) | 8317 | yes |
+| cliproxyapi-cpamp | same | binary download (+CPAMP manager server) | 8317, 18317 | yes |
+| mcphub | samanhappy/mcphub | upstream image | 3000 | no |
+| trawl | germondai/trawl | upstream image | 8191, 8192 | no |
+| workbuddy2api-panel | linguo2625469/workbuddy2api-panel | binary download | 7863 | yes |
 
 ### Version prefixes
 
@@ -44,12 +49,17 @@ The repository has no single project-wide test command. The normal local verific
 | baihu-panel | "v" | v1.1.21 | 1.1.21 |
 | filebrowser-quantum | "v" + transform | v1.4.0-stable | 1.4.0-stable |
 | uptime-kuma | "v" | v2.4.0 | 2.4.0 |
+| cliproxyapi | "v" | v8.0.23 | 8.0.23 |
+| cliproxyapi-cpamp | "v" | v8.0.23 | 8.0.23 |
+| mcphub | "v" | v1.1.2 | 1.1.2 |
+| trawl | "v" | v1.8.0 | 1.8.0 |
+| workbuddy2api-panel | "v" | v1.13.0 | 1.13.0 |
 
 ## Quick Reference
 - **Base**: `debian-base:9.3.0` (S6 built-in) | **Paths**: `/config` (persistent), `/share` (cross-addon), `/ssl` (certs)
 - **Build**: multi-stage source / upstream image adaptation / base+binary / base+JAR. Check the current Dockerfile before choosing a strategy.
 - **CI**: `Version_Check (6h cron) -> Release -> multi-arch build -> ghcr.io -> independent metadata commits`; details are in [fix-ci/SKILL.md](.github/skills/fix-ci/SKILL.md).
-- **Runtime**: S6 longruns must keep the application in the foreground and `exec` the real process. `flaresolverr` is the upstream-image exception and uses its own entrypoint.
+- **Runtime**: S6 longruns must keep the application in the foreground and `exec` the real process. `flaresolverr`, `mcphub`, and `trawl` are the upstream-image exceptions and use wrapped upstream entrypoints.
 - **Troubleshooting**: [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) is auto-loaded for Dockerfiles, Shell, `config.yaml`, and `version.yaml`.
 
 ## Runtime Boundaries
