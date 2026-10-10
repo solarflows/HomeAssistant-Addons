@@ -1,3 +1,7 @@
+### 1.112.0-build.1 (2026-10-10)
+CI 变更
+- chore(alist-tvbox): upstream 1.111.0 → 1.112.0
+
 ### 1.112.0 (2026-10-10)
 # Release Notes - 1.112.0
 
