@@ -1,3 +1,7 @@
+### 8.0.23-build.1 (2026-10-10)
+CI 变更
+- feat(addons): 为 6 个 addon 补充图标
+
 ### 8.0.23 (2026-10-10)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
