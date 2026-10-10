@@ -1,3 +1,10 @@
+### 2.0.0-stable-build.2 (2026-10-10)
+CI 变更
+- chore(filebrowser-quantum): upstream 1.5.8-stable → 2.0.0-stable
+- chore(filebrowser-quantum): upstream 1.5.7-stable → 1.5.8-stable
+- chore(filebrowser-quantum): upstream 1.5.6-stable → 1.5.7-stable
+- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
+
 ### 2.0.0-stable-build.1 (2026-10-10)
 CI 变更
 - chore(filebrowser-quantum): upstream 1.5.8-stable → 2.0.0-stable
