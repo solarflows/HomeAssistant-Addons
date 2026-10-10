@@ -1,3 +1,10 @@
+### 2.5.6-build.2 (2026-10-10)
+CI 变更
+- chore(uptime-kuma): upstream 2.5.5 → 2.5.6
+- chore(uptime-kuma): upstream 2.5.4 → 2.5.5
+- chore(uptime-kuma): upstream 2.5.3 → 2.5.4
+- chore(alist-tvbox-standalone): upstream 1.80.0 → 1.82.1
+
 ### 2.5.6-build.1 (2026-10-10)
 CI 变更
 - chore(uptime-kuma): upstream 2.5.5 → 2.5.6
