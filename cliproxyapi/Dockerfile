@@ -14,10 +14,6 @@ LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
 ARG TARGETARCH
-ARG CPA_VERSION
-ARG PANEL_VERSION
-RUN test -n "${CPA_VERSION}" || { echo "CPA_VERSION is required"; exit 1; }
-RUN test -n "${PANEL_VERSION}" || { echo "PANEL_VERSION is required"; exit 1; }
 
 # 运行时依赖: curl(健康检查/下载)
 RUN apt-get update \
@@ -26,22 +22,31 @@ RUN apt-get update \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# 下载 CPA 二进制（默认 Linux 构建：支持动态插件，GLIBC 2.17 基线）
-# + CPAMP 管理面板种子文件（断网首启可用）
-RUN ARCH=$(case "${TARGETARCH}" in \
+# ---- 层1: CPAMP 管理面板种子（仅 PANEL_VERSION 变更时重建此层）----
+# 单文件 management.html，断网首启可用；运行时由 CPA 的
+# panel-github-repository 机制自动更新。
+ARG PANEL_VERSION
+RUN test -n "${PANEL_VERSION}" || { echo "PANEL_VERSION is required"; exit 1; } \
+    && mkdir -p /opt/cliproxyapi-seed \
+    && PANEL_URL="https://github.com/seakee/CPA-Manager-Plus/releases/download/v${PANEL_VERSION}/management.html" \
+    && echo "Downloading CPAMP panel from: ${PANEL_URL}" \
+    && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html
+
+# ---- 层2: CPA 二进制（CPA_VERSION 变更频繁，放最后：上游发版仅重建此层及之后）----
+# 默认 Linux 构建：支持动态插件，GLIBC 2.17 基线
+ARG CPA_VERSION
+RUN test -n "${CPA_VERSION}" || { echo "CPA_VERSION is required"; exit 1; } \
+    && ARCH=$(case "${TARGETARCH}" in \
         amd64) echo "amd64" ;; \
         arm64) echo "aarch64" ;; \
         *) echo "${TARGETARCH}" ;; \
     esac) \
-    && mkdir -p /CLIProxyAPI /opt/cliproxyapi-seed \
+    && mkdir -p /CLIProxyAPI \
     && CPA_URL="https://github.com/router-for-me/CLIProxyAPI/releases/download/v${CPA_VERSION}/CLIProxyAPI_${CPA_VERSION}_linux_${ARCH}.tar.gz" \
     && echo "Downloading CLIProxyAPI from: ${CPA_URL}" \
     && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${CPA_URL}" -o /tmp/cpa.tar.gz \
     && tar -xzf /tmp/cpa.tar.gz -C /CLIProxyAPI \
     && chmod +x /CLIProxyAPI/cli-proxy-api \
-    && PANEL_URL="https://github.com/seakee/CPA-Manager-Plus/releases/download/v${PANEL_VERSION}/management.html" \
-    && echo "Downloading CPAMP panel from: ${PANEL_URL}" \
-    && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
     && rm -rf /tmp/*
 
 # 复制 HA rootfs (S6 overlay)

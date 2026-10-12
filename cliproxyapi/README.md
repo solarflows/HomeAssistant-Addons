@@ -28,7 +28,7 @@
 ## 快速开始
 
 1. 启动加载项，打开 Web UI（`http://<你的HA>:8317/management.html`）。
-2. 用**管理密钥**登录：首次启动日志中会打印，或查看 `/config/cliproxyapi/management_key.txt`。
+2. 用**管理密钥**登录：未配置选项时首启自动生成（日志打印一次、自动回填到加载项选项），或查看 `/config/cliproxyapi/management_key.txt`。
 3. 在面板中 OAuth 登录 / 添加账号，并创建客户端 API Key。
 4. 客户端把 API 地址指向 `http://<你的HA>:8317/v1` 即可。
 
@@ -36,8 +36,8 @@
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `MANAGEMENT_KEY` | 空 | 管理密钥；留空自动生成（仅首次生成配置时生效） |
-| `PROXY_URL` | 空 | 上游请求代理（仅首次生成配置时生效） |
+| `MANAGEMENT_KEY` | 空 | 管理密钥；留空自动生成并回填到本选项。修改后重启即生效 |
+| `PROXY_URL` | 空 | 上游请求代理。修改后重启即回写；清空交由面板管理 |
 
 ## 与完整版（cliproxyapi-cpamp）的区别
 

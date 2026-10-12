@@ -21,7 +21,7 @@ CLIProxyAPI（下称 CPA）把各 AI 厂商的 **CLI/OAuth 账号**（Gemini CLI
 1. 启动加载项（首次启动约需数十秒完成初始化）。
 2. 打开 Web UI：`http://<你的HA地址>:8317/management.html`。
 3. 使用**管理密钥**登录面板：
-   - 未配置 `MANAGEMENT_KEY` 选项时，首次启动会生成随机密钥，可在**加载项日志**中看到一次，并始终保存于 `/config/cliproxyapi/management_key.txt`；
+   - 未配置 `MANAGEMENT_KEY` 选项时，首次启动会生成随机密钥，在**加载项日志**中打印一次，并自动**回填到加载项选项**（配置界面可见）；同时保存于 `/config/cliproxyapi/management_key.txt`；
    - 也可以在启动前于加载项配置中预设 `MANAGEMENT_KEY`。
 4. 在面板的 **Accounts / OAuth** 页面添加账号（OAuth 登录或导入凭据文件）。
 5. 在 **Configuration / Access** 中把示例占位 API Key（`your-api-key-1`）替换为你的真实客户端密钥。
@@ -53,10 +53,15 @@ OAuth 登录（如 Codex、Antigravity）在部分流程中需要浏览器回调
 
 | 配置项 | 说明 |
 |---|---|
-| `MANAGEMENT_KEY` | 管理 API 与管理面板登录密钥。留空自动生成。**仅首次生成配置文件时写入**，之后请直接在面板或 `/config/cliproxyapi/config.yaml` 中修改 |
-| `PROXY_URL` | 可选。出口代理（HTTP/SOCKS5），用于上游请求与管理面板/发布文件下载；仅在首次生成配置时写入 |
+| `MANAGEMENT_KEY` | 管理 API 与管理面板登录密钥。留空则首启自动生成（打印在日志、回填到本选项、保存于 `management_key.txt`）。**修改本选项并重启即生效**（回写 `management.secret-key`）；留空表示交由管理面板管理 |
+| `PROXY_URL` | 可选。出口代理（HTTP/SOCKS5），用于上游请求与管理面板/发布文件下载。**修改后重启即回写** `requests.proxy-url`；清空则交由面板管理（不会移除已写入的代理） |
 
-> 配置采用 **seed-once** 语义：首次启动后，`/config/cliproxyapi/config.yaml` 完全由你与面板接管，加载项重启不会覆盖它。
+> **选项与配置的同步语义**（seed-once + 选项回写）：
+> - 首次启动生成配置文件时写入选项值（或生成的随机密钥）；
+> - 之后**选项值发生变更**（与上次不同且非空）时，启动过程会把新值回写进 `config.yaml`；
+> - 选项为空 = 不管理该字段，面板中的修改不会被覆盖；
+> - 在面板中改掉的值不会被**未变更**的选项覆盖（仅选项"变更"才回写）；
+> - 回写 `MANAGEMENT_KEY` 后，CPA 启动时会自动把明文哈希化，属正常行为。
 
 ## 6. 管理面板及其更新机制
 
@@ -78,6 +83,7 @@ OAuth 登录（如 Codex、Antigravity）在部分流程中需要浏览器回调
 | `/config/cliproxyapi/config.yaml` | 主配置 | ✅ |
 | `/config/cliproxyapi/auths/` | OAuth 凭据（refresh token 等） | ✅ |
 | `/config/cliproxyapi/management_key.txt` | 管理密钥明文副本 | ✅ |
+| `/config/cliproxyapi/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
 | `/data/cliproxyapi/logs` | 文件日志（默认关闭，输出到加载项日志） | ❌ |
 | `/data/cliproxyapi/plugins` | 插件（默认未启用） | ❌ |
 | `/data/cliproxyapi/static` | 管理面板缓存 | ❌ |

@@ -4,13 +4,17 @@ configuration:
     name: Management Key
     description: >-
       Key for the management API and panel login. Leave empty to auto-generate
-      one (stored at /config/cliproxyapi/management_key.txt and printed in the log).
-      Applied only when the config file is first created.
+      one on first start (printed in the log, stored at
+      /config/cliproxyapi/management_key.txt, and backfilled into this option).
+      Change this option and restart to apply; leave empty to manage the key
+      in the panel.
   PROXY_URL:
     name: Proxy URL
     description: >-
       Optional HTTP/SOCKS5 proxy for upstream requests and panel downloads,
-      e.g. http://127.0.0.1:7890. Seed value only; editable later in the panel.
+      e.g. http://127.0.0.1:7890. Changing it and restarting rewrites the
+      config; clearing it hands control back to the panel (an already written
+      proxy is not removed).
 network:
   8317/tcp: API / management panel port
   1455/tcp: Codex OAuth callback port (disabled by default)
