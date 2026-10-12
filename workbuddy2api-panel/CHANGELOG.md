@@ -1,3 +1,7 @@
+### 1.13.0-build.2 (2026-10-12)
+rootfs 变更
+- fix(workbuddy2api-panel): 支持 API_KEY 选项回填并等待配置生成
+
 ### 1.13.0-build.1 (2026-10-10)
 CI 变更
 - feat(addons): 为 6 个 addon 补充图标
