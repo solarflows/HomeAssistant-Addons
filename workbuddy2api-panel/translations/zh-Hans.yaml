@@ -3,9 +3,10 @@ configuration:
   API_KEY:
     name: 网关密钥
     description: >-
-      网关 API 与面板登录密钥。留空则自动生成随机密钥
-      （保存于 /config/workbuddy2api-panel/api_key.txt，并打印在日志中）。
-      仅在首次生成配置文件时生效。
+      网关 API 与面板登录密钥。留空则首次启动自动生成随机密钥
+      （打印在日志中、保存于 /config/workbuddy2api-panel/api_key.txt，
+      并自动回填到本选项）。修改本选项并重启即可生效；
+      留空表示交由面板管理。
   TZ:
     name: 时区
     description: >-

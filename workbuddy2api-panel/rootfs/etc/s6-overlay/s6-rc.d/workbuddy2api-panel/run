@@ -9,5 +9,15 @@ bashio::log.info "Starting WorkBuddy2API Panel..."
 
 export TZ="$(bashio::config 'TZ' 'Asia/Shanghai')"
 
+# 等待 cont-init 生成配置文件：S6 stage2 hook 拉起用户服务的时机可能早于
+# legacy-cont-init（00-init.sh），首次启动存在竞态；最多等 30 秒。
+for _ in $(seq 1 30); do
+    [ -f /config/workbuddy2api-panel/config.json ] && break
+    sleep 1
+done
+if [ ! -f /config/workbuddy2api-panel/config.json ]; then
+    bashio::log.warning "config.json 仍未生成（cont-init 可能失败），继续启动以暴露错误"
+fi
+
 cd /app
 exec /usr/local/bin/wb2api -config /config/workbuddy2api-panel/config.json

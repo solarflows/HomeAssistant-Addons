@@ -29,7 +29,7 @@
 2. 打开面板：`http://<你的HA>:7863/panel/`。
 3. 用**网关密钥**登录（`api_key`）：
    - 设置了 `API_KEY` 选项 → 使用该值；
-   - 未设置 → 随机生成，日志打印一次，且保存于 `/config/workbuddy2api-panel/api_key.txt`。
+   - 未设置 → 首启随机生成，日志打印一次，自动**回填到加载项选项**，且保存于 `/config/workbuddy2api-panel/api_key.txt`。
 4. 面板「添加账号」→ 按提示完成 OAuth 登录（浏览器内）→ 凭证自动落盘、热加载进池。
 5. 客户端配置：
    ```
@@ -49,8 +49,10 @@
 
 | 配置项 | 说明 |
 |---|---|
-| `API_KEY` | 网关密钥；留空自动生成。**仅首次生成配置时写入**（seed-once），之后请在面板「配置」页修改 |
+| `API_KEY` | 网关密钥；留空则首启自动生成（打印在日志、回填到本选项、保存于 `api_key.txt`）。**修改本选项并重启即生效**（回写 `config.json` 的 `api_key`）；留空表示交由面板管理 |
 | `TZ` | 容器时区，决定签到（9/21 点）、活跃（10 点）、保活（22 点）等定时任务的执行时刻 |
+
+> **选项与配置的同步语义**（seed-once + 选项回写）：首次启动生成配置时写入选项值（或生成的随机密钥）；之后**选项值变更**（与上次不同且非空）时启动过程会回写 `config.json`；选项为空 = 交由面板管理；面板中改掉的值不会被**未变更**的选项覆盖。
 
 > 面板保存配置采用深合并 + 原子替换；涉及进程装配期的字段（如 `listen`）保存后会提示需重启加载项。
 
@@ -61,6 +63,7 @@
 | `/config/workbuddy2api-panel/config.json` | 主配置 | ✅ |
 | `/config/workbuddy2api-panel/auths/` | 账号凭据（明文 token） | ✅ |
 | `/config/workbuddy2api-panel/api_key.txt` | 网关密钥副本 | ✅ |
+| `/config/workbuddy2api-panel/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
 | `/config/workbuddy2api-panel/config.example.json` | 上游示例配置（参考用） | ✅ |
 | `/data/workbuddy2api-panel/data/` | state.json 池状态、请求归档（默认 7 天 / 100MB 上限） | ❌ |
 
