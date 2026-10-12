@@ -1,3 +1,7 @@
+### 8.0.24-build.1 (2026-10-12)
+Dockerfile + rootfs 变更
+（本次构建无代码变更）
+
 ### 8.0.24 (2026-10-12)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
