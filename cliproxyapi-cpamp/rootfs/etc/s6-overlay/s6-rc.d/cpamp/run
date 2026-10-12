@@ -5,8 +5,8 @@
 # ==============================================================================
 # 说明:
 #   与 CLIProxyAPI 同容器运行，通过 loopback 连接 CPA (:8317)。
-#   - CPA 管理密钥: 由 00-init.sh 首启写入 management_key.txt，此处注入用于自动连接
-#   - CPAMP 管理员密钥: 选项 > 持久化文件 > 随机生成（写入 cpamp_admin_key.txt 并打印一次）
+#   - CPA 管理密钥 / CPAMP 管理员密钥均由 00-init.sh 准备（生成 + 回填 HA 选项），
+#     此处仅读取注入；S6 服务拉起与 cont-init 存在启动竞态，先等待文件就绪。
 # ==============================================================================
 set -e
 
@@ -18,25 +18,31 @@ export USAGE_DB_PATH="/config/cliproxyapi-cpamp/cpamp/usage.sqlite"
 export CPA_MANAGER_DATA_KEY_PATH="/config/cliproxyapi-cpamp/cpamp/data.key"
 export USAGE_COLLECTOR_MODE="auto"
 
+# 等待 cont-init 写出密钥文件（最多 30 秒；超时则以未连接/未设置状态继续）
+for _ in $(seq 1 30); do
+    [ -s /config/cliproxyapi-cpamp/management_key.txt ] \
+        && [ -s /config/cliproxyapi-cpamp/cpamp_admin_key.txt ] \
+        && break
+    sleep 1
+done
+
 # CPA 连接（同容器 loopback；无密钥时留待面板首次设置）
 export CPA_UPSTREAM_URL="http://127.0.0.1:8317"
 if [ -s /config/cliproxyapi-cpamp/management_key.txt ]; then
     CPA_MANAGEMENT_KEY="$(cat /config/cliproxyapi-cpamp/management_key.txt)"
     export CPA_MANAGEMENT_KEY
+else
+    bashio::log.warning "management_key.txt 不存在，CPAMP 将以未连接状态启动（可在面板中手动配置）"
 fi
 
-# CPAMP 管理员密钥：选项 > 持久化文件 > 随机生成
+# CPAMP 管理员密钥：选项 > 持久化文件（均由 00-init.sh 维护）
 ADMIN_KEY=$(bashio::config 'CPAMP_ADMIN_KEY' '')
 KEY_FILE="/config/cliproxyapi-cpamp/cpamp_admin_key.txt"
 if [ -z "${ADMIN_KEY}" ] && [ -s "${KEY_FILE}" ]; then
     ADMIN_KEY="$(cat "${KEY_FILE}")"
 fi
 if [ -z "${ADMIN_KEY}" ]; then
-    ADMIN_KEY="cpamp_$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-    printf '%s' "${ADMIN_KEY}" > "${KEY_FILE}"
-    chmod 600 "${KEY_FILE}"
-    bashio::log.warning "已生成 CPAMP 管理员密钥: ${ADMIN_KEY}"
-    bashio::log.warning "该密钥同时保存于 ${KEY_FILE}（完整面板登录使用，请妥善保存）"
+    bashio::log.warning "CPAMP 管理员密钥缺失（选项与文件均为空），将由 CPAMP 自行生成（见其日志）"
 fi
 export CPA_MANAGER_ADMIN_KEY="${ADMIN_KEY}"
 

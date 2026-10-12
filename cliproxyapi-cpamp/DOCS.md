@@ -29,10 +29,11 @@
 
 1. 启动加载项（首次启动约需数十秒完成初始化）。
 2. 打开**完整面板** `:18317/management.html`，使用 CPAMP 管理员密钥登录：
-   - 未配置 `CPAMP_ADMIN_KEY` 选项时，首次启动自动生成并打印在加载项日志中一次；
-   - 同样保存于 `/config/cliproxyapi-cpamp/cpamp_admin_key.txt`。
+   - 未配置 `CPAMP_ADMIN_KEY` 选项时，首次启动自动生成，在加载项日志中打印一次，并自动**回填到加载项选项**；
+   - 同时保存于 `/config/cliproxyapi-cpamp/cpamp_admin_key.txt`。
    - **CPA 连接（URL 与 CPA 管理密钥）已预配置**，无需在首次设置中手工填写。
-3. 打开**轻量面板** `:8317/management.html`，使用**管理密钥**登录（日志中打印或见 `/config/cliproxyapi-cpamp/management_key.txt`）。
+3. 打开**轻量面板** `:8317/management.html`，使用**管理密钥**登录：
+   - 未配置 `MANAGEMENT_KEY` 选项时，首启自动生成（日志打印一次、回填到选项），或见 `/config/cliproxyapi-cpamp/management_key.txt`。
 4. 在任一面板的 Accounts / OAuth 页面添加账号；在 Configuration / Access 中把占位 API Key（`your-api-key-1`）替换为真实客户端密钥。
 5. 产生一次模型请求后，完整面板的监控/用量页即开始有数据。
 
@@ -59,11 +60,16 @@
 
 | 配置项 | 说明 |
 |---|---|
-| `MANAGEMENT_KEY` | 管理 API 与轻量面板登录密钥。留空自动生成。**仅首次生成配置文件时写入** |
-| `CPAMP_ADMIN_KEY` | CPAMP 完整面板登录密钥。留空自动生成；之后修改此项并重启即可生效 |
-| `PROXY_URL` | 可选。出口代理（HTTP/SOCKS5），用于上游请求与管理面板/发布文件下载；仅首次生成配置时写入 |
+| `MANAGEMENT_KEY` | 管理 API 与轻量面板登录密钥。留空则首启自动生成（打印在日志、回填到本选项、保存于 `management_key.txt`）。**修改本选项并重启即生效**（回写 `management.secret-key`）；留空表示交由管理面板管理 |
+| `CPAMP_ADMIN_KEY` | CPAMP 完整面板登录密钥。留空则首启自动生成（打印在日志、回填到本选项、保存于 `cpamp_admin_key.txt`）。**修改本选项并重启即生效**（每次启动按"选项 > 文件"取值） |
+| `PROXY_URL` | 可选。出口代理（HTTP/SOCKS5）。**修改后重启即回写** `requests.proxy-url`；清空则交由面板管理（不会移除已写入的代理） |
 
-> CPA 主配置采用 **seed-once** 语义：首次启动后 `/config/cliproxyapi-cpamp/config.yaml` 完全由你与面板接管。
+> **选项与配置的同步语义**（seed-once + 选项回写）：
+> - 首次启动生成配置文件时写入选项值（或生成的随机密钥）；
+> - 之后**选项值发生变更**（与上次不同且非空）时，启动过程会把新值回写进 `config.yaml`；
+> - 选项为空 = 不管理该字段，面板中的修改不会被覆盖；
+> - 在面板中改掉的值不会被**未变更**的选项覆盖（仅选项"变更"才回写）；
+> - 回写 `MANAGEMENT_KEY` 后，CPA 启动时会自动把明文哈希化，属正常行为。
 
 ## 6. 监控与用量（完整版独有）
 
@@ -80,6 +86,7 @@
 | `/config/cliproxyapi-cpamp/auths/` | OAuth 凭据（refresh token 等） | ✅ |
 | `/config/cliproxyapi-cpamp/management_key.txt` | CPA 管理密钥明文副本 | ✅ |
 | `/config/cliproxyapi-cpamp/cpamp_admin_key.txt` | CPAMP 管理员密钥副本 | ✅ |
+| `/config/cliproxyapi-cpamp/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
 | `/config/cliproxyapi-cpamp/cpamp/usage.sqlite` | 请求历史与用量 | ✅ |
 | `/config/cliproxyapi-cpamp/cpamp/data.key` | 数据加密密钥（解密库内 CPA 密钥） | ✅ |
 | `/data/cliproxyapi-cpamp/{logs,plugins,static}` | 日志 / 插件 / 面板缓存 | ❌ |
