@@ -1,3 +1,7 @@
+### 1.13.0-build.3 (2026-10-12)
+rootfs 变更
+（本次构建无代码变更）
+
 ### 1.13.0-build.2 (2026-10-12)
 rootfs 变更
 - fix(workbuddy2api-panel): 支持 API_KEY 选项回填并等待配置生成
