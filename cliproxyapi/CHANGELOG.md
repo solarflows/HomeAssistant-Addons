@@ -1,3 +1,33 @@
+### 8.0.26 (2026-10-12)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- test(claude): pin executor clock in tool_search disabled golden (77cf88b0)
+- fix(executor): preserve websocket sessions across reload and auth removal (1e37b52b)
+- feat(server): support max-request-body-bytes request body limit (dd7b4334)
+- feat(auth): enhance plugin auth handling with multi-auth support and improved state management (fdbc6103)
+- Merge pull request #6548 from gracjankubicki/fix/tool-search-golden-date (a27799ec)
+
+
+## What's Changed
+* test(claude): pin executor clock in tool_search disabled golden by @gracjankubicki in https://github.com/router-for-me/CLIProxyAPI/pull/6548
+
+## New Contributors
+* @gracjankubicki made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6548
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.25...v8.0.26
+
 ### 8.0.24-build.1 (2026-10-12)
 Dockerfile + rootfs 变更
 （本次构建无代码变更）
