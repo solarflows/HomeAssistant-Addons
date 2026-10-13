@@ -1,3 +1,30 @@
+### 8.0.27 (2026-10-13)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(streaming): support send-keepalive-before-ft option (519d590e)
+- Merge pull request #6557 from devbymak/docs/add-sub2api (bf934162)
+
+
+## What's Changed
+* docs: add sub2api to "Who is with us?" by @devbymak in https://github.com/router-for-me/CLIProxyAPI/pull/6557
+
+## New Contributors
+* @devbymak made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6557
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.26...v8.0.27
+
 ### 8.0.26 (2026-10-12)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
