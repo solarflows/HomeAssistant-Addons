@@ -1,3 +1,34 @@
+### 8.0.29-1.14.5 (2026-10-14)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(registry): add gemini-3.8 model variants and update test cases (a19a8ecd)
+- feat(claude): ensure unique tool use IDs across turns in Gemini response translator (58257007)
+- feat(gemini): treat MALFORMED_FUNCTION_CALL as retryable API error in Claude translation (7f2f17d7)
+- fix(antigravity): correct token usage calculations for cached tokens in Gemini responses (912a038b)
+- feat(registry): add muse-wonder-full-1.0 model variants and update context limits (f9ac397b)
+- fix(antigravity): raise fallback client version to 2.23.0 (8fb633c9)
+- feat(pluginapi): expose config field defaults (50eaed0d)
+- feat(claude): add timeout and retry logic for silent TLS handshakes (345cc9d5)
+- refactor(config): move tls-handshake-timeout-seconds to root request configuration (b3dc6c3f)
+- feat(antigravity): flatten multi-branch tool unions for Claude model requests (5efe9758)
+- fix(cliproxy): add model registration fencings and epoch-checked publications to prevent superseded updates (08e5762a)
+- feat(watcher): add file removal tracking and single-file auth snapshotting for robust deletion reconciliation (5fc580b1)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.28...v8.0.29
+
 ### 8.0.28-1.14.5 (2026-10-14)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
