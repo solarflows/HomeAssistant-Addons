@@ -1,3 +1,52 @@
+### 1.1.4 (2026-10-15)
+## Summary
+
+v1.1.4 expands personal upstream authentication with independent OAuth connections and credential slots in stdio arguments. It also improves OAuth discovery, aggregate tool routing, and Windows compatibility.
+
+## Features
+
+- Support personal upstream OAuth bindings, with per-user authorization and dashboard connection controls. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1318
+- Support personal credential slots in stdio arguments using explicit `{{args.API_KEY}}` placeholders. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1313
+
+## Fixes
+
+- Publish path-aware OAuth protected-resource metadata and matching authentication challenges. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1322
+- Preserve aggregate tool naming and routing for OpenAPI and personal upstreams in Apps-capable clients. by @zhiwei-dong in https://github.com/samanhappy/mcphub/pull/1320
+- Fix MCPB uploads on Windows by keeping the rename destination absent. by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1314
+- Fix Windows path matching in the Jest transform for `jose`. by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1315
+
+## 摘要
+
+v1.1.4 扩展了上游服务的个人身份认证能力，支持独立的 OAuth 连接和 stdio 参数中的个人凭据槽位，同时改进 OAuth 服务发现、聚合工具路由和 Windows 兼容性。
+
+## 功能
+
+- 支持个人上游 OAuth 绑定，提供逐用户独立授权和仪表盘连接管理。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1318
+- 支持通过显式 `{{args.API_KEY}}` 占位符在 stdio 参数中使用个人凭据槽位。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1313
+
+## 修复
+
+- 发布与端点路径对应的 OAuth 受保护资源元数据及匹配的认证质询。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1322
+- 修复支持 Apps 的客户端中 OpenAPI 和个人上游的聚合工具命名与路由。by @zhiwei-dong in https://github.com/samanhappy/mcphub/pull/1320
+- 确保重命名目标目录不存在，修复 Windows 上的 MCPB 上传失败。by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1314
+- 修复 Jest 对 `jose` 的转换规则在 Windows 上的路径匹配。by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1315
+
+## New Contributors
+
+- @zhiwei-dong made their first contribution in #1320
+- @remote-controlled-man made their first contribution in #1315
+
+## References
+
+- fix: publish path-aware OAuth protected resource metadata by @samanhappy in https://github.com/samanhappy/mcphub/pull/1322
+- fix(apps): preserve aggregate routing for OpenAPI and personal upstreams by @zhiwei-dong in https://github.com/samanhappy/mcphub/pull/1320
+- feat: support personal upstream OAuth bindings by @samanhappy in https://github.com/samanhappy/mcphub/pull/1318
+- fix(test): match jose transform paths on Windows by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1315
+- fix(mcpb): keep upload rename destination absent on Windows by @remote-controlled-man in https://github.com/samanhappy/mcphub/pull/1314
+- feat: support personal credential slots in stdio args by @samanhappy in https://github.com/samanhappy/mcphub/pull/1313
+- docs: add GitHub Sponsors button to READMEs by @samanhappy in https://github.com/samanhappy/mcphub/pull/1308
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.3...v1.1.4
+
 ### 1.1.3 (2026-10-11)
 ## Summary
 
