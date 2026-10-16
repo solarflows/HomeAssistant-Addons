@@ -1,3 +1,25 @@
+### 8.0.31 (2026-10-16)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(claude): pin validated request body per-stream in OpenAI Responses translation (7a511e4d)
+- feat(management): add optimistic concurrency control with ETag and If-Match to v8 config endpoints (fa68946a)
+- feat(pluginhost): add content-addressed shadow copies for dynamic library loading (355fd10e)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.30...v8.0.31
+
 ### 8.0.30 (2026-10-15)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
