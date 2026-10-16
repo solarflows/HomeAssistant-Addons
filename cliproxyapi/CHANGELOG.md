@@ -1,3 +1,28 @@
+### 8.0.32 (2026-10-16)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(docs): add kedaya.ai as a new AI model API relay service provider in README files (e7003d2a)
+- feat(claude): clean and normalize Claude tool arguments against original schemas (202b8b8c)
+- feat(claude): add session date pin retention to preserve continuity across credential switches (7604d3df)
+- test(meta): handle client disconnect gracefully after terminal stream events (088e4457)
+- feat(devin): add account-wide quota exhaustion tracking and credential cooldown refresh (b946d54e)
+- feat(claude): add automatic thinking block binding and beta policy for preserved-thinking models (911f49cb)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.31...v8.0.32
+
 ### 8.0.31 (2026-10-16)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
