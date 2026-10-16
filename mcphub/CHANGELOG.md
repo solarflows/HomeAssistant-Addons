@@ -1,3 +1,42 @@
+### 1.1.5 (2026-10-16)
+## Summary
+
+MCPHub v1.1.5 adds Spanish localization and improves API validation and tool-list synchronization. Server-list requests with non-numeric pagination parameters now return HTTP 400, and clients are notified when a server is removed from a group so they can refresh the available tools.
+
+## Features
+
+- Add Spanish (es) localization to the interface, with Español available in the language menu. by @arioko in https://github.com/samanhappy/mcphub/pull/1328
+
+## Fixes
+
+- Return HTTP 400 for non-numeric page or limit parameters in server-list requests. by @pacocartones in https://github.com/samanhappy/mcphub/pull/1325
+- Notify tool listeners when a server is removed from a group, allowing connected clients to refresh their tool lists. by @pacocartones in https://github.com/samanhappy/mcphub/pull/1324
+
+## 摘要
+
+MCPHub v1.1.5 新增西班牙语界面，并改进 API 参数校验与工具列表同步。服务器列表请求中的分页参数为非数字时，现在会返回 HTTP 400；从分组移除服务器后，也会通知已连接的客户端刷新可用工具。
+
+## 功能
+
+- 新增西班牙语（es）界面，可在语言菜单中选择 Español。 by @arioko in https://github.com/samanhappy/mcphub/pull/1328
+
+## 修复
+
+- 当服务器列表请求的 page 或 limit 参数为非数字时，返回 HTTP 400。 by @pacocartones in https://github.com/samanhappy/mcphub/pull/1325
+- 从分组移除服务器后通知工具监听器，使已连接的客户端能够刷新工具列表。 by @pacocartones in https://github.com/samanhappy/mcphub/pull/1324
+
+## New Contributors
+
+- @pacocartones made their first contribution in #1325
+- @arioko made their first contribution in #1328
+
+## References
+
+- feat: add Spanish (es) localization by @arioko in https://github.com/samanhappy/mcphub/pull/1328
+- fix(servers): answer 400 for a non-numeric page or limit on the server list by @pacocartones in https://github.com/samanhappy/mcphub/pull/1325
+- fix(groups): notify tool listeners when a server is removed from a group by @pacocartones in https://github.com/samanhappy/mcphub/pull/1324
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.4...v1.1.5
+
 ### 1.1.4 (2026-10-15)
 ## Summary
 
