@@ -1,3 +1,43 @@
+### 1.1.6 (2026-10-18)
+## Summary
+
+This release adds configurable Smart Routing paths while preserving existing `$smart` URLs. It also aligns Marketplace installation options with user permissions, fixes credential-slot saves when only the default shared OAuth identity is present, and improves Bearer authentication compatibility and update-check cache configuration handling.
+
+## Features
+
+- Configure Smart Routing endpoints with `SMART_ROUTING_PATH`; existing `$smart` URLs remain supported.
+
+## Fixes
+
+- Disable local command installations for non-admin users in Marketplace and Registry, with an explanation, while keeping supported remote installations available.
+- Allow credential slots when OAuth contains only the default shared identity setting, and preserve credential bindings when renaming affected legacy servers.
+- Accept the Bearer authentication scheme case-insensitively.
+- Treat an empty update-check cache TTL as unset.
+
+## 摘要
+
+本版本支持自定义智能路由路径，并继续兼容现有 `$smart` URL。同时，让市场安装选项与用户权限保持一致，修复仅存在默认共享 OAuth 身份设置时凭据槽无法保存的问题，并改进 Bearer 认证兼容性和更新检查缓存配置处理。
+
+## 功能
+
+- 通过 `SMART_ROUTING_PATH` 自定义智能路由端点，继续支持现有 `$smart` URL。
+
+## 修复
+
+- 在市场和注册表中为非管理员禁用本地命令安装并显示原因，保留受支持的远程安装。
+- OAuth 仅包含默认共享身份设置时允许使用凭据槽，并在重命名受影响的旧服务器配置时保留凭据绑定。
+- Bearer 认证方案名称支持大小写不敏感匹配。
+- 将空的更新检查缓存 TTL 视为未设置。
+
+## References
+
+- fix(changelog): treat an empty update-check cache TTL as unset by @pacocartones in https://github.com/samanhappy/mcphub/pull/1338
+- fix(auth): accept the Bearer scheme case-insensitively by @pacocartones in https://github.com/samanhappy/mcphub/pull/1337
+- fix: allow credential slots with default shared OAuth identity by @samanhappy in https://github.com/samanhappy/mcphub/pull/1335
+- feat: support configurable smart routing paths by @samanhappy in https://github.com/samanhappy/mcphub/pull/1331
+- fix: align marketplace installs with server permissions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1330
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.5...v1.1.6
+
 ### 1.1.5 (2026-10-16)
 ## Summary
 
