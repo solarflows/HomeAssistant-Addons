@@ -1,7 +1,7 @@
 # cliproxyapi 版本检查配置
 # 主版本跟踪: router-for-me/CLIProxyAPI releases (tag_prefix "v")
 # PANEL_VERSION: CPAMP 轻量面板版本（手动更新，不参与自动跟踪）
-version: "8.0.32"
+version: "8.0.33"
 source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
@@ -12,5 +12,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.0"
-  file_sha: "72f083da4a7e326e42782d2a32c4735d7ad5cd38"
+  file_sha: "ae9d558a870da0b7d24586bbae43cbf6966552ed"
   build_num: 0
