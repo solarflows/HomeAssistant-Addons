@@ -1,5 +1,5 @@
 # trawl 版本检查配置
-version: "1.8.0"
+version: "1.9.0"
 source: github
 repo: germondai/trawl
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "b08a7f6a0817b6163226b2f66cd384f5bb5194d3"
-  build_num: 1
+  file_sha: "c6b72883aa80db5b885332690ffc897e0435de2a"
+  build_num: 0

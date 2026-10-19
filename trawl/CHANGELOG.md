@@ -1,3 +1,28 @@
+### 1.9.0 (2026-10-19)
+## Highlights
+
+- **Faster repeat requests:** reuse browser-verified Cloudflare and Anubis clearance over HTTP without another browser navigation. Every request still fetches fresh content, with browser fallback when clearance is rejected.
+- **Less unnecessary browser work:** reduce repeated challenge checks, overlap supported widget verification with page settling, and improve Cloudflare, Turnstile, GeeTest and Anubis flows.
+- **More reliable page delivery:** preserve delayed JavaScript content, avoid passive reCAPTCHA v3 false positives, and keep cached sessions bound to their proxy.
+- **More control:** configure the default scrape deadline, choose whether to solve embedded widgets, or opt into Firefox TLS/HTTP2 impersonation while keeping Bun fetch as the default.
+- **Refreshed release stack:** compatible dependency updates, updated standard and baseline images, and clearer deployment and performance documentation.
+
+## Major changes
+
+- fc1aa5f and e11ad5a add automatic Cloudflare and Anubis HTTP clearance reuse. 03eb092 extends replay to other direct sessions only for a verified URL and matching document content, and avoids repeated HTTP attempts for known JavaScript shells (#222, #229).
+- 68b1701, 6d02547 and ba420c7 reduce unnecessary challenge waits, overlap widget verification with page settling and streamline GeeTest drags. f1f34bc preserves delayed JavaScript content (#222).
+- e100e2d and 8519904 separate page delivery from optional embedded CAPTCHA completion. FlareSolverr-compatible /v1 requests prioritize page content; native and MCP scraping expose solveEmbeddedCaptchas (#222).
+- 7c93b84 and 9c9ecb2 bound Cloudflare recovery and retain time for residential fallback. db12f68 recognizes Turnstile tokens consumed during widget removal (#219, #221).
+- a2023ea preserves proxy identity in cached sessions, 5996492 honors client Accept-Encoding, and 679b66b fixes MITM certificate serial encoding (#212, #218, #217).
+- 868ffc6 captures supported Cloudflare Challenge Page parameters for the optional 2Captcha fallback without a site profile. Paid-provider acceptance remains unverified (#220).
+- d5a426c adds SCRAPE_MAX_TIMEOUT_MS across scraping entry points. ed08d4f adds opt-in TIER1_TRANSPORT=wreq; Bun fetch remains the default (#214, #217, #231).
+
+d63a6ea updates Bun to 1.4.3, camoufox-js to 0.13.0 and Nuxt to 4.6.2. Node.js is used for web/docs builds; the scraper service remains on Bun. Existing benchmark reports retain their original measurement date and build provenance.
+
+Thanks to @HenrINC and @DuLerWeil for their contributions.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.8.0...v1.9.0
+
 ### 1.8.0-build.1 (2026-10-10)
 CI 变更
 - feat(addons): 为 6 个 addon 补充图标
