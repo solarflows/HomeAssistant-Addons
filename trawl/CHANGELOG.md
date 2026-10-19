@@ -1,3 +1,6 @@
+### 1.9.1 (2026-10-19)
+No changelog available.
+
 ### 1.9.0 (2026-10-19)
 ## Highlights
 
