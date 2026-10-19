@@ -1,3 +1,63 @@
+### 1.1.7 (2026-10-19)
+## Summary
+
+MCPHub v1.1.7 adds group-level instructions for MCP clients, optional Prometheus metrics, managed pruning for declarative settings, and an opt-in guard for high-risk tool-call arguments. It also improves OAuth registration and diagnostics, embedding token truncation, form parameter conversion, and tool-call troubleshooting.
+
+## Features
+
+- Configure group instructions returned during MCP initialization, including smart group routes and multi-server groups.
+- Enable Prometheus metrics with `ENABLE_METRICS=true`; optionally protect `/metrics` with a dedicated `METRICS_TOKEN` bearer credential.
+- Use `MCPHUB_SETTINGS_SYNC=prune` to permanently remove deleted settings-managed servers and groups at startup while preserving unmanaged dashboard entries.
+- Enable `TOOL_CALL_GUARD_ENABLED=true` to reject tool calls whose arguments match high-confidence malicious patterns before forwarding them upstream. This guard is disabled by default and provides pattern-based checks, not comprehensive protection.
+
+## Fixes
+
+- Honor explicit OAuth redirect URIs during client registration, avoiding unintended fallback callbacks.
+- Preserve useful OAuth failure diagnostics while continuing to sanitize credentials.
+- Use `cl100k_base` when truncating text for supported OpenAI embedding models.
+- Convert integer, number, and boolean array form parameters according to their item schemas.
+- Include group, authenticated caller, and target tool context in tool-call error logs.
+- Preserve hyphenated filenames and improve context-line parsing when compressing search results.
+
+## 摘要
+
+MCPHub v1.1.7 新增供 MCP 客户端使用的分组指令、可选的 Prometheus 指标、声明式配置的托管条目清理，以及可主动启用的高风险工具调用参数防护。同时改进了 OAuth 注册与诊断、嵌入文本的令牌截断、表单参数转换和工具调用故障排查。
+
+## 功能
+
+- 支持配置在 MCP 初始化时返回的分组指令，覆盖智能分组路由和多服务器分组。
+- 通过 `ENABLE_METRICS=true` 启用 Prometheus 指标；可使用独立的 `METRICS_TOKEN` Bearer 凭据保护 `/metrics`。
+- 通过 `MCPHUB_SETTINGS_SYNC=prune`，在启动时永久删除已从配置中移除的托管服务器和分组，同时保留非托管的控制台条目。
+- 通过 `TOOL_CALL_GUARD_ENABLED=true`，在转发到上游前拒绝参数命中高置信恶意模式的工具调用。该防护默认关闭，提供基于模式的检查，不代表全面防护。
+
+## 修复
+
+- OAuth 客户端注册遵循显式配置的重定向 URI，避免混入非预期的回退回调地址。
+- 保留有助于排查 OAuth 失败的诊断信息，同时继续对凭据进行脱敏。
+- 为受支持的 OpenAI 嵌入模型使用 `cl100k_base` 进行文本令牌截断。
+- 根据元素类型定义转换表单中的整数、数字和布尔值数组参数。
+- 在工具调用错误日志中补充分组、已认证调用者和目标工具上下文。
+- 压缩搜索结果时保留含连字符的完整文件名，并改进上下文行解析。
+
+## New Contributors
+
+- @Lay-quq made their first contribution in #1347
+- @DSHCorrectover made their first contribution in #1299
+
+## References
+
+- fix: honor explicit OAuth redirect URIs during registration by @samanhappy in https://github.com/samanhappy/mcphub/pull/1352
+- fix: preserve sanitized OAuth failure diagnostics by @samanhappy in https://github.com/samanhappy/mcphub/pull/1351
+- fix: use cl100k_base for OpenAI embedding truncation by @Lay-quq in https://github.com/samanhappy/mcphub/pull/1350
+- fix: convert primitive array form parameters by item schema by @Lay-quq in https://github.com/samanhappy/mcphub/pull/1347
+- feat: add managed pruning to declarative settings sync by @samanhappy in https://github.com/samanhappy/mcphub/pull/1346
+- feat: expose optional Prometheus metrics endpoint by @samanhappy in https://github.com/samanhappy/mcphub/pull/1345
+- feat: group-level instructions sent on initialize by @SelfRef in https://github.com/samanhappy/mcphub/pull/1340
+- fix: include request context in tool call error logs by @samanhappy in https://github.com/samanhappy/mcphub/pull/1339
+- fix(compression): keep a hyphenated file name whole when compressing search results by @pacocartones in https://github.com/samanhappy/mcphub/pull/1326
+- feat: add opt-in pre-call guard for high-risk tool call arguments by @DSHCorrectover in https://github.com/samanhappy/mcphub/pull/1299
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.6...v1.1.7
+
 ### 1.1.6 (2026-10-18)
 ## Summary
 
