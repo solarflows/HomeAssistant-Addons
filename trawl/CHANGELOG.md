@@ -1,3 +1,23 @@
+### 1.9.2 (2026-10-20)
+## Highlights
+
+- **Prometheus metrics:** monitor main browser pool utilization, waiting requests and checkout counters through `GET /metrics`.
+- **Opt-in graceful shutdown:** let accepted HTTP requests finish before sessions and browsers close. The default remains immediate shutdown.
+- **Short document support:** use `allowShortContent` in native scraping for browser documents under 100 characters, while retaining challenge and network-error checks.
+- **MHTML compatibility:** export folded archive headers that work with readers expecting Blink-style boundaries.
+
+## Major changes
+
+- bf0b439 fixes MHTML Content-Type header folding (#243).
+- 1aa41ed adds `allowShortContent`; c38f449 retains rejection of short error pages (#246, #247).
+- 5a9d9bf adds Prometheus pool metrics; cea549c excludes failed checkout waits and 81d8237 exports cumulative wait in seconds (#244, #248).
+- 75790ef adds shutdown draining; c4af8ba coordinates HTTP, named sessions and browser signal handling within one drain window (#245, #249).
+- b4d96b4 forwards the drain setting in all Compose variants; 6707315 refreshes compatible build dependencies and prepares v1.9.2.
+
+Thanks to @emandel2630 for the contributions.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.9.1...v1.9.2
+
 ### 1.9.1 (2026-10-19)
 No changelog available.
 
