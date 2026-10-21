@@ -1,3 +1,49 @@
+### 1.1.8 (2026-10-21)
+## Summary
+
+MCPHub v1.1.8 adds opt-in local account self-registration and per-tool input-schema parameter hiding. It also improves connection-status feedback, preserves personal OAuth bindings during unrelated server edits, displays server-reported versions, and updates MCP SDK, Hono, and Vite dependencies.
+
+## Features
+
+- Add opt-in local account self-registration by @samanhappy in https://github.com/samanhappy/mcphub/pull/1354
+- Hide input-schema parameters per tool by @SelfRef in https://github.com/samanhappy/mcphub/pull/1343
+- Show server-reported versions when runner package versions are unavailable by @samanhappy in https://github.com/samanhappy/mcphub/pull/1367
+
+## Fixes
+
+- Refresh server status faster during connection changes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1355
+- Preserve personal OAuth bindings during unrelated server edits by @samanhappy in https://github.com/samanhappy/mcphub/pull/1364
+- Update MCP server SDK dependencies to 2.3.0 and server-legacy to 2.3.1, Hono to 4.13.11, and Vite to 6.4.4.
+
+## 摘要
+
+MCPHub v1.1.8 新增可选开启的本地账号自助注册和按工具隐藏输入参数的功能，同时加快连接状态反馈，避免无关的服务器编辑影响个人 OAuth 绑定，展示服务端报告的版本，并更新 MCP SDK、Hono 和 Vite 依赖。
+
+## 功能
+
+- 新增可选开启的本地账号自助注册 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1354
+- 支持按工具隐藏输入 schema 中的参数 by @SelfRef in https://github.com/samanhappy/mcphub/pull/1343
+- 无 runner 包版本时展示服务端报告的版本 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1367
+
+## 修复
+
+- 加快连接变化期间的服务器状态刷新 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1355
+- 在无关的服务器编辑中保留个人 OAuth 绑定 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1364
+- 将 MCP server SDK 更新至 2.3.0、server-legacy 更新至 2.3.1、Hono 更新至 4.13.11、Vite 更新至 6.4.4。
+
+## References
+
+- fix: show server-reported version on server cards by @samanhappy in https://github.com/samanhappy/mcphub/pull/1367
+- fix: keep personal OAuth bindings on unrelated server edits by @samanhappy in https://github.com/samanhappy/mcphub/pull/1364
+- chore(deps): bump hono from 4.13.7 to 4.13.11 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1361
+- chore(deps-dev): bump vite from 6.4.3 to 6.4.4 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1360
+- chore(deps): bump @modelcontextprotocol/server from 2.1.0 to 2.3.0 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1359
+- chore(deps): bump @modelcontextprotocol/server-legacy from 2.1.0 to 2.3.1 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1358
+- fix: refresh server status faster during connection changes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1355
+- feat: add opt-in local account self-registration by @samanhappy in https://github.com/samanhappy/mcphub/pull/1354
+- feat: hide input-schema parameters per tool by @SelfRef in https://github.com/samanhappy/mcphub/pull/1343
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.7...v1.1.8
+
 ### 1.1.7 (2026-10-19)
 ## Summary
 
