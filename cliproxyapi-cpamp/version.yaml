@@ -5,7 +5,7 @@
 #   - 完整版 Manager Server 二进制
 #   - CPA 轻量面板种子 management.html
 #   两处使用；手动更新，不参与自动跟踪
-version: "8.0.38"
+version: "8.0.39"
 source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
@@ -16,6 +16,6 @@ changelog:
   source: release_body
   mode: prepend
 tracking:
-  base_tag: "9.5.1"
-  file_sha: "d974d53d8a93a5d44f4b97fbd621e04554c07213"
-  build_num: 1
+  base_tag: ""
+  file_sha: "2fb7d5d437506cb858f20cae3feb44baa15c3722"
+  build_num: 0
