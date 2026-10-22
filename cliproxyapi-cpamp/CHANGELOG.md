@@ -1,3 +1,6 @@
+### 8.0.38-1.14.5-build.1 (2026-10-22)
+底包更新至 9.5.1，无功能变更
+
 ### 8.0.38-1.14.5 (2026-10-21)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
