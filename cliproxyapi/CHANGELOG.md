@@ -1,3 +1,36 @@
+### 8.0.41 (2026-10-23)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(home): add cluster latency telemetry and probing (e45f9426)
+- Merge pull request #6903 from router-for-me/home (41a4b9f4)
+- fix(codex): map commentary phase messages to thinking blocks in Claude response translator (376015c3)
+- fix(claude): preserve tool arguments for implicitly open empty object schemas (e1fb2521)
+- fix(signature): sign the first Gemini function call after a text part (e5434f65)
+- fix(gemini): populate token limits in Gemini model catalog responses (83cb1b95)
+- fix(gemini/vertex): preserve non-content finish reasons and surface prompt blocks (3f5d3a16)
+- fix(schema): preserve Gemini $ref sibling constraints (29150a22)
+- fix(api): add RESP protocol bounds validation and connection panic recovery (888f2382)
+- fix(usage): preserve interactions token semantics when merging stream usage (8289ec4c)
+
+
+## What's Changed
+* feat(home): add cluster latency telemetry and probing by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6903
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.40...v8.0.41
+
 ### 8.0.40 (2026-10-23)
 No changelog available.
 
