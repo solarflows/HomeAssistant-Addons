@@ -1,3 +1,50 @@
+### 1.1.9 (2026-10-23)
+## Summary
+
+MCPHub v1.1.9 makes large servers easier to manage with searchable bulk curation for tools, prompts, and resources plus a batch status API, and lets HTTP servers share one definition across regional or tenant endpoints through personal URL credential slots. It also forwards user-input elicitation for isolated legacy tool calls, adds the Vietnamese locale, stabilizes direct-route tool names across idle states, and unifies dark mode styling across dashboard forms and dialogs.
+
+## Features
+
+- Add Vietnamese locale support by @hdkp81 in https://github.com/samanhappy/mcphub/pull/1363
+- Support personal URL credential slots for HTTP servers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1368
+- Forward elicitation for isolated legacy tool calls by @samanhappy in https://github.com/samanhappy/mcphub/pull/1370
+- Add bulk tool curation and batch status API by @samanhappy in https://github.com/samanhappy/mcphub/pull/1372
+
+## Fixes
+
+- Stabilize direct-route tool names across idle states by @samanhappy in https://github.com/samanhappy/mcphub/pull/1374
+- Unify dark mode styling across dashboard forms and dialogs by @samanhappy in https://github.com/samanhappy/mcphub/pull/1375
+
+## 摘要
+
+MCPHub v1.1.9 让大型服务器更易管理：支持对工具、提示词和资源进行可搜索的批量处理并新增批量状态 API，同时通过个人 URL 凭据槽位让 HTTP 服务器在区域或租户端点之间共用同一份定义。该版本还为隔离的旧版工具调用转发用户输入征求、新增越南语界面、稳定空闲状态下直连路由的工具名称，并统一仪表盘表单和对话框的深色模式样式。
+
+## 功能
+
+- 新增越南语界面 by @hdkp81 in https://github.com/samanhappy/mcphub/pull/1363
+- 为 HTTP 服务器新增个人 URL 凭据槽位 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1368
+- 为隔离的旧版工具调用转发用户输入征求 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1370
+- 新增批量工具管理和批量状态 API by @samanhappy in https://github.com/samanhappy/mcphub/pull/1372
+
+## 修复
+
+- 稳定空闲状态下直连路由的工具名称 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1374
+- 统一仪表盘表单和对话框的深色模式样式 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1375
+
+## New Contributors
+
+- @hdkp81 made their first contribution in #1363
+
+## References
+
+- fix: unify dark mode styling across dashboard forms and dialogs by @samanhappy in https://github.com/samanhappy/mcphub/pull/1375
+- fix: stabilize direct-route tool names across idle states by @samanhappy in https://github.com/samanhappy/mcphub/pull/1374
+- feat: add bulk tool curation and batch status API by @samanhappy in https://github.com/samanhappy/mcphub/pull/1372
+- feat: forward elicitation for isolated legacy tool calls by @samanhappy in https://github.com/samanhappy/mcphub/pull/1370
+- feat: support personal URL credential slots for HTTP servers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1368
+- Feature/vi locale by @hdkp81 in https://github.com/samanhappy/mcphub/pull/1363
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.8...v1.1.9
+
 ### 1.1.8 (2026-10-21)
 ## Summary
 
