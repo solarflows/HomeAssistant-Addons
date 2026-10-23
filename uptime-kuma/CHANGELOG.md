@@ -1,3 +1,10 @@
+### 2.5.7 (2026-10-23)
+### 🐞 Bug Fixes
+- #7989 fix: retries ignored by TCP Port monitor with SSL/STARTTLS
+
+### ⬆️ Security Fixes
+- [Docker] Images bumped to Node.js 22.23.4, now it rejects the leaked eMudhra 384 bit CA: `00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:04`. (Thanks @veteranbv)
+
 ### 2.5.6-build.4 (2026-10-22)
 底包更新至 9.5.1，无功能变更
 
