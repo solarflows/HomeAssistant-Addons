@@ -1,3 +1,6 @@
+### 8.0.40 (2026-10-23)
+No changelog available.
+
 ### 8.0.39 (2026-10-22)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
