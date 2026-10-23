@@ -1,3 +1,27 @@
+### 8.0.40-1.14.5 (2026-10-23)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- fix(usage): propagate claude usage.speed into response service tier (b90190db)
+- test(pluginhost,handlers): fix flaky races in plugin load and stream cancel tests (a014ba0e)
+- fix(pluginhost): pass decoded request body to frontend auth plugins (13874f1f)
+- fix(gemini): enable server-side tool invocations when mixing built-in and function tools (45501610)
+- feat(codex): ignore use_siwc and enforce non-SIWC credentials for Codex client requests (d946c4fb)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.39...v8.0.40
+
 ### 8.0.39-1.14.5 (2026-10-22)
 No changelog available.
 
