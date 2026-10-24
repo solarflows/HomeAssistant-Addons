@@ -1,3 +1,32 @@
+### 8.0.42 (2026-10-24)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- fix(store,home): handle repository index and packfile corruption and wrap Redis connections with cancelable dialer (0d3ca1d3)
+- fix(kimi): share thinking replay across K3.1 Pro variants (ab139b45)
+- fix(antigravity): restore non-stream tool signatures and preserve stream call indices (da21f1e5)
+- fix(pluginhost): strip credential headers across cross-origin redirects (9d08f0d4)
+- fix(pluginhost): translate plugin count_tokens replies as token counts (44d1ddf5)
+- feat(pluginabi): carry retry-after metadata from plugin executor errors (35e834da)
+- fix(home): close underlying transport synchronously when canceling rebalance RPCs (50147aec)
+- fix(pluginhost): apply user payload rules to plugin executor requests (e42eee6e)
+- fix(pluginhost): run canonical thinking pipeline before plugin execution (c9af5290)
+- fix(logging): prevent path traversal vulnerabilities in request log filenames (179d43dc)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.41...v8.0.42
+
 ### 8.0.41 (2026-10-23)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
