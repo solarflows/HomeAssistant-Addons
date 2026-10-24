@@ -1,3 +1,44 @@
+### 1.1.10 (2026-10-24)
+## Summary
+
+MCPHub v1.1.10 makes upstream connections easier to inspect by displaying negotiated MCP protocol versions separately from server software versions. It also improves server list readability, shows complete descriptions on expanded cards, and keeps the About dialog usable on smaller screens.
+
+## Features
+
+- Display each upstream MCP server’s negotiated protocol version alongside its transport, separately from its software version. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1379
+
+## Fixes
+
+- Improve server list row layout to prevent token statistics from overlapping controls and reduce server name truncation. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1378
+- Show the full, wrapped server description on expanded cards. by @atacolak in https://github.com/samanhappy/mcphub/pull/1377
+- Keep the About dialog within the viewport, with a scrollable body, an accessible close button, and Escape support. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1376
+
+## 摘要
+
+MCPHub v1.1.10 将协商后的 MCP 协议版本与服务器软件版本分开展示，方便查看上游连接信息。同时优化服务器列表的可读性，在展开的卡片中显示完整描述，并改善小屏幕下“关于”对话框的使用体验。
+
+## 功能
+
+- 在传输方式旁显示各上游 MCP 服务器协商后的协议版本，与软件版本分开展示。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1379
+
+## 修复
+
+- 优化服务器列表行布局，避免 Token 统计与控件重叠，并减少服务器名称被截断的情况。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1378
+- 在展开的服务器卡片中显示完整描述，支持自动换行。by @atacolak in https://github.com/samanhappy/mcphub/pull/1377
+- 将“关于”对话框限制在视口内，支持内容滚动、可访问的关闭按钮及 Escape 关闭。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1376
+
+## New Contributors
+
+- @atacolak made their first contribution in #1377
+
+## References
+
+- feat: display negotiated MCP protocol versions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1379
+- fix(frontend): improve server list row layout by @samanhappy in https://github.com/samanhappy/mcphub/pull/1378
+- fix(ui): show full server description on expanded cards by @atacolak in https://github.com/samanhappy/mcphub/pull/1377
+- fix: keep about dialog within the viewport by @samanhappy in https://github.com/samanhappy/mcphub/pull/1376
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.9...v1.1.10
+
 ### 1.1.9 (2026-10-23)
 ## Summary
 
