@@ -1,3 +1,22 @@
+### 1.9.3 (2026-10-24)
+## Highlights
+
+- **Readable UTF-8 fragments:** preserve charset-less HTML across the native API, FlareSolverr API, MCP and proxy, while keeping JavaScript-rendered content and solved challenges intact.
+- **Safer Cloudflare interaction:** stop pending click and keyboard fallbacks after an interstitial clears.
+- **Patched runtimes:** Bun 1.4.4 and Node.js build tooling 26.12.1 include the upstream Brotli security fixes.
+- Compatible dependency updates, Nginx 1.31.8 for web/docs, and the TRAWL logo favicon.
+
+## Major changes
+
+- c10eaab preserves UTF-8 fragments without replacing rendered results with stale source (#251, #252).
+- 80a6f72 retains adjacent fragment text in MCP outputs; 675c393 stops delayed Cloudflare clicks after clearance.
+- 8ec4e7d updates Bun to 1.4.4; 94aa3a4 updates Node.js build tooling to 26.12.1.
+- 0098977 updates web/docs favicons. 5fa105f refreshes compatible workspace and transitive dependencies, Docker images and versioned examples.
+
+Thanks to @everpcpc and @Project516 for their contributions.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.9.2...v1.9.3
+
 ### 1.9.2 (2026-10-20)
 ## Highlights
 
