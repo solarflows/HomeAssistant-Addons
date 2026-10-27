@@ -1,3 +1,40 @@
+### 1.1.12 (2026-10-27)
+## Summary
+
+This release strengthens personal-credential and Bearer key storage. Existing client tokens remain valid.
+
+> [!WARNING]
+> **Before upgrading, back up your database/settings and preserve the original personal-credential encryption key.** A database backup alone cannot recover bindings if that key is lost. See the [upgrade and recovery guide](https://docs.mcphub.app/configuration/credential-key-upgrade).
+
+> [!CAUTION]
+> **Bearer key hashing is a one-way migration.** After migration, do not run an older version against the migrated database/settings. Rollback requires restoring a pre-upgrade backup.
+
+## Fixes
+
+- **Personal credentials (#1393):** Database mode no longer generates a local encryption key automatically. Configure `MCPHUB_CREDENTIAL_ENCRYPTION_KEY` or retain an existing valid key file; keep the same key across upgrades and instances. A database backup alone cannot recover bindings if the key is lost. See the [upgrade and recovery guide](https://docs.mcphub.app/configuration/credential-key-upgrade) for working deployments and lost-key recovery.
+- **Bearer keys (#1387):** Store SHA-256 hashes instead of plaintext, with automatic migration at startup. Existing client tokens keep working; newly created tokens are returned only once. **After migration, do not run an older version against the migrated database/settings—restore a pre-upgrade backup to roll back.** When switching from file to database mode, run this version in file mode first or remove leftover plaintext keys from the source settings file.
+
+## 摘要
+
+本版本增强个人凭据和 Bearer Key 的存储安全性，客户端已有令牌继续有效。
+
+> [!WARNING]
+> **升级前请备份数据库／配置文件，并保留原个人凭据加密密钥。** 密钥丢失后，仅有数据库备份无法恢复绑定。操作步骤见[升级与恢复指南](https://docs.mcphub.app/configuration/credential-key-upgrade)。
+
+> [!CAUTION]
+> **Bearer Key 哈希迁移不可逆。** 迁移后不可直接使用旧版本读取已迁移的数据库／配置，回滚必须恢复升级前的备份。
+
+## 修复
+
+- **个人凭据（#1393）：** 数据库模式不再自动生成本地加密密钥，需配置 `MCPHUB_CREDENTIAL_ENCRYPTION_KEY` 或保留已有的有效密钥文件；升级和多实例部署必须使用同一密钥。密钥丢失后，仅有数据库备份无法恢复绑定。正常部署的升级步骤及密钥丢失后的处理方案见[升级与恢复指南](https://docs.mcphub.app/configuration/credential-key-upgrade)。
+- **Bearer Key（#1387）：** 改为保存 SHA-256 哈希，启动时自动迁移已有明文密钥。客户端已有令牌继续有效，新建令牌仅在创建时返回一次。**迁移后不可直接用旧版本读取已迁移的数据库／配置，回滚需恢复升级前备份。** 从文件模式切换到数据库模式时，应先以文件模式运行新版本一次，或清除源配置文件遗留的明文密钥。
+
+## References
+
+- fix: require persistent credential keys in database mode by @samanhappy in https://github.com/samanhappy/mcphub/pull/1393
+- Store bearer keys as a SHA-256 hash instead of plaintext by @sragot in https://github.com/samanhappy/mcphub/pull/1387
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.11...v1.1.12
+
 ### 1.1.10 (2026-10-24)
 ## Summary
 
