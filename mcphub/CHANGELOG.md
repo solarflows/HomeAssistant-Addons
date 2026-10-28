@@ -1,3 +1,37 @@
+### 1.1.13 (2026-10-28)
+## Summary
+
+This release adds Bearer key resets that preserve permissions and improves personal credential binding migration and embedding provider compatibility.
+
+## Features
+
+- Reset Bearer keys while preserving permissions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1396
+
+## Fixes
+
+- Validate and independently migrate personal credential bindings by @samanhappy in https://github.com/samanhappy/mcphub/pull/1394
+- Negotiate embedding encoding at runtime for better provider compatibility by @samanhappy in https://github.com/samanhappy/mcphub/pull/1398
+
+## 摘要
+
+本版本支持在保留权限的同时重置 Bearer 密钥，并改进个人凭据绑定迁移及嵌入模型服务的兼容性。
+
+## 功能
+
+- 支持在保留权限的同时重置 Bearer 密钥 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1396
+
+## 修复
+
+- 校验并独立迁移个人凭据绑定 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1394
+- 在运行时协商嵌入编码格式，提升服务提供商兼容性 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1398
+
+## References
+
+- fix: negotiate embedding encoding at runtime by @samanhappy in https://github.com/samanhappy/mcphub/pull/1398
+- feat: reset Bearer keys while preserving permissions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1396
+- fix: validate and independently migrate personal credential bindings by @samanhappy in https://github.com/samanhappy/mcphub/pull/1394
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.12...v1.1.13
+
 ### 1.1.12 (2026-10-27)
 ## Summary
 
