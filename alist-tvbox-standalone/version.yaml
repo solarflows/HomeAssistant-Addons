@@ -1,5 +1,5 @@
 # alist-tvbox-standalone 版本检查配置
-version: "1.120.0"
+version: "1.121.0"
 source: github
 repo: power721/alist-tvbox
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "d2b01722ceddc6468efd5ce211d304d19cb0ba7e"
+  file_sha: "d63de601e9c386120ea86154dc93cf374c8ae6e9"
   build_num: 0
