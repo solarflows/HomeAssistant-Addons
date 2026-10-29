@@ -1,3 +1,33 @@
+### 8.0.47 (2026-10-29)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- perf(pluginhost): allow frontend auth providers to opt out of request body delivery (e324e481)
+- feat(pluginhost): support raw request body byte-range patching (0fe38224)
+- docs(readme): add Nia Live Demo to "Who is with us?" (535110e1)
+- Merge pull request #7082 from nia-teams-admin/docs/add-nia-live-demo (3f2b8f28)
+- fix(responses): use tsc_ item id prefix for Gemini tool search calls (90c447d3)
+
+
+## What's Changed
+* docs(readme): add Nia Live Demo to "Who is with us?" by @nia-teams-admin in https://github.com/router-for-me/CLIProxyAPI/pull/7082
+
+## New Contributors
+* @nia-teams-admin made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7082
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.46...v8.0.47
+
 ### 8.0.46 (2026-10-28)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
