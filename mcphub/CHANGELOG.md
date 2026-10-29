@@ -1,3 +1,59 @@
+### 1.1.14 (2026-10-29)
+## Summary
+
+v1.1.14 makes MCPHub easier to govern and steadier in real-world deployments. Administrators can now enforce unified MCP tool access policies through a dedicated editor, provision and manage other users' personal credentials, and brand the dashboard with a custom name. On the reliability side, this release stops a UTF-8 BOM in `mcp_settings.json` from aborting startup on Windows, keeps bearer key group scopes intact when a group is renamed, eliminates repeated whole-catalog tokenization during status polling on the Servers page, and makes the dashboard language and Chinese community links resolve correctly.
+
+## Features
+
+- Enforce unified MCP tool access policies, including a Settings → Tool access policies editor for administrators. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1399
+- Let administrators provision, inspect, replace and delete other users' personal credentials from the Credentials page and the Users page. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1407
+- Allow administrators to customize the dashboard name, applied immediately to the sidebar, header, login page and browser tab. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1411
+
+## Fixes
+
+- Cache context definition token costs and refresh from content revisions, so the Servers page no longer re-tokenizes the whole catalog on every status poll. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1410
+- Keep bearer key group scopes when a group is renamed, so existing keys stay valid and the old name does not inherit their access. by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1406
+- Use the resolved language for Chinese community links, so `zh-CN` and `zh-TW` get WeChat and the Chinese sponsorship QR code. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1405
+- Let the browser locale win over the static `html lang` value, so fresh dashboard visits start in the user's language. by @myml in https://github.com/samanhappy/mcphub/pull/1404
+- Keep key editor actions accessible while editing and align pagination and filter badge control sizes. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1401
+- Strip a UTF-8 BOM when reading `mcp_settings.json`, so settings written by Windows PowerShell no longer abort startup. by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1400
+
+## 摘要
+
+v1.1.14 让 MCPHub 更易于治理，在真实部署中也更稳定。管理员现在可以通过专用编辑器统一实施 MCP 工具访问策略、为其他用户预置并管理个人凭据，还能自定义控制台名称。可靠性方面，本版本修复了 `mcp_settings.json` 带 UTF-8 BOM 时 Windows 启动失败、分组重命名后 Bearer 密钥丢失分组范围、Servers 页面每次状态轮询都重新对整个工具目录分词，以及控制台语言与中文社区链接解析不正确的问题。
+
+## 功能
+
+- 统一实施 MCP 工具访问策略，并为管理员提供「设置 → 工具访问策略」编辑器。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1399
+- 管理员可在凭据页面与用户页面为其他用户预置、查看状态、替换和删除个人凭据。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1407
+- 管理员可自定义控制台名称，并立即应用到侧边栏、页头、登录页和浏览器标签页。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1411
+
+## 修复
+
+- 缓存上下文定义的 token 开销并按内容修订号刷新，Servers 页面不再每次状态轮询都重新分词整个工具目录。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1410
+- 分组重命名时保留 Bearer 密钥的分组范围，已有密钥继续有效，旧名称也不会继承其访问权限。 by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1406
+- 中文社区链接改用解析后的语言，`zh-CN` 与 `zh-TW` 正确显示微信与中文赞助二维码。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1405
+- 浏览器语言优先于静态 `html lang` 值，首次访问控制台时即使用用户的语言。 by @myml in https://github.com/samanhappy/mcphub/pull/1404
+- 编辑密钥时保持编辑器操作可用，并统一分页与筛选徽章控件的尺寸。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1401
+- 读取 `mcp_settings.json` 时去除 UTF-8 BOM，Windows PowerShell 写入的配置不再导致启动失败。 by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1400
+
+## New Contributors
+
+- @jaeminbird made their first contribution in #1400
+
+## References
+
+- feat: allow customizing the dashboard name by @samanhappy in https://github.com/samanhappy/mcphub/pull/1411
+- fix: cache context definition costs and avoid polling refetches by @samanhappy in https://github.com/samanhappy/mcphub/pull/1410
+- feat: let admins manage users' personal credentials by @samanhappy in https://github.com/samanhappy/mcphub/pull/1407
+- fix: keep bearer key group scopes when a group is renamed by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1406
+- fix: use resolved language for Chinese community links by @samanhappy in https://github.com/samanhappy/mcphub/pull/1405
+- fix(i18n): let the browser locale win over the static html lang by @myml in https://github.com/samanhappy/mcphub/pull/1404
+- fix: keep key editor actions accessible and align control sizes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1401
+- fix: strip UTF-8 BOM when reading mcp_settings.json by @jaeminbird in https://github.com/samanhappy/mcphub/pull/1400
+- feat: enforce unified MCP tool access policies by @samanhappy in https://github.com/samanhappy/mcphub/pull/1399
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.13...v1.1.14
+
 ### 1.1.13 (2026-10-28)
 ## Summary
 
