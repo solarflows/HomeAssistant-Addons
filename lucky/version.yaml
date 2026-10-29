@@ -1,5 +1,5 @@
 # lucky 版本检查配置
-version: "2.27.2"
+version: "3.5.0"
 source: github
 repo: gdy666/lucky
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.1"
-  file_sha: "d974d53d8a93a5d44f4b97fbd621e04554c07213"
-  build_num: 34
+  file_sha: "9323f1de9f15e797f61e6c93224e669267143eb0"
+  build_num: 0
