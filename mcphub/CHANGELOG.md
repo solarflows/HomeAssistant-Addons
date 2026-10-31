@@ -1,3 +1,63 @@
+### 1.1.15 (2026-10-31)
+## Summary
+
+MCPHub v1.1.15 adds user-group sharing, more flexible system bearer-key scopes, masked personal credential previews, and opt-in OAuth authorization relay for private brokers. It also improves catalog notifications and preserves upstream connections during group changes. **Breaking change: Node.js 22 or newer is now required; Node.js 20 users must upgrade before installing this release.**
+
+## Features
+
+- Share servers and Group routes with administrator-managed user groups while retaining underlying server permissions and tool policies. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1429
+- Identify saved personal credentials through masked previews on your own Credentials page. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1428
+- Enable personal OAuth authorization relay for explicitly configured private brokers, with allowed HTTPS redirect origins. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1422
+- Configure system bearer keys to allow everything except selected groups and servers. by @3431481073 in https://github.com/samanhappy/mcphub/pull/1413
+
+## Fixes
+
+- Preserve upstream connections when Group membership or configuration changes. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1427
+- Deliver tool, prompt, and resource catalog changes to modern MCP subscriptions. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1416
+- Correct same-day new-contributor detection in release-note drafts. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1412
+- Require Node.js 22+ and test Node.js 22/24 in CI. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1430
+- Update multer to 2.5.0, undici to 7.30.1, Vite to 6.4.5, better-auth to 1.7.7, and Zod to 4.6.6.
+
+## 摘要
+
+MCPHub v1.1.15 新增用户组共享、更灵活的系统 Bearer Key 权限范围、个人凭据脱敏预览，以及可选的私有代理 OAuth 授权中继。同时改进目录变更通知，并在修改 Group 时保留上游连接。**不兼容变更：运行环境最低要求提升至 Node.js 22；Node.js 20 用户须先升级运行环境，再安装此版本。**
+
+## 功能
+
+- 支持向管理员维护的用户组共享服务器和 Group 路由，继续遵循底层服务器权限与工具策略。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1429
+- 在自己的 Credentials 页面通过脱敏预览识别已保存的个人凭据。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1428
+- 支持为显式配置的私有代理启用个人 OAuth 授权中继，并限制允许的 HTTPS 重定向来源。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1422
+- 支持为系统 Bearer Key 配置“允许全部，但排除指定 Group 和服务器”的权限范围。by @3431481073 in https://github.com/samanhappy/mcphub/pull/1413
+
+## 修复
+
+- 修改 Group 成员或配置时保留上游连接。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1427
+- 向现代 MCP 订阅发送工具、提示词和资源目录的变更通知。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1416
+- 修正发布说明草稿中同一天首次贡献者的识别逻辑。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1412
+- 最低运行环境提升至 Node.js 22，并在 CI 中测试 Node.js 22/24。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1430
+- 将 multer 更新至 2.5.0、undici 更新至 7.30.1、Vite 更新至 6.4.5、better-auth 更新至 1.7.7、Zod 更新至 4.6.6。
+
+## New Contributors
+
+- @3431481073 made their first contribution in #1413
+
+## References
+
+- chore!: require Node.js 22 and test Node.js 22/24 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1430
+- feat: share servers and routes with user groups by @samanhappy in https://github.com/samanhappy/mcphub/pull/1429
+- feat: show masked previews of personal credentials by @samanhappy in https://github.com/samanhappy/mcphub/pull/1428
+- fix: preserve upstream connections on group changes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1427
+- feat: relay personal OAuth authorization to private brokers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1422
+- chore(deps-dev): bump zod from 4.4.3 to 4.6.6 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1421
+- chore(deps): bump better-auth from 1.6.22 to 1.7.7 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1420
+- chore(deps-dev): bump vite from 6.4.4 to 6.4.5 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1419
+- chore(deps): bump undici from 7.29.1 to 7.30.1 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1418
+- chore(deps): bump multer from 2.4.0 to 2.5.0 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1417
+- fix: publish catalog changes to modern MCP subscriptions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1416
+- feat(bearer-keys): add all-except exclude scope for system keys by @3431481073 in https://github.com/samanhappy/mcphub/pull/1413
+- fix: detect same-day new contributors in release-notes draft by @samanhappy in https://github.com/samanhappy/mcphub/pull/1412
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.14...v1.1.15
+
 ### 1.1.14 (2026-10-29)
 ## Summary
 
