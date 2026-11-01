@@ -1,3 +1,46 @@
+### 8.0.51-1.14.5 (2026-11-01)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- chore(meta): match Muse Code 1.4.14 client headers (d9a688e6)
+- fix(meta): include Muse namespace in tool-bearing requests (b147b8d2)
+- fix(xai): support Grok Imagine Video 1.5 Lite (f0ddc38f)
+- fix(auth): skip automatic Codex refresh without renewal credentials (95f125ff)
+- fix(auth): preserve disabled credential refresh backoff (7b4c64b0)
+- fix(xai): preserve Lite resolution and catalog fallback (c69cdd93)
+- docs(auth): explain Codex refresh token key requirement (9513c2d5)
+- feat(pluginstore): support plugin locales normalization and management passthrough (ce39bc62)
+- Merge pull request #7143 from router-for-me/fix/codex-no-refresh-token-spin (24f97440)
+- feat(pluginhost): expose per-entry name and logo for multi-entry OAuth plugins (53ff2f9e)
+- fix(translator): normalize numeric schema constraints when converting parameters (#7149) (ec06c3cb)
+- Merge pull request #7113 from zoidypuh/pr/muse-1414-client-headers (4448b96e)
+- fix(translator): preserve developer roles in responses to chat completions (00b76771)
+- fix(gemini): preserve parallel responses tool output batches across developer notices (3ac38498)
+- Merge pull request #7142 from gabrielrinaldi/fix/grok-video-1.5-lite (7cad1cb7)
+
+
+## What's Changed
+* fix(auth): prevent Codex refresh spin without refresh tokens by @LTbinglingfeng in https://github.com/router-for-me/CLIProxyAPI/pull/7143
+* fix(meta): add Muse tool namespace for subscription requests by @zoidypuh in https://github.com/router-for-me/CLIProxyAPI/pull/7113
+* fix(xai): support Grok Imagine Video 1.5 Lite by @gabrielrinaldi in https://github.com/router-for-me/CLIProxyAPI/pull/7142
+
+## New Contributors
+* @zoidypuh made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7113
+* @gabrielrinaldi made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7142
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.50...v8.0.51
+
 ### 8.0.49-1.14.5 (2026-11-01)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
