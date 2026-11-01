@@ -1,3 +1,28 @@
+### 8.0.49-1.14.5 (2026-11-01)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(claude): add opt-in visible Codex commentary with preserved replay (cc4b9949)
+- fix(gemini): strip empty part objects from systemInstruction (#7136) (4c46f0aa)
+- feat(pluginhost): allow plugins to register multiple OAuth login entries (a8dbebab)
+- fix(antigravity): strip empty part objects from Gemini systemInstruction.parts (f42f5871)
+- fix(antigravity): discard excess functionResponse parts per turn in fixCLIToolResponse (#7137) (234217d0)
+- perf(antigravity): make selectGroupResponses O(N+M) and deduplicate systemInstruction sanitize (250d5981)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.48...v8.0.49
+
 ### 8.0.48-1.14.5 (2026-10-30)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
