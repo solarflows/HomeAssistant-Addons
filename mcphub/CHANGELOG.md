@@ -1,3 +1,51 @@
+### 1.2.0 (2026-11-01)
+## Summary
+
+v1.2.0 introduces **experimental cluster support** through an opt-in PostgreSQL multi-replica mode. Multiple MCPHub instances can share configuration and credentials behind a load balancer, with configuration convergence, cross-node OAuth coordination, readiness checks and graceful HTTP draining. Docker Compose and Kubernetes examples help you evaluate the new deployment model. This release also improves personal credential handling and restores generic OIDC login with Better Auth 1.7.
+
+## Features
+
+- **Experimental cluster / multi-replica mode (disabled by default):** enable `MCPHUB_REPLICA_MODE=true` to run multiple instances against shared PostgreSQL. Configuration changes converge every five seconds, stale configuration writes are rejected, and OAuth state, authorization-code consumption and credential refresh are coordinated across nodes.
+- **Deployment and operations:** Docker Compose and Kubernetes examples include separate schema setup, two replicas and load-balancer affinity. Liveness/readiness checks, node/configuration diagnostics, metrics and graceful HTTP draining help operate replicas. Use shared persistent JWT and credential-encryption keys, run schema setup separately, and set `DB_SYNCHRONIZE=false` on serving nodes. See the [replica deployment guide](https://docs.mcphub.app/configuration/replicas).
+- **Experimental boundaries:** MCP sessions, isolated upstream clients, cookie jars and local files remain process-local. Stateful clients require sticky routing and reinitialization after node loss; in-flight calls are neither migrated nor replayed. PostgreSQL and load-balancer high availability remain deployment responsibilities. Evaluate in a test environment before adopting this mode in production.
+- Add documentation for the community-maintained Home Assistant app.
+
+## Fixes
+
+- Restore generic OIDC login with Better Auth 1.7.
+- Persist upstream OAuth expiry and renew personal tokens before use.
+- Show safe personal credential previews for administrators.
+
+## 摘要
+
+v1.2.0 新增**实验性集群支持**，通过显式启用的 PostgreSQL 多副本模式，让多个 MCPHub 实例在负载均衡器后共享配置与凭据，并提供配置同步、跨节点 OAuth 协调、就绪检查和 HTTP 优雅排空。配套 Docker Compose 与 Kubernetes 示例便于评估这一新的部署方式。本版本还改进了个人凭据处理，并恢复了 Better Auth 1.7 下的通用 OIDC 登录。
+
+## 功能
+
+- **实验性集群 / 多副本模式（默认关闭）：** 设置 `MCPHUB_REPLICA_MODE=true`，即可让多个实例共享 PostgreSQL。配置变更每五秒同步，拒绝基于过期配置的写入，并跨节点协调 OAuth 状态、授权码消费与凭据刷新。
+- **部署与运维支持：** 提供 Docker Compose 和 Kubernetes 示例，包含独立建库、双副本与负载均衡会话亲和性配置；增加存活/就绪检查、节点与配置诊断、指标及 HTTP 优雅排空。各副本需共享持久化 JWT 密钥与凭据加密密钥，单独执行表结构准备，并在服务节点设置 `DB_SYNCHRONIZE=false`。详见[多副本部署指南](https://docs.mcphub.app/zh/configuration/replicas)。
+- **实验性能力边界：** MCP 会话、隔离上游客户端、Cookie 状态与本地文件仍属于单个进程。有状态客户端需要粘性路由，节点丢失后需重新初始化；执行中的调用不会迁移或重放。PostgreSQL 与负载均衡器的高可用仍由部署方保障。建议先在测试环境评估，再决定是否用于生产。
+- 新增社区维护的 Home Assistant 应用文档。
+
+## 修复
+
+- 恢复 Better Auth 1.7 下的通用 OIDC 登录。
+- 持久化上游 OAuth 过期时间，并在使用前续期个人令牌。
+- 为管理员展示安全的个人凭据预览。
+
+## New Contributors
+
+- @HyperCriSiS made their first contribution in #1433
+
+## References
+
+- fix: restore generic OIDC login with Better Auth 1.7 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1437
+- fix: persist upstream OAuth expiry and renew personal tokens before use by @samanhappy in https://github.com/samanhappy/mcphub/pull/1435
+- fix: show safe personal credential previews for administrators by @samanhappy in https://github.com/samanhappy/mcphub/pull/1434
+- docs: add community-maintained Home Assistant app by @HyperCriSiS in https://github.com/samanhappy/mcphub/pull/1433
+- feat: add opt-in PostgreSQL replica mode by @samanhappy in https://github.com/samanhappy/mcphub/pull/1431
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.1.15...v1.2.0
+
 ### 1.1.15 (2026-10-31)
 ## Summary
 
