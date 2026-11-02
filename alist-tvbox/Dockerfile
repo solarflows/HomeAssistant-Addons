@@ -56,6 +56,7 @@ RUN apt-get update \
         unzip \
         busybox \
         sqlite3 \
+        procps \
     && rm -rf /var/lib/apt/lists/* \
     # busybox-extras → busybox（上游 haroldli/alist-base 提供 busybox-extras，Debian 用 busybox 包）
     && ln -sf /bin/busybox /bin/busybox-extras \
@@ -93,7 +94,7 @@ RUN mkdir -p /opt/atv/BOOT-INF/lib \
 # HAOS 把 /data/ 挂为持久卷，所以资源文件放 /（镜像内），不会被用户清空
 COPY --from=source /src/docker/scripts/ /docker/scripts/
 COPY --from=source /src/scripts/index.sh /index.sh
-RUN chmod +x /index.sh
+RUN chmod +x /index.sh && mkdir -p /data/index && ln -sf /data/index /index
 COPY --from=source /src/data/update.sql /update.sql
 COPY --from=source /src/data/tvbox.zip /
 COPY --from=source /src/data/115.index.zip /
@@ -136,7 +137,7 @@ EXPOSE 4567/tcp 80/tcp
 VOLUME ["/www/static"]
 
 # Healthcheck
-HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+HEALTHCHECK --interval=30s --start-period=300s --timeout=10s --retries=5 \
     CMD curl -sfo /dev/null http://127.0.0.1:4567/ || exit 1
 
 # S6 overlay 接管启动，不再硬编码 ENTRYPOINT

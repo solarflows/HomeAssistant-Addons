@@ -33,6 +33,10 @@ ln -sf /data/alist /opt/alist/data
 # inDocker 检测：上游 entrypoint.sh 本身就存在于 /，我们用 symlink 兼容
 [ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
 
+# 确保小雅索引目录与软链接存在
+mkdir -p /data/index
+[ -e /index ] || ln -sf /data/index /index
+
 # ---- 以下与上游 entrypoint.sh 保持一致 ----
 . /docker/scripts/lib/common.sh
 . /docker/scripts/lib/proxy.sh
@@ -53,4 +57,5 @@ if [ ${init_exit} -ne 0 ]; then
     bashio::log.warning "init-xiaoya.sh exited with code ${init_exit} (non-fatal, continuing)"
 fi
 
+touch /run/atv-initialized
 bashio::log.info "alist-tvbox initialization completed"

@@ -38,4 +38,5 @@ if [ ${init_exit} -ne 0 ]; then
     bashio::log.warning "init-alist.sh exited with code ${init_exit} (non-fatal, continuing)"
 fi
 
+touch /run/atv-initialized
 bashio::log.info "alist-tvbox-standalone initialization completed"

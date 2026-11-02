@@ -20,6 +20,7 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - 2026-10-12: CLIProxyAPI v8 config has **no default for `server.port`** — a config without it binds `:0` (random port), so the HA port mapping points at nothing and the panel is unreachable (`API server started successfully on: :0` in the log is the tell). **Fix**: always write `server: { host: "", port: 8317 }` in generated configs, plus a startup migration for pre-existing configs. General rule: check upstream loaders for fields without defaults before generating seed configs.
 - 2026-10-12: Add-ons **can** backfill their own options: `POST /addons/self/options` with `Authorization: Bearer $SUPERVISOR_TOKEN` (injected into every add-on container). The supervisor's `api_bypass` regex (`supervisor/api/middleware/security.py`) allows `/addons/self/*` without `hassio_api`/admin role (verified on 2026.09.3 and main). The endpoint **replaces the whole options dict** — read `/data/options.json`, merge the keys, POST once; **multiple backfills must be merged into a single POST** or a later one wipes earlier keys (it reads the stale options.json). Failure must degrade to a warning (key file + log print). Pattern implemented in cliproxyapi / cliproxyapi-cpamp / workbuddy2api-panel `00-init.sh` (`ha_options_backfill`).
 - 2026-10-12: Option→config sync for seed-once addons uses a sidecar `/config/<slug>/options_applied.json` recording the last applied option values. Semantics: non-empty option **changed** vs sidecar → rewrite the config field; empty option = panel-managed (never write/delete); panel edits are not stomped by unchanged options. On first start write the sidecar with the values actually written (generated key), and **skip the sync block on first start** — otherwise the sidecar gets overwritten with the (not yet backfilled) empty option and the next boot falsely detects a change.
+- 2026-11-03: `alist-tvbox` & `alist-tvbox-standalone` HEALTHCHECK start-period was 60s (failing at 120s with retries=3), causing Supervisor watchdog to kill and restart Spring Boot during cold start on ARM hardware (taking ~200s). Fixed: extended HEALTHCHECK start-period to 300s (retries=5); serialized `00-init.sh` and `run` via `/run/atv-initialized` bounded wait; read `LOW_MEMORY` directly in `run`; added `procps` (`pkill`) and `/index` symlink.
 
 ## Build Strategies
 
@@ -49,6 +50,8 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 | alist-tvbox | `/h2-2.1.214.jar` | `curl` download in Dockerfile |
 | alist-tvbox | `/var/lib/data.zip` | `COPY --from=alist-source` |
 | alist-tvbox | `/alist.json` | `COPY --from=source /src/config/alist.json` |
+| alist-tvbox | `/index` | Symlink `/index → /data/index` in Dockerfile & 00-init.sh |
+| alist-tvbox | `pkill` (AList shutdown) | `procps` in Dockerfile |
 | alist-tvbox-standalone | Spring `file:/data/atv/config/` | `mkdir -p` in 00-init.sh |
 | baihu-panel | `/app/data`, `/app/configs`, `/app/envs` | Symlinks in 00-init.sh |
 | qinglong | `/ql/` | Symlink `/ql → /config/qinglong` |
@@ -75,7 +78,8 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 ## HAOS-Specific Adaptations (alist-tvbox)
 - `/opt/alist/data` → lost on restart, needs `ln -sf /data/alist /opt/alist/data` (persistent volume)
 - `/entrypoint.sh` → symlink for inDocker detection
-- `MEM_OPT` → export in 00-init.sh, inherited by S6 longrun via with-contenv
+- `MEM_OPT` → read directly in S6 longrun `run` via `bashio::config 'LOW_MEMORY'` (cont-init `export` does not pass across s6 processes)
+- `atv-initialized` → touch `/run/atv-initialized` in `00-init.sh`, bounded wait in `run` to prevent CPU/IO race condition during cold start
 
 ## Addon Development Workflow
 1. **Upstream Analysis**: Document upstream architecture in `addon/DOCS.md` BEFORE building (Docker image, scripts, services, data layout, init flow, env vars, ports).

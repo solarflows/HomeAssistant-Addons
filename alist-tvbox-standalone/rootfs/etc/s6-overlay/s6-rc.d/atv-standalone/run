@@ -9,8 +9,25 @@ bashio::log.info "Starting AList-TvBox Standalone..."
 APP_PID=
 trap 'kill ${APP_PID} 2>/dev/null; exit 0' TERM INT
 
+# 等待 cont-init 完成（legacy-cont-init 与 atv-standalone 可能并行启动）
+# 使用 /run 临时内存标记文件确保 00-init.sh 执行完毕，最多等待 60 秒
+for _ in $(seq 1 60); do
+    [ -f /run/atv-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/atv-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
+fi
+
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
-MEM_OPT=${MEM_OPT:-"-Xmx512M"}
+LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
+if [ "${LOW_MEMORY}" = "true" ]; then
+    MEM_OPT="-Xmx512M"
+else
+    MEM_OPT="-Xmx1024M"
+fi
+bashio::log.info "AList-TvBox Standalone JVM memory: ${MEM_OPT}"
+
 ATV_DEBUG=$(bashio::config 'ATV_DEBUG' 'false')
 DEBUG_FLAG=""
 if [ "${ATV_DEBUG}" = "true" ]; then

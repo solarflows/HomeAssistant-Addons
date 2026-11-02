@@ -42,6 +42,7 @@ RUN apt-get update \
         curl \
         wget \
         unzip \
+        procps \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制 Spring Boot 应用层
@@ -80,7 +81,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 EXPOSE 4567/tcp
 
 # Healthcheck
-HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+HEALTHCHECK --interval=30s --start-period=300s --timeout=10s --retries=5 \
     CMD curl -sfo /dev/null http://127.0.0.1:4567/ || exit 1
 
 # S6 overlay 接管启动，不再硬编码 ENTRYPOINT
