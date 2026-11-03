@@ -204,7 +204,10 @@ jobs:
           VERSION="${{ steps.prep.outputs.version }}"
           TAG="${{ steps.prep.outputs.tag }}"
           VERSION_FILE="${ADDON_DIR}/version.yaml"
-          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps || "{}" }}'
+          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps }}'
+          if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
+            UPDATED_DEPS="{}"
+          fi
 
           # 从 version.yaml 的 build_args 字段动态生成构建参数（支持 updated_deps 覆盖）
           BUILD_ARGS=""
@@ -257,7 +260,10 @@ jobs:
           IS_FILE_TRIGGER="${{ steps.prep.outputs.is_file_trigger || 'false' }}"
           IS_VERSION_CHANGE="${{ steps.prep.outputs.is_version_change || 'false' }}"
           OLD_VERSION="${{ steps.prep.outputs.old_version || '' }}"
-          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps || "{}" }}'
+          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps }}'
+          if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
+            UPDATED_DEPS="{}"
+          fi
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
