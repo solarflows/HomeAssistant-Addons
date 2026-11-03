@@ -1,3 +1,8 @@
+### 8.0.52-build.2 (2026-11-03)
+CI 变更
+- chore(cliproxyapi): update PANEL_VERSION 1.14.5 → 1.14.10
+- chore(cliproxyapi): update PANEL_VERSION 1.14.5 → 1.14.10
+
 ### 8.0.52-build.1 (2026-11-03)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
