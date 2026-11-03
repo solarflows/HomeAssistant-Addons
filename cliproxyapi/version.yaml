@@ -6,7 +6,7 @@ source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
   CPA_VERSION: "${version}"
-  PANEL_VERSION: "1.14.5"
+  PANEL_VERSION: "1.14.10"
 dependencies:
   PANEL_VERSION:
     repo: seakee/CPA-Manager-Plus
@@ -16,5 +16,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.1"
-  file_sha: "08c066bd79cab83114345fd0218b9168cbe974bf"
-  build_num: 0
+  file_sha: "d89491494f4d9d236aef34b66568d37d1fcbe5b1"
+  build_num: 1
