@@ -47,7 +47,8 @@ RUN if [ -d "web" ] && [ -f "web/package.json" ]; then \
         touch /app/configs/.gitkeep; \
     fi
 
-# 构建后端
+# 构建后端（配置多代理链路，实现自动容灾故障转移）
+ENV GOPROXY="https://proxy.golang.org,https://goproxy.io,direct"
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /baihu .
 
