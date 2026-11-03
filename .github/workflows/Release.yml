@@ -58,6 +58,7 @@ jobs:
           MATRIX_NEW_VER: ${{ matrix.new_ver }}
           MATRIX_UPDATED_DEPS: ${{ toJson(matrix.updated_deps) }}
           MATRIX_COMMIT_MSG: ${{ matrix.commit_msg }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
           ADDON="${MATRIX_ADDON}"
           REASON="${MATRIX_REASON:-version_changed}"
@@ -156,7 +157,7 @@ jobs:
 
           # ---- 其余参数从 filesystem 推导 ----
           IMAGE=$(yq eval '.image // ""' "$CONFIG_FILE")
-          [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${{ github.repository_owner }}/${ADDON}"
+          [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ] && IMAGE="ghcr.io/${REPO_OWNER}/${ADDON}"
 
           DOCKERFILE="${ADDON}/Dockerfile"
 
@@ -284,6 +285,7 @@ jobs:
           OLD_VERSION: ${{ steps.prep.outputs.old_version || '' }}
           UPDATED_DEPS: ${{ steps.prep.outputs.updated_deps }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
         run: |
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
@@ -448,7 +450,7 @@ jobs:
                          -m "底包 ${ADDON_OLD_BASE} → ${BASE_TAG}，重建以适配新系统层"
             elif [ "$REASON" = "force_rebuild" ]; then
               git commit -m "build(${ADDON}): 手动强制重建 → ${BUILD_VERSION}" \
-                         -m "force_rebuild by ${{ github.actor }} on ${TIMESTAMP}"
+                         -m "force_rebuild by ${ACTOR} on ${TIMESTAMP}"
             else
               # version_changed：主版本或依赖组件版本更新
               DEP_CHANGES=""
