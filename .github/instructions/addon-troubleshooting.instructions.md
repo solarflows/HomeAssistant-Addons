@@ -1,90 +1,70 @@
 ---
 name: addon-troubleshooting
-description: "HomeAssistant-Addons 的 Dockerfile、Shell、config.yaml、version.yaml 构建或运行故障经验。"
+description: "HomeAssistant-Addons 的 Dockerfile、Shell、config.yaml、version.yaml 构建或运行故障经验与原子化排障规范。"
 applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 ---
 
-# Addon Troubleshooting & Lessons Learned
+# 加载项故障排查与规范
 
-> When you fix an issue, append a new entry to the applicable section below.
-> Format: `YYYY-MM-DD: description → solution`.
+> 新增故障记录时，按 `现象 -> 根因 -> 规约` 格式追加至对应分类。
 
-## Repository-wide
-- 2026-07-26: `ha-addon-conventions` skill merged into `create-addon`. AGENTS.md references updated.
-- 2026-07-26: New workflow established: `create-addon` (skeleton + empty analysis.yaml) → `plan-addon` (fill data) → push → CI build.
-- 2026-09-08: `alist-tvbox-standalone` CI failed on `ADD https://.../alist-tvbox-1.0.jar` with `connection reset by peer`. Bare `ADD` has no retry. Use `curl --retry` in Dockerfiles; Version Check / Release retry GitHub API, image build/push, and git push with backoff.
-- 2026-10-10: A new addon's first build left `config.yaml.version` at `0.0.0-build.0` and did not generate `CHANGELOG.md`. Root cause: Version_Check emits a **composite** reason for a brand-new addon (`version_changed,dockerfile,rootfs`), while Release.yml matched it with a **prefix** `case "$REASON" in dockerfile*|...)` — a value starting with `version_changed,` matched neither that nor the exact `REASON = "version_changed"`, so both write branches were skipped. **Fixed**: Release.yml now splits `REASON` on commas up front and derives `IS_VERSION_CHANGE` / `IS_FILE_TRIGGER` flags (never prefix-match a composite reason). Note: fixing it changed `Release.yml`, which triggers a **full rebuild of every addon**.
-- 2026-10-10: Follow-up regression from the fix above — `config.yaml.version` and `CHANGELOG.md` were *still* not written for the 5 new addons, while the 9 existing ones were fine. Cause: **each GitHub Actions step is a separate shell**, so a plain shell variable (`IS_VERSION_CHANGE`) set in the `Prepare environment` step is **empty** in the later `Prepare config updates & commit` step — every check depending on it silently evaluated false. `IS_FILE_TRIGGER` only worked because it was already exported. **Rule**: any flag a later step reads must be exported via `echo "key=$val" >> $GITHUB_OUTPUT` and read back as `KEY="${{ steps.prep.outputs.key || 'false' }}"`. Symptom to recognize: a CI commit touching only `version.yaml` (no `config.yaml` / `CHANGELOG.md`).
-- 2026-10-10: "CI 变更" CHANGELOG entries listed up to 9 unrelated historical commits (`chore(<addon>): upstream X → Y`). Cause: the `COMMIT_MSG` fallback used `git log -10 -- <addon>/`, which pulls that directory's recent history regardless of relevance, and the filter only excluded `^- build(`. **Fixed**: both `Version_Check.yml` and `Release.yml` now derive commits strictly from `file_sha..HEAD` (no `-10` fallback), and the filter also excludes `chore(<addon>): upstream `. When nothing remains the entry reads `（本次构建无代码变更）`. Historical noise was cleaned from the 9 affected addons.
-- 2026-10-10: Addon icons are plain `icon.png` / `logo.png` files in the addon directory (HA reads them from the repo); `config.yaml` may additionally set an `icon: mdi:...` fallback. New addons shipped without them showed a grey puzzle placeholder in the store. Note these files are **not** in the CI trigger paths (`**/Dockerfile`, `**/rootfs/**`), so adding icons does not trigger a rebuild.
-- 2026-10-12: CLIProxyAPI v8 config has **no default for `server.port`** — a config without it binds `:0` (random port), so the HA port mapping points at nothing and the panel is unreachable (`API server started successfully on: :0` in the log is the tell). **Fix**: always write `server: { host: "", port: 8317 }` in generated configs, plus a startup migration for pre-existing configs. General rule: check upstream loaders for fields without defaults before generating seed configs.
-- 2026-10-12: Add-ons **can** backfill their own options: `POST /addons/self/options` with `Authorization: Bearer $SUPERVISOR_TOKEN` (injected into every add-on container). The supervisor's `api_bypass` regex (`supervisor/api/middleware/security.py`) allows `/addons/self/*` without `hassio_api`/admin role (verified on 2026.09.3 and main). The endpoint **replaces the whole options dict** — read `/data/options.json`, merge the keys, POST once; **multiple backfills must be merged into a single POST** or a later one wipes earlier keys (it reads the stale options.json). Failure must degrade to a warning (key file + log print). Pattern implemented in cliproxyapi / cliproxyapi-cpamp / workbuddy2api-panel `00-init.sh` (`ha_options_backfill`).
-- 2026-10-12: Option→config sync for seed-once addons uses a sidecar `/config/<slug>/options_applied.json` recording the last applied option values. Semantics: non-empty option **changed** vs sidecar → rewrite the config field; empty option = panel-managed (never write/delete); panel edits are not stomped by unchanged options. On first start write the sidecar with the values actually written (generated key), and **skip the sync block on first start** — otherwise the sidecar gets overwritten with the (not yet backfilled) empty option and the next boot falsely detects a change.
-- 2026-11-03: `alist-tvbox` & `alist-tvbox-standalone` HEALTHCHECK start-period was 60s (failing at 120s with retries=3), causing Supervisor watchdog to kill and restart Spring Boot during cold start on ARM hardware (taking ~200s). Fixed: extended HEALTHCHECK start-period to 300s (retries=5); serialized `00-init.sh` and `run` via `/run/atv-initialized` bounded wait; read `LOW_MEMORY` directly in `run`; added `procps` (`pkill`) and `/index` symlink.
+## 全局与 CI 规约
+- **Dockerfile 下载重试**：严禁裸写 `ADD https://`；强制在 Dockerfile 中使用 `curl --retry 3 --retry-all-errors`。
+- **复合原因触发判断**：`Version_Check` 产生的 `REASON` 包含逗号拼接（如 `version_changed,dockerfile`）；`Release.yml` 必须先切分提取 `IS_VERSION_CHANGE` 与 `IS_FILE_TRIGGER`，严禁使用前缀匹配。
+- **跨 GHA 步骤变量传递**：GitHub Actions 各步骤为独立 Shell；跨步骤读取的变量必须输出至 `$GITHUB_OUTPUT`，后续步骤通过 `${{ steps.<id>.outputs.<key> }}` 消费。
+- **变更日志范围精准截取**：提交日志严格基于 `file_sha..HEAD` 范围获取并过滤 `chore(<addon>): upstream`；严禁使用无界 `-10` 兜底导致混入无关历史。
+- **图标静态资产免触发**：`icon.png` 与 `logo.png` 置于加载项根目录；不纳入 CI 监控路径，增删图标不触发镜像重构。
+- **服务配置默认端口**：应用配置若无默认端口会绑定 `:0` 导致端口映射失效；生成初始配置时必须显式填入有效默认端口（如 `8317`）。
+- **合并回填加载项选项**：调用 `POST /addons/self/options` 会全量覆盖选项；必须先读取合并后再执行单次请求，严禁连续分散请求。
+- **配置持久同步 sidecar 机制**：采用 `/config/<slug>/options_applied.json` 记录已应用选项；首次启动跳过同步以防覆盖，非空且变更时覆写对应配置。
+- **冷启动与看门狗窗口**：ARM 设备冷启动高负载服务（如 JVM）需 150~200s；Dockerfile `HEALTHCHECK` 必须设置 `start-period=300s, retries=5`，防止 Supervisor 看门狗提前杀进程。
+- **初始化与运行串行化**：`cont-init.d/00-init.sh` 结束时创建 `/run/<slug>-initialized`；S6 `run` 脚本必须有界循环等待该标记，严禁二者无序争抢 CPU/IO。
 
-## Build Strategies
+## 语言构建策略规范
 
-### Python (qdtoday)
-- C-extensions (pycurl, ddddocr) must compile at runtime, not in builder.
-  → `sed -i '/^pkg/d' requirements.txt` in builder; pip install at runtime.
-- A `pip --prefix` builder must use the same Python minor version as the runtime. Otherwise packages land under a versioned `site-packages` directory that the runtime does not scan.
+### Python (如 qdtoday)
+- C 扩展库（如 `pycurl`、`ddddocr`）必须在运行时阶段编译，禁止直接从 builder 复制。
+- 使用 `pip --prefix` 时，builder 与 runtime 的 Python 次版本必须完全一致。
 
-### Node.js (qinglong, uptime-kuma)
-- Native modules (sqlite3, cpu-features) need `npm rebuild` at runtime.
-  → Don't COPY builder's `node_modules`; run `npm rebuild` in runtime stage.
-- Builder and runtime stages that reuse native modules must use the same libc family. Never copy Alpine/musl `node_modules` into a Debian/glibc runtime; reinstall or rebuild them in the runtime stage.
+### Node.js (如 qinglong, uptime-kuma)
+- 原生模块（如 `sqlite3`、`cpu-features`）必须在运行时阶段执行 `npm rebuild`。
+- builder 与 runtime 阶段若共享原生模块，必须基于相同 libc 族系；严禁将 Alpine/musl 模块复制至 Debian/glibc 环境。
 
-### Go (baihu-panel, lucky)
-- `CGO_ENABLED=0` → static binary, no libc concerns. Safe to COPY from any builder.
+### Go (如 baihu-panel, lucky)
+- 强制使用 `CGO_ENABLED=0` 生成纯静态二进制；跨 stage 复制无需依赖任何宿主动态链接库。
+- 构建时增加重试与代理回退，防范海外网络模块拉取中断。
 
-### Java (alist-tvbox, alist-tvbox-standalone)
-- Spring Boot `additional-location` silently skips missing dirs (no crash, but config is ignored).
-  → Must `mkdir -p` the target dir in 00-init.sh.
+### Java (如 alist-tvbox, alist-tvbox-standalone)
+- Spring Boot `additional-location` 遇到不存在的路径会静默忽略；必须在 `00-init.sh` 中提前 `mkdir -p` 对应配置目录。
 
-## Upstream Path Adaptations
+## 上游路径适配清单
 
-| Addon | Hardcoded Path | Fix |
-|-------|---------------|-----|
-| alist-tvbox | `/jre/bin/java`, `/app_version`, `/docker.version` | Dockerfile symlinks + files |
-| alist-tvbox | `/opt/atv/BOOT-INF/lib/h2-*.jar` | `find + ln -sf` from snapshot-dependencies |
-| alist-tvbox | `/h2-2.1.214.jar` | `curl` download in Dockerfile |
+| 加载项 | 硬编码上游路径 | 适配方案 |
+|---|---|---|
+| alist-tvbox | `/jre/bin/java`, `/app_version`, `/docker.version` | Dockerfile 软链接与文件补齐 |
+| alist-tvbox | `/opt/atv/BOOT-INF/lib/h2-*.jar` | snapshot-dependencies 执行 `find + ln -sf` |
+| alist-tvbox | `/h2-2.1.214.jar` | Dockerfile 中 `curl` 预下载 |
 | alist-tvbox | `/var/lib/data.zip` | `COPY --from=alist-source` |
 | alist-tvbox | `/alist.json` | `COPY --from=source /src/config/alist.json` |
-| alist-tvbox | `/index` | Symlink `/index → /data/index` in Dockerfile & 00-init.sh |
-| alist-tvbox | `pkill` (AList shutdown) | `procps` in Dockerfile |
-| alist-tvbox-standalone | Spring `file:/data/atv/config/` | `mkdir -p` in 00-init.sh |
-| baihu-panel | `/app/data`, `/app/configs`, `/app/envs` | Symlinks in 00-init.sh |
-| qinglong | `/ql/` | Symlink `/ql → /config/qinglong` |
-| qdtoday | `/usr/src/app/config` | Symlink in 00-init.sh |
-| uptime-kuma | `/opt/uptime-kuma/data` | Symlink in 00-init.sh |
+| alist-tvbox | `/index` | Dockerfile 及 00-init.sh 软链接至 `/data/index` |
+| alist-tvbox | `pkill` (AList 优雅终止) | Dockerfile 预装 `procps` |
+| alist-tvbox-standalone | Spring `file:/data/atv/config/` | 00-init.sh 中 `mkdir -p` |
+| baihu-panel | `/app/data`, `/app/configs`, `/app/envs` | 00-init.sh 软链接至 `/data` 或 `/config` |
+| qinglong | `/ql/` | 软链接 `/ql -> /config/qinglong` |
+| qdtoday | `/usr/src/app/config` | 00-init.sh 软链接 |
+| uptime-kuma | `/opt/uptime-kuma/data` | 00-init.sh 软链接 |
 
-## S6 Pitfalls
-- **No `notification-fd` / `timeout-up`**: debian-base:9.3.0 S6 is too old. Unknown files cause service to silently skip.
-- **S6 Stage 2 Hook required**: `S6_STAGE2_HOOK` env + hook script to remove `down` files. Do NOT use cont-init `rm -f down` workarounds — they race with s6 startup.
-- **stage2 hook races with cont-init** (2026-10-12): the hook's background loop brings user services up as soon as `/run/service/<name>/` exists — which is before `legacy-cont-init` (00-init.sh) runs. First start logs `failed to load config: no such file or directory`, then self-heals via S6 restart. **Fix**: S6 longrun `run` scripts wait (≤30s) for the config file generated by cont-init before `exec` (cliproxyapi, cliproxyapi-cpamp, workbuddy2api-panel). Keep waiting bounded and exec anyway on timeout so the real error surfaces.
-- **`set -e` in upstream scripts**: any missing file kills the entire init process.
-- **chmod after COPY rootfs**: always run `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run`.
+## S6 进程监督约束
+- **严禁新增不支持的服务文件**：`debian-base:9.3.0` 内置老版本 S6；严禁添加 `notification-fd` 或 `timeout-up`，否则服务被静默跳过。
+- **Stage 2 Hook 必需**：依赖 `S6_STAGE2_HOOK` 环境变量与对应 hook 脚本清理 `down` 标记文件；严禁在 cont-init 中执行 `rm -f down`。
+- **消除 hook 与 cont-init 竞态**：S6 longrun `run` 脚本在 `exec` 真实进程前，必须加入有界等待（≤30s），等待 cont-init 生成必要配置文件。
+- **容器层执行权限固化**：在 Dockerfile 执行 `COPY rootfs /` 后，必须紧跟 `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh`。
 
-## Chromium Addons
-- Grant `SYS_ADMIN` or `IPC_LOCK` only when the addon's documented Chromium runtime requires it; do not apply these capabilities to unrelated addons.
-- Chromium 140+ wrappers used by FlareSolverr require Bash when they contain Bash-only conditionals. Keep the repository's entrypoint compatibility patch aligned with the upstream wrapper.
+## Chromium 容器约束
+- 仅在文档明确要求 Chromium 运行依赖时才授予 `SYS_ADMIN` 或 `IPC_LOCK` 特权。
+- Chromium 140+ 包装脚本包含 Bash 特有条件判断时，入口必须强制使用 `/bin/bash` 解释执行。
 
-## Upstream Integration Principles (alist-tvbox)
-- **00-init.sh = upstream entrypoint.sh init portion** (minus `exec java`). Do NOT reimplement upstream's init_directories/setup_symlinks logic.
-- **S6 longrun = upstream entrypoint.sh service portion** (httpd + nginx + exec java).
-- **Do NOT bypass upstream's is_initialized logic** with custom marker files (h2.version.txt hack, .ha_init_done, etc.). Upstream relies on container restart to recover from failed first init — S6 oneshot has the same behavior.
-- **Audit ALL upstream hardcoded paths**: `/opt/atv/BOOT-INF/lib/`, `/jre/bin/java`, `/h2-*.jar`, `/var/lib/data.zip`, `/alist.json`, `/app_version` — create corresponding symlinks or COPY in Dockerfile.
-
-## HAOS-Specific Adaptations (alist-tvbox)
-- `/opt/alist/data` → lost on restart, needs `ln -sf /data/alist /opt/alist/data` (persistent volume)
-- `/entrypoint.sh` → symlink for inDocker detection
-- `MEM_OPT` → read directly in S6 longrun `run` via `bashio::config 'LOW_MEMORY'` (cont-init `export` does not pass across s6 processes)
-- `atv-initialized` → touch `/run/atv-initialized` in `00-init.sh`, bounded wait in `run` to prevent CPU/IO race condition during cold start
-
-## Addon Development Workflow
-1. **Upstream Analysis**: Document upstream architecture in `addon/DOCS.md` BEFORE building (Docker image, scripts, services, data layout, init flow, env vars, ports).
-2. **Build Addon**: Use DOCS.md as blueprint for Dockerfile + rootfs scripts. Identify gaps: base image differences, missing tools, path mismatches.
-3. **Key Patterns**:
-   - HAOS mounts `/data/` as persistent volume (upstream Docker does NOT)
-   - Resource files must go to `/` (image layer), not `/data/` (volume)
-   - Debian vs Alpine: nginx paths, java paths, busybox-extras missing
+## 数据持久化与路径映射
+- `/data/` 为 Supervisor 挂载的独立持久卷；`/config/` 为共享备份卷。
+- 容器重启会丢弃非卷目录；上游硬编码于 `/opt` 等目录的读写数据，必须在 `00-init.sh` 中软链接至 `/data/` 或 `/config/`。
+- 跨进程环境变量无法通过 `export` 穿透；S6 `run` 脚本中必须使用 `bashio::config` 直接读取用户配置。

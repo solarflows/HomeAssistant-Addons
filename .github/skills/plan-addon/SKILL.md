@@ -3,108 +3,77 @@ name: plan-addon
 description: 分析上游项目并填充 analysis.yaml。在 create-addon 创建骨架后运行。
 ---
 
-# Addon Planning Guide
+# 上游分析与规划指南
 
-> **Purpose**: Investigate an upstream project and fill the `analysis.yaml` created by `create-addon`.
-> **Prerequisite**: `create-addon` skill already created `<addon-slug>/` skeleton with empty `analysis.yaml`.
-> **Output**: Filled `<addon-slug>/analysis.yaml` — the single source of truth for addon configuration.
+> **目标**：全面调研上游项目架构，填充 `create-addon` 生成的 `<addon-slug>/analysis.yaml`。
+> **前置条件**：已通过 `create-addon` 技能创建骨架目录。
+> **交付物**：完整的 `<addon-slug>/analysis.yaml`（作为加载项配置与构建的单一事实来源）。
 
-## Workflow
+## 工作流时序
 
 ```
-create-addon: create skeleton + empty analysis.yaml
+create-addon: 创建骨架与空白 analysis.yaml
   ↓
-plan-addon: investigate upstream → fill analysis.yaml
+plan-addon: 探查上游架构 → 填充 analysis.yaml
   ↓
-User/manual: fill config.yaml, Dockerfile, scripts based on analysis.yaml
+人工确认: 依据 analysis.yaml 完善 config.yaml / Dockerfile / 脚本
   ↓
-User: push to main → CI auto-builds
+推送验证: push 至 main → CI 自动触发构建
 ```
 
-## Investigation Checklist
+## 调研检查清单
 
-### 1. Upstream Info
-- Fetch repo metadata: `repo`, `description`, `license`
-- Check release mechanism: GitHub Releases (`source: github`) or Tags (`source: github_tags`)
-- Read `version.yaml` of similar addons in this repo for reference
-- Determine `tag_prefix` (e.g., `v` or empty)
+### 1. 上游元数据
+- 获取仓库基础信息：`repo`、`description`、`license`。
+- 确认发布机制：GitHub Releases (`source: github`) 或 Git Tags (`source: github_tags`)。
+- 确认版本标签前缀 `tag_prefix`（如 `v` 或留空）。
 
-### 2. Docker Analysis
-Read these upstream files completely:
-- **Dockerfile** — base image, build deps, multi-stage, VOLUME, EXPOSE, ENV, CMD
-- **docker-compose.yml** (if exists) — ports, volumes, environment
-- **entrypoint.sh** / docker-entrypoint.sh — hardcoded paths, CWD assumptions, config init logic
-- **.dockerignore** — build context hints
+### 2. Docker 与启动逻辑分析
+完整核验上游仓库的核心文件：
+- **Dockerfile**：提取基础镜像、构建工具、多阶段流程、VOLUME、EXPOSE、ENV、CMD。
+- **docker-compose.yml**：提取端口、挂载卷、环境变量。
+- **entrypoint.sh**：排查硬编码路径、工作目录依赖及配置生成逻辑。
 
-Extract:
-- Base image language: Node/Python/Go/Java/Rust/binary
-- Build dependencies vs runtime dependencies
-- VOLUME mounts → must become symlinks in HA
-- EXPOSE ports → `ingress_port` in config.yaml
-- ENV vars → configurable options or HA env passthrough
+### 3. 构建策略选型
 
-### 3. Build Strategy Selection
-
-| Strategy | When | Example |
+| 策略模式 | 适用场景 | 代表范例 |
 |---|---|---|
-| `multi-stage` | OSS with build toolchain | qinglong (Node), qdtoday (Python), baihu-panel (Go) |
-| `upstream-image` | Complex build, official image exists | flaresolverr, filebrowser-quantum |
-| `binary-download` | Closed-source or simple binary | lucky |
-| `release-jar` | Java/Spring Boot | alist-tvbox, alist-tvbox-standalone |
+| `multi-stage` | 开源项目，需在构建期编译 | qinglong (Node), qdtoday (Python), baihu-panel (Go) |
+| `upstream-image` | 构建极度复杂，官方已提供优化镜像 | flaresolverr, filebrowser-quantum |
+| `binary-download` | 闭源商业软件或预编译独立二进制 | lucky |
+| `release-jar` | Java / Spring Boot 胖包应用 | alist-tvbox, alist-tvbox-standalone |
 
-### 4. Filesystem Adaptation
+### 4. 文件系统与持久化适配
+针对上游 VOLUME 与硬编码路径，建立 Home Assistant 映射规则：
+- 数据持久化：`/app/data` $	o$ `/config/<slug>/data`（于 `00-init.sh` 中创建软链接）。
+- 工作目录敏感性：排查应用是否依赖特定 CWD 解析相对路径。
+- 构建期文件探测：排查应用是否依赖 `/app_version` 或 `/docker.version` 等镜像层硬编码标识。
 
-For each upstream VOLUME or hardcoded path, determine HA mapping:
+## analysis.yaml 规范格式
 
-```
-Upstream container path  →  HA path               →  Type
-/app/data                →  /config/<slug>/data    →  symlink in 00-init.sh
-/opt/app/config          →  /config/<slug>/config  →  symlink in 00-init.sh
-/ql/                     →  /config/qinglong       →  symlink
-```
-
-Check:
-- Does CWD matter? (Go/Node apps often derive data dir from CWD)
-- Does upstream write version files at build time? (`/app_version`, `/docker.version`)
-- Does entrypoint use `set -e`? (any missing file kills init)
-
-**Audit checklist**:
-1. Read upstream `Dockerfile` / `docker-compose.yml` for volume mounts or VOLUME directives
-2. Read upstream `entrypoint.sh` for hardcoded paths (`/app/data`, `/jre/bin/java`, etc.)
-3. Read upstream scripts for version files the app expects (`/app_version`, `/docker.version`)
-4. Check if CWD matters (Go/Node apps often derive data dir from the working directory)
-
-### 5. Config Options
-Identify what should be configurable:
-- Upstream ENV vars → HA addon `options` + `schema`
-- Config files on mounted volumes → HA configurable path
-- Port bindings → `ingress_port` + `network` in config.yaml
-
-## Output Format: analysis.yaml
-
-Write to `<addon-slug>/analysis.yaml`:
+输出并保存至 `<addon-slug>/analysis.yaml`：
 
 ```yaml
 # <addon-slug>/analysis.yaml
 ---
 upstream:
   repo: owner/repo
-  description: What this service does
+  description: 服务功能简述
   license: MIT
 
 build:
   strategy: multi-stage          # multi-stage | binary-download | upstream-image | release-jar
-  builder_image: node:22-bookworm-slim  # only for multi-stage
-  apt_build_deps: []             # build-time apt packages
-  build_steps:                   # shell commands for builder stage
+  builder_image: node:22-bookworm-slim
+  apt_build_deps: []
+  build_steps:
     - npm ci
     - npm run build
-  artifacts: dist/               # COPY from builder
-  runtime_deps:                  # packages installed in runtime stage
+  artifacts: dist/
+  runtime_deps:
     apt:
       - nodejs
     pip: []
-  version_arg: APP_VERSION       # ARG name for version, if any
+  version_arg: APP_VERSION
 
 runtime:
   language: node                 # node | python | go | java | rust | binary
@@ -112,46 +81,33 @@ runtime:
   working_dir: /app
   env:
     KEY: value
-  data_dir: /app/data            # where app stores persistent data
+  data_dir: /app/data
 
 network:
   port: 3001
   protocol: tcp
 
 filesystem:
-  persistent_dirs:               # upstream VOLUME → HA /config mapping
+  persistent_dirs:
     - container: /app/data
       ha: /config/<slug>/data
       type: symlink
       reason: Upstream VOLUME /app/data
-  hardcoded_paths:               # upstream hardcoded absolute paths
+  hardcoded_paths:
     - path: /app_version
       ha: /config/<slug>/app_version
       type: file
-  cwd_matters: true              # does app derive paths from CWD?
+  cwd_matters: true
 
 config:
   options:
     log_level:
       type: str?
       default: info
-      description: Log level
+      description: 日志级别
   schema:
     log_level: list(trace|debug|info|warn|error)
 
 adaptations:
-  - Entrypoint uses /app/data as data dir → symlink to /config/<slug>/data
-  - CWD is /app, app stores config in ./config → symlink /app/config
-```
-
-## Common Investigation Commands
-
-```bash
-# Fetch upstream files
-curl -s https://raw.githubusercontent.com/owner/repo/main/Dockerfile
-curl -s https://raw.githubusercontent.com/owner/repo/main/docker-compose.yml
-curl -s https://raw.githubusercontent.com/owner/repo/main/entrypoint.sh
-
-# Check latest release
-curl -s https://api.github.com/repos/owner/repo/releases/latest | jq .tag_name
+  - 启动项使用 /app/data 保存数据，在 00-init.sh 中软链接至 /config/<slug>/data
 ```

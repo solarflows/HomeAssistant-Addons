@@ -3,45 +3,33 @@ name: fix-ci
 description: 调试和修复 GitHub Actions CI/CD 问题。构建失败、工作流语法错误、发布管道异常时使用。
 ---
 
-# CI Fix Guide
+# CI/CD 故障排查与修复指南
 
-## CI Flow
+## CI 架构流水线
 ```
-Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon build → push ghcr.io → independent commits
+Version_Check (每 6 小时定时轮询) → workflow_call → Release → 各加载项多架构构建 → 推送 ghcr.io → 原子回写提交
 ```
 
-## Workflow Details
+## 工作流关键契约
 
 ### Version_Check.yml
-- **Trigger**: cron (every 6h) + workflow_dispatch
-- **Role**: detect upstream changes & debian-base updates → output `has_changes` + `matrix` JSON
-- **Permissions**: `contents: write, actions: write, packages: write` (packages:write critical for workflow_call)
-- Detect priority: `version_changed` > `base_updated` > `file_changed` > `force_rebuild`
-- File trigger sub-types: `dockerfile` / `rootfs` / `config` / `workflow`
-- Compound reason: accumulates unique triggers (`dockerfile,rootfs`)
-- Matrix (4 fields): `addon` / `reason` / `new_ver` / `commit_msg`
-- `commit_msg`: per-addon git log filtered by `${ADDON_DIR}/`, passed to Release for CHANGELOG
+- **触发源**：定时任务（`cron: 0 */6 * * *`）与手动调度（`workflow_dispatch`）。
+- **职责**：侦测上游 Release/Tag/Date/Commit/Asset 变更、多依赖组件更新及 debian-base 底包变动，生成构建 matrix JSON。
+- **权限需求**：`contents: write, actions: write, packages: write`。
+- **触发优先级**：`version_changed` > `base_updated` > `file_changed` > `force_rebuild`。
+- **复合原因**：多个文件变动时用逗号拼接（如 `dockerfile,rootfs`）。
+- **多依赖监控**：`version.yaml` 声明 `dependencies:`；当任意副依赖更新时，生成包含 `updated_deps` 的 matrix。
 
 ### Release.yml
-- **Trigger**: workflow_call (from Version_Check) + workflow_dispatch (manual)
-- **Jobs**: build (matrix); each job does config update + changelog + git commit
-- **Matrix parse**: `fromJson(needs.check-versions.outputs.matrix || inputs.matrix || '{"include":[]})' `)
-- Release computes `version` / `build_version` / `build_num` / `base_tag` from version.yaml at runtime
-- HA version derivation: `<upstream version>[-<version_suffix>][-build.N]`, then sanitized (digit-leading, `[0-9A-Za-z.-]` only). Must equal the pushed image tag.
-- CHANGELOG: uses matrix `commit_msg` first, falls back to `git log file_sha..HEAD`
-- **Compound reason**: split `REASON` on commas up front into `IS_VERSION_CHANGE` / `IS_FILE_TRIGGER` flags. Never prefix-match (`dockerfile*`) — a composite value starting with `version_changed,` would be missed.
-- File-trigger sub-labels: `IFS=',' read -ra` → label like `Dockerfile + rootfs 变更`
+- **触发源**：`workflow_call`（由 Version_Check 派发）与手动调度。
+- **执行任务**：matrix 并行构建多架构镜像，自动拼接 `version_template`，渲染 CHANGELOG，提交更新元数据。
+- **版本号计算**：由 upstream 版本、可选前缀/后缀或模板控制，经正则过滤满足 HA 要求并与推送到 ghcr.io 的 tag 严格一致。
+- **复合触发判断**：先按逗号拆分 `REASON` 提取 `IS_VERSION_CHANGE` 与 `IS_FILE_TRIGGER`，严禁使用前缀匹配。
 
-## GHA Common Pitfalls
-- `${{ }}` pipes `|` → use `jq -r` to read files
-- `strategy.matrix` must be `{include: [...]}`, not bare `[]`
-- `yq eval` defaults YAML; add `-o=json` for jq
-- `needs.<job>` must be declared in `needs:` list
-- Action versions: use `@v4` (`@v7`/`@v8` may not exist)
-- `workflow_call` inherits caller's permissions
-
-## GITHUB_OUTPUT
-- Multiline: use heredoc, **never** `tr '\n' ' '` or `echo "key=$val"` (causes `Invalid format`)
+## GitHub Actions 常见陷阱与规范
+- 严禁在 `run: |` 脚本中直接内嵌动态表达式（如 `${{ github.event... }}`）；必须通过 step 的 `env:` 映射后消费。
+- `${{ }}` 表达式内部的字符串字面量强制使用单引号（禁止双引号字面量如 `"{}"`）。
+- 跨步骤多行变量输出强制使用 heredoc 格式输出至 `$GITHUB_OUTPUT`：
 ```bash
 {
   echo "matrix<<EOF"
@@ -50,31 +38,6 @@ Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon bui
 } >> "${GITHUB_OUTPUT}"
 ```
 
-## Version detection
-- Read `*/version.yaml` → `source` → fetch upstream tag → strip `tag_prefix` → compare
-- `version_changed` → update config.yaml + CHANGELOG.md
-- `base_updated` → keep version, rebuild all addons
-- New addon: `file_sha: ""` triggers first-build detection
-- **Multi-repo monitoring**: `version.yaml` supports `dependencies:` mapping (arbitrary N components, e.g. `PANEL_VERSION: { repo: owner/repo, source: github }`). When any dependency changes, `Version_Check` outputs `updated_deps` into matrix, `Release` passes updated build args to Docker build, updates `version.yaml`, updates `config.yaml` version, and appends dependency release notes to `CHANGELOG.md`.
-
-## build-args
-- `version.yaml` `build_args` use `${version}`/`${tag}` placeholders → CI replaces via jq `gsub`
-- Key name must match the ARG in Dockerfile
-
-## cleanup-runs (replaces cleanup-changelog)
-- Runs after Release, deletes workflow runs >30 days via `gh api`
-- No repo checkout needed, uses `GH_TOKEN`
-
-## debian-base
-- Release API: `hassio-addons/addon-debian-base/releases/latest`
-- Tag is `v9.3.0` format → always `sed 's/^v//'` before comparing with stored `base_tag`
-
-## Commit & push
-- Independent commits per addon after build → 3x retry pull+push
-- Commit: `chore(${ADDON}): update to ${VERSION}`
-- push retry: 3 attempts, `exit 1` on final failure (not silent skip)
-
-## ghcr.io
-- Package: `ghcr.io/solarflows/<addon-slug>`
-- Old packages may be unwritable under new permission model → delete & recreate
-- Avoid too-short names (2-char triggers limits)
+## 提交与推送重试
+- 各加载项独立原子提交：`chore(${ADDON}): update to ${VERSION}`。
+- 推送冲突防范：设置 3 次指数退避拉取与重试（`git pull --rebase`），最终重试失败必须显式 `exit 1`，严禁静默吞掉报错。
