@@ -1,3 +1,58 @@
+### 1.2.1 (2026-11-03)
+## Summary
+
+MCPHub v1.2.1 improves upstream connection stability and OpenAPI parameter compatibility, adds narrowly scoped Fake-IP exceptions, and restores Authorization passthrough through an explicit administrator opt-in. It also refreshes package versions more promptly after reinstall or reload and updates dependencies.
+
+## Features
+
+- Add admin-managed Fake-IP exceptions scoped to an upstream server and exact hostname for SSE and Streamable HTTP connections. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1446
+- Document one-click deployment options in the Docker deployment guide. by @cosark in https://github.com/samanhappy/mcphub/pull/1454
+
+## Fixes
+
+- Restore upstream Authorization passthrough through an explicit admin opt-in, disabled by default; requires a separate MCPHub authentication header and trusted upstream configuration, and remains unavailable in hosted mode. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1453
+- Refresh package versions and update hints promptly after Reinstall or Reload. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1451
+- Preserve upstream connections when changing tool, prompt or resource settings, avoiding duplicate stdio processes while servers are connecting. by @11113127 in https://github.com/samanhappy/mcphub/pull/1449
+- Handle nullable and union tool schemas in OpenAPI and convert scalar array inputs correctly; affected generated operations now use POST with a JSON body. by @OsamaAnsar in https://github.com/samanhappy/mcphub/pull/1447
+- Update runtime and development dependencies, including OpenAI, Hugging Face tokenizers, uuid, tailwind-merge, i18next-browser-languagedetector and concurrently.
+
+## 摘要
+
+MCPHub v1.2.1 改进上游连接稳定性和 OpenAPI 参数兼容性，新增精确限定范围的 Fake-IP 例外，并允许管理员显式启用 Authorization 透传。同时优化重新安装或重新加载后的包版本刷新，并更新依赖。
+
+## 功能
+
+- 新增由管理员管理的 Fake-IP 例外，按上游服务器和精确主机名限定 SSE 与 Streamable HTTP 连接。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1446
+- 在 Docker 部署指南中补充一键部署选项。 by @cosark in https://github.com/samanhappy/mcphub/pull/1454
+
+## 修复
+
+- 通过管理员显式启用恢复上游 Authorization 透传，默认关闭；需配置独立的 MCPHub 认证请求头及可信上游，托管模式仍不支持。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1453
+- 重新安装或重新加载后及时刷新包版本和更新提示。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1451
+- 修改工具、提示词或资源配置时保留上游连接，避免服务器连接过程中重复创建 stdio 进程。 by @11113127 in https://github.com/samanhappy/mcphub/pull/1449
+- 修复 OpenAPI 对可空类型及联合类型工具参数的处理，并正确转换数组参数的单值输入；受影响的生成操作改用 POST 和 JSON 请求体。 by @OsamaAnsar in https://github.com/samanhappy/mcphub/pull/1447
+- 更新运行时与开发依赖，包括 OpenAI、Hugging Face tokenizers、uuid、tailwind-merge、i18next-browser-languagedetector 和 concurrently。
+
+## New Contributors
+
+- @cosark made their first contribution in #1454
+
+## References
+
+- docs: present one-click deploy options in Docker deployment by @cosark in https://github.com/samanhappy/mcphub/pull/1454
+- fix: restore Authorization passthrough with an admin opt-in by @samanhappy in https://github.com/samanhappy/mcphub/pull/1453
+- fix: refresh package version promptly after reinstall and reload by @samanhappy in https://github.com/samanhappy/mcphub/pull/1451
+- fix: preserve upstream connections on tool, prompt and resource config changes by @11113127 in https://github.com/samanhappy/mcphub/pull/1449
+- fix(openapi): handle nullable and union tool parameters by @OsamaAnsar in https://github.com/samanhappy/mcphub/pull/1447
+- feat: scope Fake-IP exceptions to upstream server and hostname by @samanhappy in https://github.com/samanhappy/mcphub/pull/1446
+- chore(deps-dev): bump i18next-browser-languagedetector from 8.2.1 to 8.2.3 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1444
+- chore(deps-dev): bump tailwind-merge from 3.6.0 to 3.7.0 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1442
+- chore(deps): bump openai from 6.45.0 to 7.45.1 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1441
+- chore(deps): bump @huggingface/tokenizers from 0.1.3 to 0.2.0 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1440
+- chore(deps): bump uuid from 14.0.0 to 14.0.3 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1439
+- chore(deps-dev): bump concurrently from 9.2.0 to 10.0.6 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1438
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.0...v1.2.1
+
 ### 1.2.0-build.3 (2026-11-03)
 CI 变更
 （本次构建无代码变更）
