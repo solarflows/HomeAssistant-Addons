@@ -96,25 +96,34 @@ jobs:
             BUILD_NUM=$((BUILD_NUM_CUR + 1))
           fi
 
-          # ---- 组装 HA 版本号：<上游版本>[-<version_suffix>][-build.<N>] ----
-          # HA 官方约定：version 必须与镜像 tag 完全一致（下方 build 步骤用同一值打 tag）。
-          BUILD_VERSION="$VERSION"
+          # ---- 组装 HA 版本号：支持版本号拼接控制 (version_template) 及向后兼容 (version_suffix) ----
+          # 1. 优先读取版本自定义拼接模板（可自由控制各组件版本次序与分隔符，如 "${PANEL_VERSION}-${version}"）
+          VERSION_TMPL=$(yq eval '.version_template // ""' "$VERSION_FILE")
 
-          VERSION_SUFFIX_TMPL=$(yq eval '.version_suffix // ""' "$VERSION_FILE")
-          if [ -n "$VERSION_SUFFIX_TMPL" ] && [ "$VERSION_SUFFIX_TMPL" != "null" ]; then
-            # 解析 ${KEY}：KEY 取自 build_args（合并 updated_deps 与 version 本身）
-            SUFFIX="$VERSION_SUFFIX_TMPL"
-            SUFFIX_PAIRS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
-              --arg v "$VERSION" --argjson deps "$UPDATED_DEPS" \
-              'to_entries | map(.value = (if ($deps[.key] and $deps[.key].version) then $deps[.key].version else .value end)) | .[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v))"')
-            SUFFIX_PAIRS=$(printf 'version=%s\n%s' "$VERSION" "$SUFFIX_PAIRS")
-            while IFS='=' read -r _sk _sv; do
-              [ -z "$_sk" ] && continue
-              SUFFIX="${SUFFIX//\$\{$_sk\}/$_sv}"
-            done <<< "$SUFFIX_PAIRS"
-            BUILD_VERSION="${BUILD_VERSION}-${SUFFIX}"
-            echo "version_suffix '${VERSION_SUFFIX_TMPL}' -> '${SUFFIX}'"
+          # 2. 向后兼容：若未设置 version_template，但配置了 version_suffix，自动合成模板 "${version}-${version_suffix}"
+          if [ -z "$VERSION_TMPL" ] || [ "$VERSION_TMPL" = "null" ]; then
+            VERSION_SUFFIX_TMPL=$(yq eval '.version_suffix // ""' "$VERSION_FILE")
+            if [ -n "$VERSION_SUFFIX_TMPL" ] && [ "$VERSION_SUFFIX_TMPL" != "null" ]; then
+              VERSION_TMPL="\${version}-${VERSION_SUFFIX_TMPL}"
+            else
+              VERSION_TMPL="\${version}"
+            fi
           fi
+
+          # 3. 按模板解析占位符 ${KEY}（KEY 来自 build_args、dependencies 及 version 本身）
+          REPLACE_PAIRS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
+            --arg v "$VERSION" --argjson deps "$UPDATED_DEPS" \
+            'to_entries | map(.value = (if ($deps[.key] and $deps[.key].version) then $deps[.key].version else .value end)) | .[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v))"')
+          REPLACE_PAIRS=$(printf 'version=%s\n%s' "$VERSION" "$REPLACE_PAIRS")
+
+          COMPOSED_VER="$VERSION_TMPL"
+          while IFS='=' read -r _sk _sv; do
+            [ -z "$_sk" ] && continue
+            COMPOSED_VER="${COMPOSED_VER//\$\{$_sk\}/$_sv}"
+          done <<< "$REPLACE_PAIRS"
+
+          BUILD_VERSION="$COMPOSED_VER"
+          echo "Version template '${VERSION_TMPL}' -> composed '${BUILD_VERSION}'"
 
           # 如果组装后的版本与当前 config.yaml 版本相同，说明版本本身没有因为上游版本或后缀变化而改变
           # （例如仅副依赖更新但未设置 version_suffix，或者属于文件/底包变更），必须通过 -build.N 递增让 HA 检测到更新

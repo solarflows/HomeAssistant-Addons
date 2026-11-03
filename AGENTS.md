@@ -76,9 +76,8 @@ The repository has no single project-wide test command. The normal local verific
 ## Version and CI Contract
 
 - **`config.yaml.version` mirrors the upstream version** and must equal the pushed image tag (HA requires this). CI derives it as:
-  `<upstream version>[-<version_suffix>][-build.N]`
-  - `<upstream version>` — from `version.yaml.version` (tag prefix stripped).
-  - `-<version_suffix>` — optional, for addons that compose **two or more upstreams** (`version_suffix: "${PANEL_VERSION}"` → e.g. `8.0.23-1.14.5`). `${KEY}` resolves against `version.yaml.build_args` (plus `version` itself).
+  `<composed version>[-build.N]`
+  - `<composed version>` — derived via optional `version.yaml.version_template` (e.g. `"${PANEL_VERSION}-${version}"` or `"${version}-${PANEL_VERSION}"`, allowing arbitrary component order and delimiters). Falls back to `<upstream version>[-<version_suffix>]` when `version_template` is omitted.
   - `-build.N` — added **only** when a build is triggered without an upstream version change (Dockerfile/rootfs/base-image workflow changes), so HA still detects the update.
   - Then sanitized for HA: must start with a digit, only `[0-9A-Za-z.-]` kept, truncated at the first invalid character (e.g. `1.2.3+build` → `1.2.3`).
 - `version.yaml.version` is always the clean upstream comparison version (never the composed/sanitized one); it is what `Version_Check` compares against upstream and what `TAG=v<version>` uses for changelog lookups.

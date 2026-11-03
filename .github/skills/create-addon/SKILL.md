@@ -79,8 +79,9 @@ repo: owner/repo
 # strategy: release (默认) | tags | date (无版本号/滚动更新) | commits | asset
 build_args:
   APP_VERSION: "${version}"
-# 可选：组合多上游时使用 (例：8.0.23-1.14.5)
-# version_suffix: "${PANEL_VERSION}"
+# 可选：多仓库组合版本号拼接控制 (可自由控制组件次序与分隔符，如 "${PANEL_VERSION}-${version}")
+# version_template: "${version}-${PANEL_VERSION}"
+# version_suffix: "${PANEL_VERSION}"  # 旧版语法，向后兼容
 # dependencies:
 #   PANEL_VERSION:
 #     repo: owner/panel-repo
