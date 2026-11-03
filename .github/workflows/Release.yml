@@ -57,7 +57,7 @@ jobs:
           ADDON="${MATRIX_ADDON}"
           REASON="${MATRIX_REASON:-version_changed}"
           NEW_VER="${MATRIX_NEW_VER}"
-          UPDATED_DEPS="${MATRIX_UPDATED_DEPS:-{}}"
+          UPDATED_DEPS="${MATRIX_UPDATED_DEPS}"
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
           fi
@@ -210,6 +210,7 @@ jobs:
           VERSION: ${{ steps.prep.outputs.version }}
           TAG: ${{ steps.prep.outputs.tag }}
           UPDATED_DEPS: ${{ steps.prep.outputs.updated_deps }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION_FILE="${ADDON_DIR}/version.yaml"
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
@@ -268,6 +269,7 @@ jobs:
           IS_VERSION_CHANGE: ${{ steps.prep.outputs.is_version_change || 'false' }}
           OLD_VERSION: ${{ steps.prep.outputs.old_version || '' }}
           UPDATED_DEPS: ${{ steps.prep.outputs.updated_deps }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
@@ -377,10 +379,10 @@ jobs:
                   dep_repo=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].repo')
                   dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
                   dep_body=$(curl -fsSL \
-                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    -H "Authorization: Bearer $GH_TOKEN" \
                     "https://api.github.com/repos/${dep_repo}/releases/tags/v${dep_v}" | jq -r '.body // empty')
                   [ -z "$dep_body" ] && dep_body=$(curl -fsSL \
-                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    -H "Authorization: Bearer $GH_TOKEN" \
                     "https://api.github.com/repos/${dep_repo}/releases/tags/${dep_v}" | jq -r '.body // empty')
                   if [ -n "$dep_body" ]; then
                     RELEASE_BODY="${RELEASE_BODY}"$'\n\n'"#### ${dep_k} (${dep_repo} v${dep_v})"$'\n'"${dep_body}"
