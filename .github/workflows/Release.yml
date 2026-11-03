@@ -414,8 +414,8 @@ jobs:
             for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
               dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
               yq eval ".build_args.${dep_k} = \"${dep_v}\"" -i "$VERSION_FILE"
-              HAS_DEP_VER=$(yq eval ".dependencies.${dep_k}.version // \"\"" "$VERSION_FILE")
-              if [ -n "$HAS_DEP_VER" ]; then
+              HAS_DEP_VER=$(yq eval ".dependencies.${dep_k}.version" "$VERSION_FILE")
+              if [ -n "$HAS_DEP_VER" ] && [ "$HAS_DEP_VER" != "null" ]; then
                 yq eval ".dependencies.${dep_k}.version = \"${dep_v}\"" -i "$VERSION_FILE"
               fi
               echo "Updated dependency $dep_k in $VERSION_FILE to $dep_v"

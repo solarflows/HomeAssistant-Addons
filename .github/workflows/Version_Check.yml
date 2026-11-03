@@ -202,12 +202,16 @@ jobs:
             # --- 检查依赖的副仓库（支持任意 N 个依赖组件，兼容多仓库监控）---
             UPDATED_DEPS="{}"
             DEP_JSON=$(yq eval '.dependencies // {}' -o=json "$version_file" 2>/dev/null || echo "{}")
+            BUILD_ARGS_JSON=$(yq eval '.build_args // {}' -o=json "$version_file" 2>/dev/null || echo "{}")
             if [ "$DEP_JSON" != "{}" ] && [ -n "$DEP_JSON" ]; then
               for dep_key in $(echo "$DEP_JSON" | jq -r 'keys[]'); do
                 DEP_REPO=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].repo // empty')
                 [ -z "$DEP_REPO" ] && continue
                 DEP_STRATEGY=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].strategy // .[$k].source // "release"')
-                DEP_LOCAL_VER=$(yq eval ".dependencies.${dep_key}.version // .build_args.${dep_key} // """ "$version_file")
+                DEP_LOCAL_VER=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].version // empty')
+                if [ -z "$DEP_LOCAL_VER" ]; then
+                  DEP_LOCAL_VER=$(echo "$BUILD_ARGS_JSON" | jq -r --arg k "$dep_key" '.[$k] // empty')
+                fi
 
                 echo "  Checking dependency $dep_key ($DEP_REPO, strategy: $DEP_STRATEGY): local=$DEP_LOCAL_VER"
                 DEP_REMOTE_VER=$(fetch_version "$DEP_REPO" "$DEP_STRATEGY")
