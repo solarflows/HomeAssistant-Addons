@@ -48,13 +48,14 @@ jobs:
         id: detect
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_BEFORE: ${{ github.event.before }}
+          EVENT_AFTER: ${{ github.event.after }}
+          TARGET_ADDON: ${{ inputs.addon || '' }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild || 'false' }}
         run: |
           MATRIX="[]"
           HAS_CHANGES="false"
-
-          # ============================================================
-          TARGET_ADDON="${{ inputs.addon || '' }}"
-          FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"
 
           if [ -n "$TARGET_ADDON" ]; then
             echo "=== Targeted addon mode: $TARGET_ADDON ==="
@@ -110,15 +111,19 @@ jobs:
           [ -z "$REMOTE_BASE_TAG" ] && REMOTE_BASE_TAG="unknown"
           REMOTE_BASE_TAG=$(echo "$REMOTE_BASE_TAG" | sed 's/^[vV]//')
           echo "debian-base remote: $REMOTE_BASE_TAG"
+
+          # ============================================================
           # 2. 检测文件变更（push / cron / dispatch）
           # ============================================================
           CHANGED_FILES=""
           COMMIT_MSG=""
 
-          if [ "${{ github.event_name }}" = "push" ]; then
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} 2>/dev/null || echo "")
-            COMMIT_MSG="${{ github.event.head_commit.message }}"
-            echo "=== Push event: diff ${{ github.event.before }}..${{ github.event.after }} ==="
+          if [ "$EVENT_NAME" = "push" ]; then
+            if [ -n "$EVENT_BEFORE" ] && [ "$EVENT_BEFORE" != "0000000000000000000000000000000000000000" ]; then
+              CHANGED_FILES=$(git diff --name-only "$EVENT_BEFORE" "$EVENT_AFTER" 2>/dev/null || echo "")
+            fi
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+            echo "=== Push event: diff $EVENT_BEFORE..$EVENT_AFTER ==="
             # 兜底：fetch-depth 不足或 before SHA 无效时，扫描最近 10 个 commit
             if [ -z "$CHANGED_FILES" ]; then
               echo "=== Diff returned empty, falling back to git log ==="

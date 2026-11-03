@@ -47,11 +47,17 @@ jobs:
 
       - name: Prepare environment
         id: prep
+        env:
+          MATRIX_ADDON: ${{ matrix.addon }}
+          MATRIX_REASON: ${{ matrix.reason }}
+          MATRIX_NEW_VER: ${{ matrix.new_ver }}
+          MATRIX_UPDATED_DEPS: ${{ toJson(matrix.updated_deps) }}
+          MATRIX_COMMIT_MSG: ${{ matrix.commit_msg }}
         run: |
-          ADDON="${{ matrix.addon }}"
-          REASON="${{ matrix.reason || 'version_changed' }}"
-          NEW_VER="${{ matrix.new_ver || '' }}"
-          UPDATED_DEPS='${{ toJson(matrix.updated_deps) }}'
+          ADDON="${MATRIX_ADDON}"
+          REASON="${MATRIX_REASON:-version_changed}"
+          NEW_VER="${MATRIX_NEW_VER}"
+          UPDATED_DEPS="${MATRIX_UPDATED_DEPS:-{}}"
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
           fi
@@ -154,7 +160,7 @@ jobs:
           CHANGELOG_FILE_PATH=$(yq eval '.changelog.file_path // ""' "$VERSION_FILE")
 
           # 优先使用 Version_Check 通过 matrix 传来的 commit message
-          COMMIT_MSG="${{ matrix.commit_msg || '' }}"
+          COMMIT_MSG="${MATRIX_COMMIT_MSG}"
           if [ -z "$COMMIT_MSG" ] && [ "$IS_FILE_TRIGGER" = "true" ]; then
             # fallback: 从 git log 重新计算（可能因 shallow clone 失败）
             # 同样限定在 file_sha..HEAD 并排除 CI 自动提交；不回退到全量历史
@@ -199,12 +205,13 @@ jobs:
 
       - name: Prepare build args
         id: buildargs
+        env:
+          ADDON_DIR: ${{ steps.prep.outputs.addon_dir }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          TAG: ${{ steps.prep.outputs.tag }}
+          UPDATED_DEPS: ${{ steps.prep.outputs.updated_deps }}
         run: |
-          ADDON_DIR="${{ steps.prep.outputs.addon_dir }}"
-          VERSION="${{ steps.prep.outputs.version }}"
-          TAG="${{ steps.prep.outputs.tag }}"
           VERSION_FILE="${ADDON_DIR}/version.yaml"
-          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps }}'
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
           fi
@@ -242,25 +249,26 @@ jobs:
       - name: Prepare config updates & commit
         if: success()
         id: config
+        env:
+          ADDON_DIR: ${{ steps.prep.outputs.addon_dir }}
+          ADDON: ${{ steps.prep.outputs.addon }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          BUILD_VERSION: ${{ steps.prep.outputs.build_version }}
+          TAG: ${{ steps.prep.outputs.tag }}
+          REPO: ${{ steps.prep.outputs.repo }}
+          REASON: ${{ steps.prep.outputs.reason }}
+          CHANGELOG_SOURCE: ${{ steps.prep.outputs.changelog_source }}
+          CHANGELOG_MODE: ${{ steps.prep.outputs.changelog_mode }}
+          CHANGELOG_FILE_URL: ${{ steps.prep.outputs.changelog_file_url }}
+          CHANGELOG_FILE_PATH: ${{ steps.prep.outputs.changelog_file_path }}
+          COMMIT_MSG: ${{ steps.prep.outputs.commit_msg }}
+          BASE_TAG: ${{ steps.prep.outputs.base_tag }}
+          BUILD_NUM: ${{ steps.prep.outputs.build_num }}
+          IS_FILE_TRIGGER: ${{ steps.prep.outputs.is_file_trigger || 'false' }}
+          IS_VERSION_CHANGE: ${{ steps.prep.outputs.is_version_change || 'false' }}
+          OLD_VERSION: ${{ steps.prep.outputs.old_version || '' }}
+          UPDATED_DEPS: ${{ steps.prep.outputs.updated_deps }}
         run: |
-          ADDON_DIR="${{ steps.prep.outputs.addon_dir }}"
-          ADDON="${{ steps.prep.outputs.addon }}"
-          VERSION="${{ steps.prep.outputs.version }}"
-          BUILD_VERSION="${{ steps.prep.outputs.build_version }}"
-          TAG="${{ steps.prep.outputs.tag }}"
-          REPO="${{ steps.prep.outputs.repo }}"
-          REASON="${{ steps.prep.outputs.reason }}"
-          CHANGELOG_SOURCE="${{ steps.prep.outputs.changelog_source }}"
-          CHANGELOG_MODE="${{ steps.prep.outputs.changelog_mode }}"
-          CHANGELOG_FILE_URL="${{ steps.prep.outputs.changelog_file_url }}"
-          CHANGELOG_FILE_PATH="${{ steps.prep.outputs.changelog_file_path }}"
-          COMMIT_MSG="${{ steps.prep.outputs.commit_msg }}"
-          BASE_TAG="${{ steps.prep.outputs.base_tag }}"
-          BUILD_NUM="${{ steps.prep.outputs.build_num }}"
-          IS_FILE_TRIGGER="${{ steps.prep.outputs.is_file_trigger || 'false' }}"
-          IS_VERSION_CHANGE="${{ steps.prep.outputs.is_version_change || 'false' }}"
-          OLD_VERSION="${{ steps.prep.outputs.old_version || '' }}"
-          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps }}'
           if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
             UPDATED_DEPS="{}"
           fi
