@@ -37,6 +37,8 @@ search-and-replace across all files after copying.
 ├── rootfs/etc/cont-init.d/    #
 │   └── 00-init.sh             # init dirs + symlinks
 ├── rootfs/etc/s6-overlay/
+│   ├── scripts/
+│   │   └── stage2_hook.sh     # S6 stage2 startup hook
 │   └── s6-rc.d/ADDON_SLUG/    # rename ADDON_SLUG → <slug>
 │       ├── run                # S6 longrun foreground
 │       └── type               # content: longrun
@@ -73,14 +75,16 @@ mv <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/ADDON_SLUG \
 ## version.yaml example
 ```yaml
 version: "0.0.0"
-source: github
 repo: owner/repo
+# strategy: release (默认) | tags | date (无版本号/滚动更新) | commits | asset
 build_args:
   APP_VERSION: "${version}"
-# 可选：仅当加载项由「两个上游」组合而成时使用（如 cliproxyapi-cpamp）
-#   config.yaml.version = <version>-<version_suffix>，例：8.0.23-1.14.5
-#   ${KEY} 取 build_args 的键（另加 version 本身）
+# 可选：组合多上游时使用 (例：8.0.23-1.14.5)
 # version_suffix: "${PANEL_VERSION}"
+# dependencies:
+#   PANEL_VERSION:
+#     repo: owner/panel-repo
+#     strategy: release
 changelog:
   source: release_body
   mode: prepend

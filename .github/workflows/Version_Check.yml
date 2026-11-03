@@ -3,8 +3,13 @@
 on:
   workflow_dispatch:
     inputs:
+      addon:
+        description: 'Target specific addon to check/build (leave empty for all)'
+        required: false
+        type: string
+        default: ''
       force_rebuild:
-        description: 'Force rebuild all addons (ignore version check)'
+        description: 'Force rebuild targeted addon(s) (ignore version check)'
         required: false
         type: boolean
         default: false
@@ -16,7 +21,10 @@ on:
     paths:
       - '**/Dockerfile'
       - '**/rootfs/**'
+      - '**/config.yaml'
+      - '**/version.yaml'
       - '.github/workflows/Release.yml'
+      - '.github/workflows/Version_Check.yml'
 
 permissions:
   contents: write
@@ -31,35 +39,77 @@ jobs:
       has_changes: ${{ steps.detect.outputs.has_changes }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 100
 
       - name: Detect version changes
         id: detect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           MATRIX="[]"
           HAS_CHANGES="false"
 
           # ============================================================
-          # 1. 获取 debian-base 最新 tag
-          # ============================================================
-          REMOTE_BASE_TAG=$(curl -fsSL \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/hassio-addons/addon-debian-base/releases/latest" \
-            | jq -r '.tag_name // empty')
-          [ -z "$REMOTE_BASE_TAG" ] && REMOTE_BASE_TAG="unknown"
-          # debian-base tag 为 v9.3.0 格式，统一去 v
-          REMOTE_BASE_TAG=$(echo "$REMOTE_BASE_TAG" | sed 's/^v//')
-          echo "debian-base remote: $REMOTE_BASE_TAG"
-
+          TARGET_ADDON="${{ inputs.addon || '' }}"
           FORCE_REBUILD="${{ inputs.force_rebuild || 'false' }}"
+
+          if [ -n "$TARGET_ADDON" ]; then
+            echo "=== Targeted addon mode: $TARGET_ADDON ==="
+          fi
           if [ "$FORCE_REBUILD" = "true" ]; then
             echo "=== Force rebuild enabled ==="
           fi
 
           # ============================================================
+          # 统一版本提取函数: fetch_version(repo, strategy)
+          # strategy 支持:
+          #   - release (默认/缺省, GitHub latest release tag)
+          #   - tags    (最新 Git Tag, 对应 github_tags)
+          #   - date    (方案一: 最新 Commit 日期 YYYYMMDD)
+          #   - commits (方案二: 主分支总提交数 0.0.N)
+          #   - asset   (方案三: 滚动资产最新更新日期 YYYYMMDD)
+          # ============================================================
+          fetch_version() {
+            local repo="$1"
+            local strategy="${2:-release}"
+            local raw_ver=""
+
+            case "$strategy" in
+              github_tags|tags)
+                raw_ver=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${repo}/tags?per_page=1"                   | jq -r '.[0].name // empty' | head -1)
+                ;;
+              date)
+                raw_ver=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${repo}/commits?per_page=1"                   | jq -r '.[0].commit.committer.date // empty' | cut -c1-10 | tr -d '-')
+                ;;
+              commits)
+                local count
+                count=$(curl -fsSLI                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${repo}/commits?per_page=1"                   | grep -i '^link:' | sed -E 's/.*page=([0-9]+)>; rel="last".*/\1/')
+                if [ -z "$count" ]; then
+                  count=$(curl -fsSL                     -H "Authorization: Bearer $GH_TOKEN"                     "https://api.github.com/repos/${repo}/commits?per_page=100"                     | jq 'length')
+                fi
+                raw_ver="0.0.${count:-1}"
+                ;;
+              asset)
+                raw_ver=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${repo}/releases/latest"                   | jq -r '.assets[0].updated_at // empty' | cut -c1-10 | tr -d '-')
+                ;;
+              github|release|*)
+                raw_ver=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${repo}/releases/latest"                   | jq -r '.tag_name // empty')
+                ;;
+            esac
+
+            echo "$raw_ver" | sed 's/^[vV]//'
+          }
+
+          # ============================================================
+          # 1. 获取 debian-base 最新 tag
+          # ============================================================
+          REMOTE_BASE_TAG=$(curl -fsSL             -H "Authorization: Bearer $GH_TOKEN"             -H "Accept: application/vnd.github+json"             "https://api.github.com/repos/hassio-addons/addon-debian-base/releases/latest"             | jq -r '.tag_name // empty')
+          [ -z "$REMOTE_BASE_TAG" ] && REMOTE_BASE_TAG="unknown"
+          REMOTE_BASE_TAG=$(echo "$REMOTE_BASE_TAG" | sed 's/^[vV]//')
+          echo "debian-base remote: $REMOTE_BASE_TAG"
           # 2. 检测文件变更（push / cron / dispatch）
           # ============================================================
           CHANGED_FILES=""
@@ -112,6 +162,7 @@ jobs:
           fi
 
           # ============================================================
+          # ============================================================
           # 3. 遍历 addon，检测上游版本和底包变更
           # ============================================================
           declare -A ADDON_MATRIX
@@ -122,30 +173,25 @@ jobs:
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
             ADDON_DIR=$(dirname "$version_file")
-            SOURCE=$(yq eval '.source' "$version_file")
-            REPO=$(yq eval '.repo' "$version_file")
 
+            # 若指定了 TARGET_ADDON，跳过其他
+            if [ -n "$TARGET_ADDON" ] && [ "$ADDON_DIR" != "$TARGET_ADDON" ]; then
+              continue
+            fi
+
+            REPO=$(yq eval '.repo' "$version_file")
+            STRATEGY=$(yq eval '.strategy // .source // "release"' "$version_file")
             VERSION=$(yq eval '.version // ""' "$version_file")
             [ -z "$VERSION" ] && continue
 
-            echo "Checking $ADDON_DIR: local=$VERSION"
+            echo "Checking $ADDON_DIR (strategy: $STRATEGY): local=$VERSION"
 
             # --- 获取主仓库远程版本 ---
-            if [ "$SOURCE" = "github_tags" ]; then
-              REMOTE_TAG=$(curl -fsSL \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                "https://api.github.com/repos/${REPO}/tags?per_page=1" \
-                | jq -r '.[0].name // empty' | head -1)
-            else
-              REMOTE_TAG=$(curl -fsSL \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                "https://api.github.com/repos/${REPO}/releases/latest" \
-                | jq -r '.tag_name // empty')
+            REMOTE_VERSION=$(fetch_version "$REPO" "$STRATEGY")
+            if [ -z "$REMOTE_VERSION" ]; then
+              echo "  Failed to get remote version for $REPO, skipping"
+              continue
             fi
-            [ -z "$REMOTE_TAG" ] && { echo "  Failed to get remote version, skipping"; continue; }
-
-            # 统一去除 v 前缀
-            REMOTE_VERSION=$(echo "$REMOTE_TAG" | sed 's/^v//')
             echo "  Remote: $REMOTE_VERSION"
 
             # --- 检查依赖的副仓库（支持任意 N 个依赖组件，兼容多仓库监控）---
@@ -155,36 +201,20 @@ jobs:
               for dep_key in $(echo "$DEP_JSON" | jq -r 'keys[]'); do
                 DEP_REPO=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].repo // empty')
                 [ -z "$DEP_REPO" ] && continue
-                DEP_SOURCE=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].source // "github"')
-                DEP_LOCAL_VER=$(yq eval ".dependencies.${dep_key}.version // .build_args.${dep_key} // \"\"" "$version_file")
+                DEP_STRATEGY=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].strategy // .[$k].source // "release"')
+                DEP_LOCAL_VER=$(yq eval ".dependencies.${dep_key}.version // .build_args.${dep_key} // """ "$version_file")
 
-                echo "  Checking dependency $dep_key ($DEP_REPO): local=$DEP_LOCAL_VER"
-                if [ "$DEP_SOURCE" = "github_tags" ]; then
-                  DEP_REMOTE_TAG=$(curl -fsSL \
-                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                    "https://api.github.com/repos/${DEP_REPO}/tags?per_page=1" \
-                    | jq -r '.[0].name // empty' | head -1)
-                else
-                  DEP_REMOTE_TAG=$(curl -fsSL \
-                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                    "https://api.github.com/repos/${DEP_REPO}/releases/latest" \
-                    | jq -r '.tag_name // empty')
-                fi
-                if [ -z "$DEP_REMOTE_TAG" ]; then
-                  echo "    Failed to get remote tag for $DEP_REPO, skipping"
+                echo "  Checking dependency $dep_key ($DEP_REPO, strategy: $DEP_STRATEGY): local=$DEP_LOCAL_VER"
+                DEP_REMOTE_VER=$(fetch_version "$DEP_REPO" "$DEP_STRATEGY")
+                if [ -z "$DEP_REMOTE_VER" ]; then
+                  echo "    Failed to get remote version for $DEP_REPO, skipping"
                   continue
                 fi
-                DEP_REMOTE_VER=$(echo "$DEP_REMOTE_TAG" | sed 's/^[vV]//')
                 echo "    Remote: $DEP_REMOTE_VER"
 
                 if [ -n "$DEP_LOCAL_VER" ] && [ "$DEP_REMOTE_VER" != "$DEP_LOCAL_VER" ]; then
                   echo "    Dependency $dep_key updated: $DEP_LOCAL_VER -> $DEP_REMOTE_VER"
-                  UPDATED_DEPS=$(echo "$UPDATED_DEPS" | jq -c \
-                    --arg k "$dep_key" \
-                    --arg v "$DEP_REMOTE_VER" \
-                    --arg old "$DEP_LOCAL_VER" \
-                    --arg repo "$DEP_REPO" \
-                    '. + {($k): {version: $v, old_version: $old, repo: $repo}}')
+                  UPDATED_DEPS=$(echo "$UPDATED_DEPS" | jq -c                     --arg k "$dep_key"                     --arg v "$DEP_REMOTE_VER"                     --arg old "$DEP_LOCAL_VER"                     --arg repo "$DEP_REPO"                     '. + {($k): {version: $v, old_version: $old, repo: $repo}}')
                 fi
               done
             fi
@@ -196,7 +226,6 @@ jobs:
               REASON="force_rebuild"
               echo "  Force rebuild"
             elif [ -z "$FILE_SHA" ] || [ "$FILE_SHA" = "null" ]; then
-              # 首次构建：tracking 为空代表新 addon 从未被构建过
               REASON="version_changed"
               echo "  First build detected (empty tracking)"
             elif [ "$REMOTE_VERSION" != "$VERSION" ]; then
@@ -206,11 +235,10 @@ jobs:
               REASON="version_changed"
               echo "  Dependency version change detected!"
             else
-              # 检查底包更新（仅 debian-base 系 addon）
               ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // ""' "$version_file")
               if [ -n "$ADDON_BASE_TAG" ] && [ "$ADDON_BASE_TAG" != "$REMOTE_BASE_TAG" ] && [ "$REMOTE_BASE_TAG" != "unknown" ]; then
                 REASON="base_updated"
-                echo "  Base image: $ADDON_BASE_TAG → $REMOTE_BASE_TAG"
+                echo "  Base image: $ADDON_BASE_TAG -> $REMOTE_BASE_TAG"
               fi
             fi
 
@@ -224,8 +252,6 @@ jobs:
               echo "  Version unchanged"
             fi
           done
-
-          # ============================================================
           # 4. 匹配文件变更到 addon
           # ============================================================
           if [ -n "$CHANGED_FILES" ]; then

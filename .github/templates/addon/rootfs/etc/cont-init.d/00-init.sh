@@ -22,6 +22,13 @@ mkdir -p /data/ADDON_SLUG
 # Example: ln -sf /config/ADDON_SLUG/config.yaml /app/config.yaml
 
 # TODO: call upstream init scripts if applicable
-# Example: /docker/scripts/init.sh || true
+# Example:
+#   set +e
+#   /docker/scripts/init.sh
+#   init_rc=$?
+#   set -e
+#   [ $init_rc -ne 0 ] && bashio::log.warning "upstream init script exited with code $init_rc"
 
+# 生成首启就绪标志（供 run 脚本有界等待，防止并发竞态）
+touch /run/ADDON_SLUG-initialized
 bashio::log.info "ADDON_SLUG initialization completed"

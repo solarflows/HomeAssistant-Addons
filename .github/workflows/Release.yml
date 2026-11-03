@@ -27,7 +27,7 @@ jobs:
       max-parallel: 2
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 100
@@ -37,11 +37,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Install regctl
-        run: |
-          curl -sSL https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 -o /usr/local/bin/regctl
-          chmod +x /usr/local/bin/regctl
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
