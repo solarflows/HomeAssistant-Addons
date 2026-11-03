@@ -7,7 +7,7 @@ source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
   CPA_VERSION: "${version}"
-  PANEL_VERSION: "1.14.5"
+  PANEL_VERSION: "1.14.10"
 version_suffix: "${PANEL_VERSION}"
 dependencies:
   PANEL_VERSION:
@@ -18,5 +18,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "08c066bd79cab83114345fd0218b9168cbe974bf"
+  file_sha: "74aea89b15c51b7ae3d4efd3cf3214473812818b"
   build_num: 0
