@@ -55,6 +55,7 @@ Version_Check (cron 0 */6 * * *) → workflow_call → Release → per-addon bui
 - `version_changed` → update config.yaml + CHANGELOG.md
 - `base_updated` → keep version, rebuild all addons
 - New addon: `file_sha: ""` triggers first-build detection
+- **Multi-repo monitoring**: `version.yaml` supports `dependencies:` mapping (arbitrary N components, e.g. `PANEL_VERSION: { repo: owner/repo, source: github }`). When any dependency changes, `Version_Check` outputs `updated_deps` into matrix, `Release` passes updated build args to Docker build, updates `version.yaml`, updates `config.yaml` version, and appends dependency release notes to `CHANGELOG.md`.
 
 ## build-args
 - `version.yaml` `build_args` use `${version}`/`${tag}` placeholders → CI replaces via jq `gsub`

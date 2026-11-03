@@ -117,6 +117,7 @@ jobs:
           declare -A ADDON_MATRIX
           declare -A ADDON_REASON
           declare -A ADDON_REMOTE_VERSION
+          declare -A ADDON_UPDATED_DEPS
 
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
@@ -129,12 +130,16 @@ jobs:
 
             echo "Checking $ADDON_DIR: local=$VERSION"
 
-            # --- 获取远程版本 ---
+            # --- 获取主仓库远程版本 ---
             if [ "$SOURCE" = "github_tags" ]; then
-              REMOTE_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/tags?per_page=1" \
+              REMOTE_TAG=$(curl -fsSL \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${REPO}/tags?per_page=1" \
                 | jq -r '.[0].name // empty' | head -1)
             else
-              REMOTE_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+              REMOTE_TAG=$(curl -fsSL \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${REPO}/releases/latest" \
                 | jq -r '.tag_name // empty')
             fi
             [ -z "$REMOTE_TAG" ] && { echo "  Failed to get remote version, skipping"; continue; }
@@ -142,6 +147,47 @@ jobs:
             # 统一去除 v 前缀
             REMOTE_VERSION=$(echo "$REMOTE_TAG" | sed 's/^v//')
             echo "  Remote: $REMOTE_VERSION"
+
+            # --- 检查依赖的副仓库（支持任意 N 个依赖组件，兼容多仓库监控）---
+            UPDATED_DEPS="{}"
+            DEP_JSON=$(yq eval '.dependencies // {}' -o=json "$version_file" 2>/dev/null || echo "{}")
+            if [ "$DEP_JSON" != "{}" ] && [ -n "$DEP_JSON" ]; then
+              for dep_key in $(echo "$DEP_JSON" | jq -r 'keys[]'); do
+                DEP_REPO=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].repo // empty')
+                [ -z "$DEP_REPO" ] && continue
+                DEP_SOURCE=$(echo "$DEP_JSON" | jq -r --arg k "$dep_key" '.[$k].source // "github"')
+                DEP_LOCAL_VER=$(yq eval ".dependencies.${dep_key}.version // .build_args.${dep_key} // \"\"" "$version_file")
+
+                echo "  Checking dependency $dep_key ($DEP_REPO): local=$DEP_LOCAL_VER"
+                if [ "$DEP_SOURCE" = "github_tags" ]; then
+                  DEP_REMOTE_TAG=$(curl -fsSL \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    "https://api.github.com/repos/${DEP_REPO}/tags?per_page=1" \
+                    | jq -r '.[0].name // empty' | head -1)
+                else
+                  DEP_REMOTE_TAG=$(curl -fsSL \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    "https://api.github.com/repos/${DEP_REPO}/releases/latest" \
+                    | jq -r '.tag_name // empty')
+                fi
+                if [ -z "$DEP_REMOTE_TAG" ]; then
+                  echo "    Failed to get remote tag for $DEP_REPO, skipping"
+                  continue
+                fi
+                DEP_REMOTE_VER=$(echo "$DEP_REMOTE_TAG" | sed 's/^[vV]//')
+                echo "    Remote: $DEP_REMOTE_VER"
+
+                if [ -n "$DEP_LOCAL_VER" ] && [ "$DEP_REMOTE_VER" != "$DEP_LOCAL_VER" ]; then
+                  echo "    Dependency $dep_key updated: $DEP_LOCAL_VER -> $DEP_REMOTE_VER"
+                  UPDATED_DEPS=$(echo "$UPDATED_DEPS" | jq -c \
+                    --arg k "$dep_key" \
+                    --arg v "$DEP_REMOTE_VER" \
+                    --arg old "$DEP_LOCAL_VER" \
+                    --arg repo "$DEP_REPO" \
+                    '. + {($k): {version: $v, old_version: $old, repo: $repo}}')
+                fi
+              done
+            fi
 
             # --- 判断 reason ---
             REASON=""
@@ -155,7 +201,10 @@ jobs:
               echo "  First build detected (empty tracking)"
             elif [ "$REMOTE_VERSION" != "$VERSION" ]; then
               REASON="version_changed"
-              echo "  New version detected!"
+              echo "  New primary version detected!"
+            elif [ "$UPDATED_DEPS" != "{}" ]; then
+              REASON="version_changed"
+              echo "  Dependency version change detected!"
             else
               # 检查底包更新（仅 debian-base 系 addon）
               ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // ""' "$version_file")
@@ -170,6 +219,7 @@ jobs:
               ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
               ADDON_REASON["$ADDON_DIR"]="$REASON"
               ADDON_REMOTE_VERSION["$ADDON_DIR"]="$REMOTE_VERSION"
+              ADDON_UPDATED_DEPS["$ADDON_DIR"]="$UPDATED_DEPS"
             else
               echo "  Version unchanged"
             fi
@@ -233,14 +283,16 @@ jobs:
           fi
 
           # ============================================================
-          # 5. 构建 matrix（精简 3 字段，Release 自行计算其余参数）
+          # 5. 构建 matrix（精简字段，Release 自行计算其余参数）
           # ============================================================
-          # addon   = 目录名
-          # reason  = version_changed | base_updated | dockerfile | rootfs | config | workflow | force_rebuild
-          # new_ver = 仅 reason=version_changed 时有效的新上游版本号
+          # addon        = 目录名
+          # reason       = version_changed | base_updated | dockerfile | rootfs | config | workflow | force_rebuild
+          # new_ver      = 仅 reason=version_changed 时有效的新上游版本号
+          # updated_deps = JSON 对象，包含本次检测到更新的依赖副仓库 {KEY: {version, old_version, repo}}
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
             REASON="${ADDON_REASON[$ADDON_DIR]}"
             NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
+            UPD_DEPS="${ADDON_UPDATED_DEPS[$ADDON_DIR]:-\{\}}"
 
             # 捕获影响该 addon 的 commit message（Release 用于 CHANGELOG）
             # 只取 file_sha..HEAD 范围内该目录的提交，并排除 CI 自动提交
@@ -259,7 +311,8 @@ jobs:
               --arg reason "$REASON" \
               --arg new_ver "$NEW_VER" \
               --arg commit_msg "$ADDON_COMMITS" \
-              '. + [{addon: $addon, reason: $reason, new_ver: $new_ver, commit_msg: $commit_msg}]')
+              --argjson updated_deps "$UPD_DEPS" \
+              '. + [{addon: $addon, reason: $reason, new_ver: $new_ver, updated_deps: $updated_deps, commit_msg: $commit_msg}]')
           done
 
           RESULT=$(echo "$MATRIX" | jq -c '{include: .}')

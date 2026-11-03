@@ -78,10 +78,11 @@ The repository has no single project-wide test command. The normal local verific
 - **`config.yaml.version` mirrors the upstream version** and must equal the pushed image tag (HA requires this). CI derives it as:
   `<upstream version>[-<version_suffix>][-build.N]`
   - `<upstream version>` — from `version.yaml.version` (tag prefix stripped).
-  - `-<version_suffix>` — optional, for addons that compose **two upstreams** (`version_suffix: "${PANEL_VERSION}"` → e.g. `8.0.23-1.14.5`). `${KEY}` resolves against `version.yaml.build_args` (plus `version` itself).
+  - `-<version_suffix>` — optional, for addons that compose **two or more upstreams** (`version_suffix: "${PANEL_VERSION}"` → e.g. `8.0.23-1.14.5`). `${KEY}` resolves against `version.yaml.build_args` (plus `version` itself).
   - `-build.N` — added **only** when a build is triggered without an upstream version change (Dockerfile/rootfs/base-image workflow changes), so HA still detects the update.
   - Then sanitized for HA: must start with a digit, only `[0-9A-Za-z.-]` kept, truncated at the first invalid character (e.g. `1.2.3+build` → `1.2.3`).
 - `version.yaml.version` is always the clean upstream comparison version (never the composed/sanitized one); it is what `Version_Check` compares against upstream and what `TAG=v<version>` uses for changelog lookups.
+- `version.yaml.dependencies` supports monitoring arbitrary N secondary/upstream repositories (e.g. `KEY: { repo: owner/repo, source: github }`). When any dependency has a new release, `Version_Check` triggers release with `updated_deps`, and `Release.yml` updates `build_args` and `version.yaml`.
 - Every `version.yaml.build_args` key must match a Dockerfile `ARG`. Check tag prefixes and transformations per addon before changing version logic.
 - `Version_Check.yml` runs every six hours and on manual dispatch; `Release.yml` builds the matrix for the configured architectures and pushes `ghcr.io/solarflows/<addon-slug>`.
 - **Edit `Release.yml` triggers a full rebuild of every addon** (the path filter treats a pipeline change as invalidating all cached metadata). Expect unrelated addons to get a `-build.N` bump.

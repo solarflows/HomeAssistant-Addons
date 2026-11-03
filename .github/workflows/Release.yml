@@ -56,6 +56,10 @@ jobs:
           ADDON="${{ matrix.addon }}"
           REASON="${{ matrix.reason || 'version_changed' }}"
           NEW_VER="${{ matrix.new_ver || '' }}"
+          UPDATED_DEPS='${{ toJson(matrix.updated_deps) }}'
+          if [ -z "$UPDATED_DEPS" ] || [ "$UPDATED_DEPS" = "null" ]; then
+            UPDATED_DEPS="{}"
+          fi
 
           # reason 可能是复合值（如新 addon 首次构建的 "version_changed,dockerfile,rootfs"）。
           # 必须按逗号拆分后逐项匹配：不能用 "dockerfile*|rootfs*|..." 前缀匹配，否则以
@@ -80,7 +84,7 @@ jobs:
           BUILD_NUM_CUR=$(yq eval '.tracking.build_num // 0' "$VERSION_FILE")
 
           if [ "$IS_VERSION_CHANGE" = "true" ]; then
-            VERSION="$NEW_VER"
+            [ -n "$NEW_VER" ] && VERSION="$NEW_VER"
             BUILD_NUM=0
           else
             BUILD_NUM=$((BUILD_NUM_CUR + 1))
@@ -92,10 +96,11 @@ jobs:
 
           VERSION_SUFFIX_TMPL=$(yq eval '.version_suffix // ""' "$VERSION_FILE")
           if [ -n "$VERSION_SUFFIX_TMPL" ] && [ "$VERSION_SUFFIX_TMPL" != "null" ]; then
-            # 解析 ${KEY}：KEY 取自 build_args（另加 version 本身），与 Prepare build args 同口径
+            # 解析 ${KEY}：KEY 取自 build_args（合并 updated_deps 与 version 本身）
             SUFFIX="$VERSION_SUFFIX_TMPL"
             SUFFIX_PAIRS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
-              --arg v "$VERSION" 'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v))"')
+              --arg v "$VERSION" --argjson deps "$UPDATED_DEPS" \
+              'to_entries | map(.value = (if ($deps[.key] and $deps[.key].version) then $deps[.key].version else .value end)) | .[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v))"')
             SUFFIX_PAIRS=$(printf 'version=%s\n%s' "$VERSION" "$SUFFIX_PAIRS")
             while IFS='=' read -r _sk _sv; do
               [ -z "$_sk" ] && continue
@@ -103,6 +108,13 @@ jobs:
             done <<< "$SUFFIX_PAIRS"
             BUILD_VERSION="${BUILD_VERSION}-${SUFFIX}"
             echo "version_suffix '${VERSION_SUFFIX_TMPL}' -> '${SUFFIX}'"
+          fi
+
+          # 如果组装后的版本与当前 config.yaml 版本相同，说明版本本身没有因为上游版本或后缀变化而改变
+          # （例如仅副依赖更新但未设置 version_suffix，或者属于文件/底包变更），必须通过 -build.N 递增让 HA 检测到更新
+          CURR_CONFIG_VER=$(yq eval '.version // ""' "$CONFIG_FILE")
+          if [ "$BUILD_VERSION" = "$CURR_CONFIG_VER" ] && { [ "$UPDATED_DEPS" != "{}" ] || [ "$IS_FILE_TRIGGER" = "true" ] || [ "$REASON" = "base_updated" ]; }; then
+            BUILD_NUM=$((BUILD_NUM_CUR + 1))
           fi
 
           if [ "$BUILD_NUM" -gt 0 ]; then
@@ -184,6 +196,11 @@ jobs:
           echo "is_file_trigger=$IS_FILE_TRIGGER" >> $GITHUB_OUTPUT
           # 跨步骤传递：每个 step 是独立 shell，判断标志必须导出为 step output
           echo "is_version_change=$IS_VERSION_CHANGE" >> $GITHUB_OUTPUT
+          {
+            echo "updated_deps<<DEPS_EOF"
+            echo "$UPDATED_DEPS"
+            echo "DEPS_EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Prepare build args
         id: buildargs
@@ -192,13 +209,14 @@ jobs:
           VERSION="${{ steps.prep.outputs.version }}"
           TAG="${{ steps.prep.outputs.tag }}"
           VERSION_FILE="${ADDON_DIR}/version.yaml"
+          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps || "{}" }}'
 
-          # 从 version.yaml 的 build_args 字段动态生成构建参数
+          # 从 version.yaml 的 build_args 字段动态生成构建参数（支持 updated_deps 覆盖）
           BUILD_ARGS=""
           if [ -f "$VERSION_FILE" ]; then
             BUILD_ARGS=$(yq eval '.build_args // {}' -o=json "$VERSION_FILE" | jq -r \
-              --arg v "$VERSION" --arg t "$TAG" \
-              'to_entries[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"')
+              --arg v "$VERSION" --arg t "$TAG" --argjson deps "$UPDATED_DEPS" \
+              'to_entries | map(.value = (if ($deps[.key] and $deps[.key].version) then $deps[.key].version else .value end)) | .[] | "\(.key)=\(.value | gsub("\\$\\{version\\}"; $v) | gsub("\\$\\{tag\\}"; $t))"')
           fi
 
           {
@@ -244,6 +262,7 @@ jobs:
           IS_FILE_TRIGGER="${{ steps.prep.outputs.is_file_trigger || 'false' }}"
           IS_VERSION_CHANGE="${{ steps.prep.outputs.is_version_change || 'false' }}"
           OLD_VERSION="${{ steps.prep.outputs.old_version || '' }}"
+          UPDATED_DEPS='${{ steps.prep.outputs.updated_deps || "{}" }}'
           TIMESTAMP=$(date -u +"%Y-%m-%d")
 
           # 更新 config.yaml 版本号（使用 build_version，含 -build.N 后缀保证 HAOS 识别更新）
@@ -343,6 +362,23 @@ jobs:
                 | jq -r '.body // empty')
               [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
 
+              # 附加更新依赖副组件的 Release Notes
+              if [ "$UPDATED_DEPS" != "{}" ] && [ -n "$UPDATED_DEPS" ]; then
+                for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
+                  dep_repo=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].repo')
+                  dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
+                  dep_body=$(curl -fsSL \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    "https://api.github.com/repos/${dep_repo}/releases/tags/v${dep_v}" | jq -r '.body // empty')
+                  [ -z "$dep_body" ] && dep_body=$(curl -fsSL \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    "https://api.github.com/repos/${dep_repo}/releases/tags/${dep_v}" | jq -r '.body // empty')
+                  if [ -n "$dep_body" ]; then
+                    RELEASE_BODY="${RELEASE_BODY}"$'\n\n'"#### ${dep_k} (${dep_repo} v${dep_v})"$'\n'"${dep_body}"
+                  fi
+                done
+              fi
+
               if [ "$CHANGELOG_MODE" = "replace" ]; then
                 printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$RELEASE_BODY" > "${ADDON_DIR}/CHANGELOG.md"
               else
@@ -363,6 +399,18 @@ jobs:
           # version_changed 时更新版本号（清洁版本号，用于下次比较基准）
           if [ "$IS_VERSION_CHANGE" = "true" ]; then
             yq eval ".version = \"${VERSION}\"" -i "$VERSION_FILE"
+          fi
+          # 更新变动的副仓库版本（同步到 build_args 及 dependencies）
+          if [ "$UPDATED_DEPS" != "{}" ] && [ -n "$UPDATED_DEPS" ]; then
+            for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
+              dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
+              yq eval ".build_args.${dep_k} = \"${dep_v}\"" -i "$VERSION_FILE"
+              HAS_DEP_VER=$(yq eval ".dependencies.${dep_k}.version // \"\"" "$VERSION_FILE")
+              if [ -n "$HAS_DEP_VER" ]; then
+                yq eval ".dependencies.${dep_k}.version = \"${dep_v}\"" -i "$VERSION_FILE"
+              fi
+              echo "Updated dependency $dep_k in $VERSION_FILE to $dep_v"
+            done
           fi
           # 仅 debian-base 系 addon 更新 base_tag
           ADDON_BASE_TAG=$(yq eval '.tracking.base_tag // "null"' "$VERSION_FILE")
@@ -403,15 +451,31 @@ jobs:
               git commit -m "build(${ADDON}): 手动强制重建 → ${BUILD_VERSION}" \
                          -m "force_rebuild by ${{ github.actor }} on ${TIMESTAMP}"
             else
-              # version_changed：标注版本跃迁
+              # version_changed：主版本或依赖组件版本更新
+              DEP_CHANGES=""
+              if [ "$UPDATED_DEPS" != "{}" ] && [ -n "$UPDATED_DEPS" ]; then
+                for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
+                  dep_old=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].old_version // "?"')
+                  dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
+                  [ -n "$DEP_CHANGES" ] && DEP_CHANGES="${DEP_CHANGES}, "
+                  DEP_CHANGES="${DEP_CHANGES}${dep_k} ${dep_old} → ${dep_v}"
+                done
+              fi
+
               if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" != "$VERSION" ]; then
-                VER_DESC="${OLD_VERSION} → ${VERSION}"
+                if [ -n "$DEP_CHANGES" ]; then
+                  COMMIT_TITLE="chore(${ADDON}): upstream ${OLD_VERSION} → ${VERSION}, ${DEP_CHANGES}"
+                else
+                  COMMIT_TITLE="chore(${ADDON}): upstream ${OLD_VERSION} → ${VERSION}"
+                fi
+              elif [ -n "$DEP_CHANGES" ]; then
+                COMMIT_TITLE="chore(${ADDON}): update ${DEP_CHANGES}"
               else
-                VER_DESC="${VERSION}"
+                COMMIT_TITLE="chore(${ADDON}): upstream ${VERSION}"
               fi
               RELEASE_TITLE=$(echo "$RELEASE_BODY" | head -3 | tr '\n' ' ' | cut -c1-200)
-              git commit -m "chore(${ADDON}): upstream ${VER_DESC}" \
-                         -m "${RELEASE_TITLE:-Upstream release ${VERSION}}"
+              git commit -m "$COMMIT_TITLE" \
+                         -m "${RELEASE_TITLE:-Upstream release ${BUILD_VERSION}}"
             fi
             # 重试 push，处理并行构建的竞态
             # 每次重试前 pull --rebase 合并远程变更
