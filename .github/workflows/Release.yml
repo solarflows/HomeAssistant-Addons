@@ -339,71 +339,45 @@ jobs:
               printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
             fi
           elif [ "$IS_VERSION_CHANGE" = "true" ]; then
-            if [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
-              # 从指定 tag 下的文件获取 changelog（使用 GitHub Contents API）
-              CHANGELOG_CONTENT=$(curl -fsSL \
-                -H "Accept: application/vnd.github.raw+json" \
-                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" 2>/dev/null || \
-                curl -fsSL \
-                -H "Accept: application/vnd.github.raw+json" \
-                "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${VERSION}" || echo "")
-              if [ -n "$CHANGELOG_CONTENT" ]; then
-                if [ "$CHANGELOG_MODE" = "replace" ]; then
-                  echo "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
-                else
-                  printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
-                  cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-                  mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-                  rm -f temp_changelog.md combined.md
-                fi
-              fi
+            # 1. 提取主仓库变更说明
+            MAIN_LOG=""
+            if [ -n "$OLD_VERSION" ] && [ "$OLD_VERSION" = "$VERSION" ] && [ "$UPDATED_DEPS" != "{}" ]; then
+              MAIN_LOG="主程序 (${REPO}) 保持 v${VERSION}，本次为依赖组件更新："
+            elif [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
+              MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 -H "Accept: application/vnd.github.raw+json"                 "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" 2>/dev/null ||                 curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 -H "Accept: application/vnd.github.raw+json"                 "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${VERSION}" || echo "")
             elif [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
-              FILE_CONTENT=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
-              if [ -n "$FILE_CONTENT" ]; then
-                if [ "$CHANGELOG_MODE" = "replace" ]; then
-                  echo "$FILE_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
-                else
-                  printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$FILE_CONTENT" > temp_changelog.md
-                  cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-                  mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-                  rm -f temp_changelog.md combined.md
-                fi
-              fi
+              MAIN_LOG=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
             else
-              # 默认: release_body - 从 GitHub release body 获取
-              RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" \
-                | jq -r '.body // empty')
-              # fallback: some repos don't use v prefix (e.g. uptime-kuma)
-              [ -z "$RELEASE_BODY" ] && RELEASE_BODY=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" \
-                | jq -r '.body // empty')
-              [ -z "$RELEASE_BODY" ] && RELEASE_BODY="No changelog available."
+              MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" | jq -r '.body // empty')
+              [ -z "$MAIN_LOG" ] && MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" | jq -r '.body // empty')
+              [ -z "$MAIN_LOG" ] && MAIN_LOG="No changelog available."
+            fi
 
-              # 附加更新依赖副组件的 Release Notes
-              if [ "$UPDATED_DEPS" != "{}" ] && [ -n "$UPDATED_DEPS" ]; then
-                for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
-                  dep_repo=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].repo')
-                  dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
-                  dep_body=$(curl -fsSL \
-                    -H "Authorization: Bearer $GH_TOKEN" \
-                    "https://api.github.com/repos/${dep_repo}/releases/tags/v${dep_v}" | jq -r '.body // empty')
-                  [ -z "$dep_body" ] && dep_body=$(curl -fsSL \
-                    -H "Authorization: Bearer $GH_TOKEN" \
-                    "https://api.github.com/repos/${dep_repo}/releases/tags/${dep_v}" | jq -r '.body // empty')
-                  if [ -n "$dep_body" ]; then
-                    RELEASE_BODY="${RELEASE_BODY}"$'\n\n'"#### ${dep_k} (${dep_repo} v${dep_v})"$'\n'"${dep_body}"
-                  fi
-                done
-              fi
+            # 2. 附加副仓库依赖组件的变更说明（支持 Release Notes，无 Release 时自动版本兜底）
+            DEP_LOG=""
+            if [ "$UPDATED_DEPS" != "{}" ] && [ -n "$UPDATED_DEPS" ]; then
+              for dep_k in $(echo "$UPDATED_DEPS" | jq -r 'keys[]'); do
+                dep_repo=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].repo')
+                dep_v=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].version')
+                dep_old=$(echo "$UPDATED_DEPS" | jq -r --arg k "$dep_k" '.[$k].old_version // "?"')
 
-              if [ "$CHANGELOG_MODE" = "replace" ]; then
-                printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$RELEASE_BODY" > "${ADDON_DIR}/CHANGELOG.md"
-              else
-                # prepend: 新条目添加到开头
-                printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$RELEASE_BODY" > temp_changelog.md
-                cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-                mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-                rm -f temp_changelog.md combined.md
-              fi
+                dep_body=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${dep_repo}/releases/tags/v${dep_v}" 2>/dev/null | jq -r '.body // empty')
+                [ -z "$dep_body" ] && dep_body=$(curl -fsSL                   -H "Authorization: Bearer $GH_TOKEN"                   "https://api.github.com/repos/${dep_repo}/releases/tags/${dep_v}" 2>/dev/null | jq -r '.body // empty')
+                [ -z "$dep_body" ] && dep_body="- 版本更新：${dep_old} → ${dep_v}"
+
+                DEP_LOG=$(printf "%s\n\n#### %s (%s v%s)\n%s" "$DEP_LOG" "$dep_k" "$dep_repo" "$dep_v" "$dep_body")
+              done
+            fi
+
+            # 3. 组合并写入 CHANGELOG.md
+            FULL_LOG=$(printf "%s%s" "$MAIN_LOG" "$DEP_LOG")
+            if [ "$CHANGELOG_MODE" = "replace" ] && [ -z "$DEP_LOG" ]; then
+              echo "$FULL_LOG" > "${ADDON_DIR}/CHANGELOG.md"
+            else
+              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$FULL_LOG" > temp_changelog.md
+              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
+              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
+              rm -f temp_changelog.md combined.md
             fi
           fi
 
