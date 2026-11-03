@@ -1,0 +1,19 @@
+# ADDON_SLUG 版本检查配置
+version: "0.0.0"
+repo: owner/repo
+# strategy 提取策略 (缺省默认 release):
+#   - release: GitHub Latest Release (默认推荐)
+#   - tags: 最新 Git Tag (针对仅打 tag 不发 release 的软件)
+#   - date: 最新 Commit 日期 YYYYMMDD (针对无版本号/滚动更新软件)
+#   - commits: 分支提交计数 0.0.N (针对无版本号软件)
+#   - asset: 滚动 Release 资产更新日期 YYYYMMDD (针对每日覆盖资产的软件)
+# strategy: release
+build_args:
+  APP_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: "9.3.0"
+  file_sha: ""
+  build_num: 0

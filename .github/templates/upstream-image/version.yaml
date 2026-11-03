@@ -1,0 +1,13 @@
+# ADDON_SLUG 版本检查配置
+version: "0.0.0"
+repo: owner/repo
+strategy: release
+build_args:
+  UPSTREAM_VERSION: "${version}"
+changelog:
+  source: release_body
+  mode: prepend
+tracking:
+  base_tag: ""
+  file_sha: ""
+  build_num: 0

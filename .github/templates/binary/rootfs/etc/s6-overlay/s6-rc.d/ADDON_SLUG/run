@@ -6,7 +6,7 @@
 # ==============================================================================
 bashio::log.info "Starting ADDON_SLUG..."
 
-# 等待 cont-init 完成（legacy-cont-init 与服务可能并行启动，最多等待 30 秒）
+# 等待 cont-init 完成（最多等待 30 秒，避免启动竞态）
 for _ in $(seq 1 30); do
     [ -f /run/ADDON_SLUG-initialized ] && break
     sleep 1
@@ -15,5 +15,5 @@ if [ ! -f /run/ADDON_SLUG-initialized ]; then
     bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露潜在错误"
 fi
 
-# TODO: start foreground process
-# exec <app> <args>
+# 前台阻塞执行主程序
+exec /usr/local/bin/app --config /config/ADDON_SLUG/config.yaml

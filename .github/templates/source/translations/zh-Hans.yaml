@@ -1,0 +1,10 @@
+---
+configuration:
+  # TODO: define configuration options (Chinese translation)
+  # EXAMPLE:
+  #   name: 示例
+  #   description: 此选项的描述
+  #   required: false
+  #   default: "value"
+  #   type: string
+...

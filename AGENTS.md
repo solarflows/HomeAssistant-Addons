@@ -14,7 +14,7 @@
 
 ## Repository Shape
 
-Each addon normally contains `analysis.yaml`, `config.yaml`, `Dockerfile`, `version.yaml`, `README.md`, `DOCS.md`, `CHANGELOG.md`, `translations/`, and `rootfs/`. The reusable skeleton is in [.github/templates/addon/](.github/templates/addon/).
+Each addon normally contains `analysis.yaml`, `config.yaml`, `Dockerfile`, `version.yaml`, `README.md`, `DOCS.md`, `CHANGELOG.md`, `translations/`, and `rootfs/`. Reusable skeletons are in [.github/templates/](.github/templates/) (`binary/`, `upstream-image/`, `source/`).
 
 The repository has no single project-wide test command. The normal local verification is targeted YAML parsing, shell syntax checks, a single-platform Docker build, and a cold-start smoke test against the image health endpoint. See [Validation](#validation).
 

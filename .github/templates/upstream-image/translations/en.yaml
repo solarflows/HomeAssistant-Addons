@@ -1,0 +1,10 @@
+---
+configuration:
+  # TODO: define configuration options
+  # EXAMPLE:
+  #   name: Example
+  #   description: Description of this option
+  #   required: false
+  #   default: "value"
+  #   type: string
+...
