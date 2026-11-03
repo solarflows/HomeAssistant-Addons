@@ -1,3 +1,7 @@
+### 8.0.52-1.14.10-build.2 (2026-11-03)
+CI 变更
+（本次构建无代码变更）
+
 ### 8.0.52-1.14.10-build.1 (2026-11-03)
 CI 变更
 - chore(cliproxyapi-cpamp): update PANEL_VERSION 1.14.5 → 1.14.10
