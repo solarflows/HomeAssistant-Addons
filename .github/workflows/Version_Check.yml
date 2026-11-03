@@ -327,7 +327,8 @@ jobs:
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
             REASON="${ADDON_REASON[$ADDON_DIR]}"
             NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
-            UPD_DEPS="${ADDON_UPDATED_DEPS[$ADDON_DIR]:-\{\}}"
+            UPD_DEPS="${ADDON_UPDATED_DEPS[$ADDON_DIR]:-}"
+            [ -z "$UPD_DEPS" ] && UPD_DEPS="{}"
 
             # 捕获影响该 addon 的 commit message（Release 用于 CHANGELOG）
             # 只取 file_sha..HEAD 范围内该目录的提交，并排除 CI 自动提交
