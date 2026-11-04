@@ -1,3 +1,29 @@
+### 1.10.0 (2026-11-04)
+## Highlights
+
+- **Safer MCP connections:** validate and pin public destination IPs for HTTP and browser traffic, including upstream proxies. Isolate MCP clearance caching and require public-only named sessions.
+- **Browser certificate revocations:** import bundled OneCRL data at startup and include the six eMudhra intermediate revocations in standard and baseline images.
+- **Offline WAF diagnostics:** identify providers through wafmeow by default and expose metadata in results, logs, metrics and the dashboard. Solver routing is unchanged.
+- **Optional cold boot:** launch browsers on demand and combine it with idle retirement for occasional use. Warm startup remains the default.
+- **Native content endpoints:** use `/read` and `/extract` directly over HTTP. The typed client workspace supports Node.js, Bun, Deno and browsers; npm publication remains a separate step.
+
+## Major changes
+
+- 17cdb33: pin MCP connections, separate clearance caching and restrict named sessions (#263).
+- 587a590: backport browser certificate revocations and verify their effective state during image builds (#263).
+- ab8a987, 7e49f24: add offline provider detection and diagnostic metrics (#258, #262).
+- 0003c35, 5d17167: add opt-in browser cold boot and coordinate pool startup (#256, #257).
+- 994394f, 0e9096c: expose native content endpoints and add the portable client workspace (#260).
+- 8d99f36: preserve browser fallback when HTTP response headers stall (#259, #261).
+- 2b87ee6: distinguish generated MITM failures from origin page responses (#254, #255).
+- cb902ca: refresh compatible dependencies, including node-forge 1.4.2, Nuxt 4.6.4, LinkeDOM, web modules and client tooling. Align web/docs builds and CI on Node.js 26.13.0, build the WAF worker with Go 1.27.3, and update Redis to 8.10.3. Keep the compatible Camoufox/Playwright and uBlock Origin versions.
+
+**MCP upgrade:** recreate sessions used by MCP with `publicOnly: true`. MCP now uses its own clearance cache. Upstream HTTP(S) proxies must support literal-IP CONNECT, including to port 80; TRAWL's intercepting MITM listener cannot serve as their upstream. See the [migration guide](https://github.com/germondai/trawl/blob/v1.10.0/apps/docs/deployment/configuration-migration.md#upgrading-from-v193-to-v1100). Native API, `/v1` and ordinary MITM access retain their trusted-operator behavior.
+
+Thanks to @StLyn4 for cold boot, @IkariDevGIT for suggesting wafmeow, @Leardian for the security report, and @Project516 for the report and certificate-revocation backport.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.9.3...v1.10.0
+
 ### 1.9.3-build.3 (2026-11-03)
 CI 变更
 （本次构建无代码变更）
