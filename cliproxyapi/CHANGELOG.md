@@ -1,3 +1,25 @@
+### 8.0.55 (2026-11-04)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- feat(kvstore): add local bbolt key-value store and integration routing (ec14dc47)
+- fix(executor): support Codex remote compaction v2 on openai-compatible routes (d57270f4)
+- feat(claude): persist cloaked session date pins in persistent KV store (e6e5708e)
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.54...v8.0.55
+
 ### 8.0.54 (2026-11-04)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
