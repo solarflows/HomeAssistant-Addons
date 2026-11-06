@@ -1,3 +1,25 @@
+### 1.10.1 (2026-11-06)
+## Highlights
+
+- **Non-root Docker startup fixed:** standard and baseline images no longer retain build-time browser caches that prevented startup under another UID.
+- **Charset-aware HTML:** the HTTP tier respects declared encodings, including Windows-1251.
+- **Optional Prowlarr cookie handoff:** set `FLARESOLVERR_COOKIE_FALLBACK=true` to try one browser tier when a successful stateless `/v1` GET returns no usable cookies. It remains off by default and respects the original request deadline.
+- **GeoIP build validation:** accept current snapshots and check the bundled database with its MaxMind reader.
+
+## Major changes
+
+- 25032bc: isolate build-time browser caches and test readiness as UID 1000 (#265, #269).
+- 0dd8e40: validate bundled GeoIP snapshots (#269).
+- e9a6144: decode HTTP-tier HTML using the declared charset (#266).
+- f907a6a: add opt-in FlareSolverr cookie fallback (#267, #270).
+- 22fdc83: refresh Elysia 1.4.31, node-forge 1.4.3, Turndown 7.2.5, Biome 2.6.6 and tsdown 0.23.7; retain the validated browser/runtime pairing.
+
+No configuration changes are required. Recreate the container with the updated image and keep existing data volumes. The client workspace remains at 0.1.0; this release does not publish it to npm.
+
+Thanks to @TheBeastLT for the charset fix, @poulpor for the non-root startup report and @Feredzhanov for the cookie-handoff report.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.10.0...v1.10.1
+
 ### 1.10.0 (2026-11-04)
 ## Highlights
 
