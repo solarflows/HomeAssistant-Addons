@@ -1,5 +1,5 @@
 # mcphub 版本检查配置
-version: "1.2.1"
+version: "1.2.2"
 source: github
 repo: samanhappy/mcphub
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "e19b5840f576bfdf7a1f43a46c1e327ef0371b55"
+  file_sha: "4163776659cabd531e1f48e97ee0b087f8e464a2"
   build_num: 0

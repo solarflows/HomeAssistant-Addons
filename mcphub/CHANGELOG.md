@@ -1,3 +1,47 @@
+### 1.2.2 (2026-11-07)
+## Summary
+
+MCPHub v1.2.2 makes credentials and application access easier to manage with credential copying, optional remembered OAuth consent, and application revocation. It also adds configurable forward-auth JWT headers and fixes dynamic OAuth registration credential persistence and stale embedding writes.
+
+## Features
+
+- Copy personal credentials between compatible servers, with overwrite confirmation and independent copies. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1455
+- Read forward-auth JWTs from a configurable header, including Cloudflare Access headers. by @FlavienKlr in https://github.com/samanhappy/mcphub/pull/1457
+- Optionally remember OAuth consent and let users revoke authorized applications; confirmation on every authorization remains the default. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1461
+
+## Fixes
+
+- Prevent stale embedding batches from writing after server cleanup or document embedding configuration changes. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1460
+- Correctly persist dynamically registered OAuth client credentials and secret expiry from client metadata. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1463
+
+## 摘要
+
+MCPHub v1.2.2 新增个人凭据复制、可选的 OAuth 授权记忆和应用授权撤销，让凭据与应用访问更易管理。同时支持自定义转发认证 JWT 请求头，并修复动态 OAuth 注册凭据持久化和过期嵌入批次写入问题。
+
+## 功能
+
+- 支持在兼容服务器之间复制个人凭据，覆盖前需确认，复制后的凭据独立保存。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1455
+- 支持从自定义请求头读取转发认证 JWT，适配 Cloudflare Access 等场景。by @FlavienKlr in https://github.com/samanhappy/mcphub/pull/1457
+- 可选择记忆 OAuth 授权，并允许用户撤销已授权应用；默认仍在每次授权时要求确认。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1461
+
+## 修复
+
+- 防止服务器清理或文档嵌入配置变更后，过期的嵌入批次再次写入数据。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1460
+- 修复从客户端元数据持久化动态注册 OAuth 客户端凭据及密钥有效期的问题。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1463
+
+## New Contributors
+
+- @FlavienKlr made their first contribution in #1457
+
+## References
+
+- fix: persist dynamic OAuth registration credentials from client metadata by @samanhappy in https://github.com/samanhappy/mcphub/pull/1463
+- feat(oauth): remember consent and support application revocation by @samanhappy in https://github.com/samanhappy/mcphub/pull/1461
+- fix: prevent stale embedding writes after cleanup and config changes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1460
+- feat(auth): read the forward-auth JWT from a configurable header by @FlavienKlr in https://github.com/samanhappy/mcphub/pull/1457
+- feat: copy personal credentials between compatible servers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1455
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.1...v1.2.2
+
 ### 1.2.1 (2026-11-03)
 ## Summary
 
