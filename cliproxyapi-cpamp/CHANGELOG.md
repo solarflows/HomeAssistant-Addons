@@ -1,3 +1,38 @@
+### 8.0.59-1.14.10 (2026-11-07)
+<!-- cliproxyapi-linux-release-assets:start -->
+## Linux release assets
+
+- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
+- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
+
+## FreeBSD release assets
+
+- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
+
+<!-- cliproxyapi-linux-release-assets:end -->
+
+## Changelog
+
+- fix(codex): prevent replay after uncertain refresh outcomes (68cd7572)
+- feat(management): expose oauth_provider in credential list (0559fa3c)
+- fix(codex): normalize small output budgets for all source formats (bfac8586)
+- fix(codex): normalize nested custom tools across Chat Completions round trips (2443e883)
+- fix(codex): preserve prompt cache prefix when loading deferred tools via ToolSearch (374056f2)
+- Merge pull request #7308 from WizisCool/feat/management-oauth-provider (c9f97398)
+- feat(auth): enhance OAuth provider handling with explicit hints and metadata preservation (482efbf5)
+- fix(claude): align OAuth authorization state and scopes (ea0b4712)
+- Merge pull request #7317 from router-for-me/fix/claude-oauth-authorization-parameters (eabcd01d)
+- fix(claude): keep mid-session responses system items in place to preserve prompt cache (27762819)
+- fix(translator): preserve reasoning and text across multi-part gemini and antigravity chunks (c5251b57)
+
+
+## What's Changed
+* feat(management): expose oauth_provider in credential list by @WizisCool in https://github.com/router-for-me/CLIProxyAPI/pull/7308
+* fix(claude): restore OAuth login compatibility by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/7317
+
+
+**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.58...v8.0.59
+
 ### 8.0.58-1.14.10 (2026-11-06)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
