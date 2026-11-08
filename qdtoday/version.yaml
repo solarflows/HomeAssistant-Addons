@@ -5,8 +5,7 @@ repo: qd-today/qd
 build_args:
   QD_VERSION: "${version}"
 changelog:
-  source: file
-  file_url: "https://github.com/qd-today/qd/raw/refs/heads/master/CHANGELOG.md"
+  source: release_body
   mode: prepend
 tracking:
   base_tag: ""

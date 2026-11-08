@@ -357,10 +357,11 @@ jobs:
             elif [ "$CHANGELOG_SOURCE" = "tag_file" ] && [ -n "$CHANGELOG_FILE_PATH" ]; then
               MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 -H "Accept: application/vnd.github.raw+json"                 "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${TAG}" 2>/dev/null ||                 curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 -H "Accept: application/vnd.github.raw+json"                 "https://api.github.com/repos/${REPO}/contents/${CHANGELOG_FILE_PATH}?ref=${VERSION}" || echo "")
             elif [ "$CHANGELOG_SOURCE" = "file" ] && [ -n "$CHANGELOG_FILE_URL" ]; then
-              MAIN_LOG=$(curl -fsSL "$CHANGELOG_FILE_URL" || echo "")
+              MAIN_LOG=$(curl -fsSL "$CHANGELOG_FILE_URL" 2>/dev/null || echo "")
+              [ -z "$MAIN_LOG" ] && MAIN_LOG="No changelog available."
             else
-              MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" | jq -r '.body // empty')
-              [ -z "$MAIN_LOG" ] && MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" | jq -r '.body // empty')
+              MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${TAG}" 2>/dev/null | jq -r '.body // empty')
+              [ -z "$MAIN_LOG" ] && MAIN_LOG=$(curl -fsSL                 -H "Authorization: Bearer $GH_TOKEN"                 "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" 2>/dev/null | jq -r '.body // empty')
               [ -z "$MAIN_LOG" ] && MAIN_LOG="No changelog available."
             fi
 
@@ -535,16 +536,16 @@ jobs:
           if [ -n "$RAW" ]; then
             echo "| 架构 | 大小 |" >> $GITHUB_STEP_SUMMARY
             echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "\(.platform.os)/\(.platform.architecture)"' \
+            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "\(.platform.os)/\(.platform.architecture)"' 2>/dev/null \
               | while read -r platform; do
-                  SIZE=$(regctl manifest get "$IMAGE" --platform "$platform" --format '{{ .GetSize }}' 2>/dev/null)
+                  SIZE=$(regctl manifest get "$IMAGE" --platform "$platform" --format '{{ .GetSize }}' 2>/dev/null || true)
                   if [ -n "$SIZE" ]; then
-                    SIZE_MB=$(awk "BEGIN {printf \"%.1f MB\", $SIZE / 1000000}")
+                    SIZE_MB=$(awk "BEGIN {printf \"%.1f MB\", $SIZE / 1000000}" 2>/dev/null || echo "N/A")
                   else
                     SIZE_MB="N/A"
                   fi
                   echo "| \`${platform}\` | ${SIZE_MB} |" >> $GITHUB_STEP_SUMMARY
-                done
+                done || true
           else
             echo "*(image info unavailable)*" >> $GITHUB_STEP_SUMMARY
           fi

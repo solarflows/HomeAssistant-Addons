@@ -1,4 +1,4 @@
-﻿name: Version Check
+name: Version Check
 
 on:
   workflow_dispatch:
@@ -276,8 +276,8 @@ jobs:
               fi
             done
 
-            # Release.yml 变更 → 全量重建（构建管道本身变了）
-            if [ "$RELEASE_CHANGED" = "true" ]; then
+            # Release.yml 变更 → 全量重建（构建管道本身变了，支持在 commit 中标注 [skip-rebuild] 跳过）
+            if [ "$RELEASE_CHANGED" = "true" ] && ! echo "$COMMIT_MSG" | grep -qiE '\[skip[-_]?(full[-_]?)?rebuild\]'; then
               echo "  Workflow changed, triggering rebuild for ALL addons"
               for vf in */version.yaml; do
                 [ -f "$vf" ] || continue
