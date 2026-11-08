@@ -1,3 +1,8 @@
+### 20261108-build.1 (2026-11-08)
+Dockerfile 变更
+- fix(qdtoday): compile pycurl from source and add DNS_SERVERS error handling to resolve CURLE_UNKNOWN_OPTION (48)
+- fix(ci): 补齐 qdtoday 20261108 CHANGELOG、优化抓取源并加固 summary 汇报 [skip-rebuild]
+
 ### 20261108 (2026-11-08)
 ### Features
 
