@@ -1,3 +1,35 @@
+### 8.0.61 (2026-11-08)
+
+#### Changelog
+
+- docs(readme): mention cpa-status in Hermes entry (418b824c)
+- docs(readme): add SWE-2 Flash to Devin models (59a2b353)
+- fix(codex): preserve SIWC rotations and honor renewal windows (80ee739f)
+- fix(codex): reuse the issued SIWC client during CLI reauthorization (3891ebaa)
+- fix(codex): defer SIWC renewal during macOS maintenance wakes (8c6d8b18)
+- fix(auth): retain partition failures alongside SIWC wake cancellation (baec297f)
+- test(codex): make SIWC power-state checks deterministic (03c394ee)
+- fix(codex): retain SIWC renewal windows in refresh receipts (a46be7ae)
+- Merge pull request #7306 from kdcokenny/docs/swe-2-flash-availability (0e071088)
+- feat(plugin-store): support opt-in release cache refresh on store listing (f69db99d)
+- Merge branch 'codex/pr-7311' into dev (466b28da)
+- fix(codex): harden SIWC refresh deferral and expires_in parsing (09b3a579)
+- fix(responses): sanitize orphan tool outputs lacking call_id (05e668cf)
+- feat(auth): support session-affinity-rebind-on never mode (40c16182)
+- feat(pluginhost): expose token modality details in usage.handle (00748974)
+- Merge pull request #7281 from duu261/docs/readme-cpa-status (681ce41b)
+
+
+#### What's Changed
+* docs(readme): add SWE-2 Flash to Devin models by @kdcokenny in https://github.com/router-for-me/CLIProxyAPI/pull/7306
+* Fix SIWC renewal and defer refresh during macOS maintenance wakes by @JehudaRajasa in https://github.com/router-for-me/CLIProxyAPI/pull/7311
+* docs(readme): mention cpa-status in Hermes entry by @duu261 in https://github.com/router-for-me/CLIProxyAPI/pull/7281
+
+#### New Contributors
+* @JehudaRajasa made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7311
+
+---
+
 ### 8.0.60-build.1 (2026-11-08)
 
 CI 工作流维护
