@@ -368,58 +368,58 @@ jobs:
             # 3. 组合并通过 Python 语法沙盒净化
             FULL_LOG=$(printf "%s%s" "$MAIN_LOG" "$DEP_LOG")
             printf "%s" "$FULL_LOG" > raw_log.txt
-            python3 -c '
-import sys, re
+          python3 -c '
+          import sys, re
 
-try:
-    with open("raw_log.txt", "r", encoding="utf-8", errors="ignore") as f:
-        content = f.read()
+          try:
+              with open("raw_log.txt", "r", encoding="utf-8", errors="ignore") as f:
+                  content = f.read()
 
-    # 1. 移除 release-assets 噪音块
-    content = re.sub(
-        r"<!--\s*[\w-]+-release-assets:start\s*-->.*?<!--\s*[\w-]+-release-assets:end\s*-->\n*",
-        "", content, flags=re.DOTALL
-    )
+              # 1. 移除 release-assets 噪音块
+              content = re.sub(
+                  r"<!--\s*[\w-]+-release-assets:start\s*-->.*?<!--\s*[\w-]+-release-assets:end\s*-->\n*",
+                  "", content, flags=re.DOTALL
+              )
 
-    # 2. 移除末尾对比链接
-    content = re.sub(r"\n*\*\*Full Changelog\*\*:\s*https?://\S+", "", content)
+              # 2. 移除末尾对比链接
+              content = re.sub(r"\n*\*\*Full Changelog\*\*:\s*https?://\S+", "", content)
 
-    # 3. 清理首尾空白与末尾残留的分隔线
-    body = re.sub(r"(\n\s*---\s*)+\Z", "", content.strip()).strip()
+              # 3. 清理首尾空白与末尾残留的分隔线
+              body = re.sub(r"(\n\s*---\s*)+\Z", "", content.strip()).strip()
 
-    # 4. 语法闭合检查：确保代码块闭合
-    if len(re.findall(r"```", body)) % 2 != 0:
-        body += "\n```"
+              # 4. 语法闭合检查：确保代码块闭合
+              if len(re.findall(r"```", body)) % 2 != 0:
+                  body += "\n```"
 
-    # 5. 语法闭合检查：确保 HTML 注释闭合
-    if body.count("<!--") > body.count("-->"):
-        body += "\n-->"
+              # 5. 语法闭合检查：确保 HTML 注释闭合
+              if body.count("<!--") > body.count("-->"):
+                  body += "\n-->"
 
-    # 6. 标题降级：将代码块外的 # 与 ## 降级为 ####，保证大纲层级
-    lines = body.split("\n")
-    in_code = False
-    new_lines = []
-    for l in lines:
-        if l.strip().startswith("```"):
-            in_code = not in_code
-            new_lines.append(l)
-            continue
-        if not in_code and re.match(r"^(#{1,2})\s+(.+)$", l):
-            m = re.match(r"^(#{1,2})\s+(.+)$", l)
-            new_lines.append(f"#### {m.group(2)}")
-        else:
-            new_lines.append(l)
+              # 6. 标题降级：将代码块外的 # 与 ## 降级为 ####，保证大纲层级
+              lines = body.split("\n")
+              in_code = False
+              new_lines = []
+              for l in lines:
+                  if l.strip().startswith("```"):
+                      in_code = not in_code
+                      new_lines.append(l)
+                      continue
+                  if not in_code and re.match(r"^(#{1,2})\s+(.+)$", l):
+                      m = re.match(r"^(#{1,2})\s+(.+)$", l)
+                      new_lines.append(f"#### {m.group(2)}")
+                  else:
+                      new_lines.append(l)
 
-    cleaned = "\n".join(new_lines).strip()
-    if not cleaned:
-        cleaned = "No changelog available."
+              cleaned = "\n".join(new_lines).strip()
+              if not cleaned:
+                  cleaned = "No changelog available."
 
-    with open("clean_log.txt", "w", encoding="utf-8") as f:
-        f.write(cleaned)
-except Exception:
-    with open("clean_log.txt", "w", encoding="utf-8") as f:
-        f.write("No changelog available.")
-'
+              with open("clean_log.txt", "w", encoding="utf-8") as f:
+                  f.write(cleaned)
+          except Exception:
+              with open("clean_log.txt", "w", encoding="utf-8") as f:
+                  f.write("No changelog available.")
+          '
             ENTRY_BODY=$(cat clean_log.txt)
             rm -f raw_log.txt clean_log.txt
             echo "Prepared version change changelog entry"
