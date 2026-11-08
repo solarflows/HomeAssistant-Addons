@@ -1,5 +1,5 @@
 # qdtoday 版本检查配置
-version: "20250803"
+version: "20261108"
 source: github
 repo: qd-today/qd
 build_args:
@@ -10,5 +10,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "d259b97cc2a6e9e4dfdcca2c22b19af1bc116ed2"
-  build_num: 52
+  file_sha: "b64947920127f41562ceee49f37c1357307c5957"
+  build_num: 0
