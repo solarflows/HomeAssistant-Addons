@@ -1,63 +1,44 @@
 # syntax=docker/dockerfile:1
 #=============================================================================
-# QD-Today HA Addon - debian-base 同源多阶段构建
+# QD-Today HA Addon - debian-base 同源多阶段构建 (全量版: 包含 OCR 套件)
 #=============================================================================
 # 两个阶段共享 debian-base (Trixie)，libc/libcurl/Python ABI 天然一致
 #=============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: 编译阶段 (debian-base + 构建工具链) ----
+# ---- Stage 1: 编译/依赖构建阶段 ----
 FROM ${BUILD_FROM} AS builder
 
+# 安装构建工具链与 uv（移除冗余的 cargo/rustc，大幅加速构建并缩减层体积）
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
         build-essential \
         libcurl4-openssl-dev libssl-dev libffi-dev \
-        cargo rustc \
-        git \
-    && rm -rf /var/lib/apt/lists/*
+        git curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir --break-system-packages uv
 
-# 克隆源码（构建参数由 CI 注入）
+# 克隆源码（构建版本参数由 CI 矩阵自动注入）
 ARG QD_VERSION
 RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
 RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
-# Patch: Python 3.13 新增大量 opcode，上游 _SAFE_OPCODES 白名单过小 → 表达式静默失败
-RUN python3 <<'PYEOF'
-import sys
-src = '/src/libs/safe_eval.py'
-with open(src) as f:
-    c = f.read()
-# 找到 _SAFE_OPCODES 赋值行，替换为允许所有 opcode
-old = '_SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes(['
-if old not in c:
-    print(f"ERROR: _SAFE_OPCODES not found in {src}", file=sys.stderr)
-    sys.exit(1)
-import re
-# 匹配从 _SAFE_OPCODES = ... 到结束括号的整行/多行
-pat = r'_SAFE_OPCODES = _EXPR_OPCODES\.union\(to_opcodes\(\[.*?\]\)\)'
-new = '_SAFE_OPCODES = set(__import__("dis").opmap.values())  # Python 3.13+: allow all opcodes'
-c = re.sub(pat, new, c, flags=re.DOTALL)
-with open(src, 'w') as f:
-    f.write(c)
-print('patched:', src)
-PYEOF
-
-# 全量安装 Python 依赖到自定义路径（避开 dist-packages/site-packages 全套陷阱）
 WORKDIR /src
-RUN pip install --no-cache-dir --target /opt/qd-deps -r requirements.txt \
-    && pip install --no-cache-dir --target /opt/qd-deps --compile ddddocr
 
-# ---- Stage 2: 运行时阶段 (同源 debian-base) ----
+# 使用 uv 严格从官方 uv.lock 导出包含全量 OCR 栈的依赖清单，并全量安装到 /opt/qd-deps
+RUN uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/requirements.txt \
+    && pip install --no-cache-dir --target /opt/qd-deps -r /tmp/requirements.txt
+
+# ---- Stage 2: 运行时阶段 (纯净同源 debian-base) ----
 FROM ${BUILD_FROM}
 
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 拷贝预编译产物
+# 拷贝预编译产物与源码（彻底避开 Debian dist-packages 污染与 PEP 668 限制）
 COPY --from=builder /opt/qd-deps /opt/qd-deps
 COPY --from=builder /src /usr/src/app
 
@@ -70,7 +51,7 @@ RUN apt-get update \
 # 复制 HA rootfs
 COPY rootfs /
 
-# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
+# 修复执行权限
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
@@ -81,5 +62,4 @@ EXPOSE 8923/tcp
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
     CMD curl -sfo /dev/null http://127.0.0.1:8923/ || exit 1
 
-# S6 overlay 接管启动，不再依赖 Docker CMD
-# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/qdtoday/run
+# S6 overlay 接管启动（启动脚本: rootfs/etc/s6-overlay/s6-rc.d/qdtoday/run）
