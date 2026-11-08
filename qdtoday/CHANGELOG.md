@@ -1,3 +1,7 @@
+### 20261108-build.2 (2026-11-08)
+CI 变更
+（本次构建无代码变更）
+
 ### 20261108-build.1 (2026-11-08)
 Dockerfile 变更
 - fix(qdtoday): compile pycurl from source and add DNS_SERVERS error handling to resolve CURLE_UNKNOWN_OPTION (48)
