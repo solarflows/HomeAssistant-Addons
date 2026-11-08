@@ -1,3 +1,7 @@
+### 8.0.60-build.1 (2026-11-08)
+CI 变更
+（本次构建无代码变更）
+
 ### 8.0.60 (2026-11-07)
 <!-- cliproxyapi-linux-release-assets:start -->
 ## Linux release assets
