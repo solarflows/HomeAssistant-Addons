@@ -17,6 +17,7 @@ ports_description:
 # 常用配置在 UI 中可见；高级配置可手动写入 YAML（见下方 schema）。
 options:
   QD_DEBUG: false
+  USE_PYCURL: true
   AES_KEY: ""
   COOKIE_SECRET: ""
   DOMAIN: ""
@@ -26,6 +27,7 @@ options:
   MAIL_PASSWORD: ""
 schema:
   QD_DEBUG: bool?
+  USE_PYCURL: bool?
   AES_KEY: str?
   COOKIE_SECRET: str?
   DOMAIN: str?
@@ -34,7 +36,6 @@ schema:
   MAIL_USER: str?
   MAIL_PASSWORD: password?
   # 高级配置（UI 中隐藏，手动写入 YAML 生效）
-  USE_PYCURL: bool?
   DNS_SERVER: str?
   TRACEBACK_PRINT: bool?
   PUSH_BATCH_SW: bool?

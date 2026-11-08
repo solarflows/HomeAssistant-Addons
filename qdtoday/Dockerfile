@@ -14,7 +14,8 @@ FROM ${BUILD_FROM} AS builder
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         python3 python3-pip python-is-python3 python3-dev \
-        build-essential \
+        python3-setuptools python3-wheel \
+        build-essential pkg-config \
         libcurl4-openssl-dev libssl-dev libffi-dev \
         git curl ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
@@ -28,9 +29,30 @@ RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.
 
 WORKDIR /src
 
-# 使用 uv 严格从官方 uv.lock 导出包含全量 OCR 栈的依赖清单，并全量安装到 /opt/qd-deps
+# 防御性 patch: 若 libcurl 未启用 c-ares，则 setopt(DNS_SERVERS) 会抛出 (48, 'An unknown option was passed in to libcurl')
+# 加 try-except 容错，避免配置了 DNS_SERVERS 时直接导致 HTTP 任务失败
+RUN python3 <<'PYEOF'
+src = '/src/libs/fetcher.py'
+with open(src, 'r', encoding='utf-8') as f:
+    c = f.read()
+target = 'if config.dns_server:\n                    curl.setopt(pycurl.DNS_SERVERS, config.dns_server)'
+repl = '''if config.dns_server:
+                    try:
+                        curl.setopt(pycurl.DNS_SERVERS, config.dns_server)
+                    except Exception as e:
+                        logger_fetcher.warning("setopt pycurl.DNS_SERVERS failed: %s", e)'''
+if target in c:
+    with open(src, 'w', encoding='utf-8') as f:
+        f.write(c.replace(target, repl, 1))
+    print('Successfully patched DNS_SERVERS fallback in libs/fetcher.py')
+else:
+    print('WARNING: target DNS_SERVERS block not found in', src)
+PYEOF
+
+# 使用 uv 严格从官方 uv.lock 导出包含全量 OCR 栈的依赖清单，全量安装到 /opt/qd-deps
+# pycurl 强制以源码编译（--no-binary pycurl），确保与系统 libcurl4 严格同源对齐，杜绝 manylinux wheel 带来的 ABI 漂移与 (48, 'An unknown option was passed in to libcurl') 报错
 RUN uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/requirements.txt \
-    && pip install --no-cache-dir --target /opt/qd-deps -r /tmp/requirements.txt
+    && PYCURL_SSL_LIBRARY=openssl pip install --no-cache-dir --target /opt/qd-deps --no-binary pycurl -r /tmp/requirements.txt
 
 # ---- Stage 2: 运行时阶段 (纯净同源 debian-base) ----
 FROM ${BUILD_FROM}
