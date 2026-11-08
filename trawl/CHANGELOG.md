@@ -1,16 +1,20 @@
 ### 1.10.1-build.1 (2026-11-08)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.10.1 (2026-11-06)
-## Highlights
+
+#### Highlights
 
 - **Non-root Docker startup fixed:** standard and baseline images no longer retain build-time browser caches that prevented startup under another UID.
 - **Charset-aware HTML:** the HTTP tier respects declared encodings, including Windows-1251.
 - **Optional Prowlarr cookie handoff:** set `FLARESOLVERR_COOKIE_FALLBACK=true` to try one browser tier when a successful stateless `/v1` GET returns no usable cookies. It remains off by default and respects the original request deadline.
 - **GeoIP build validation:** accept current snapshots and check the bundled database with its MaxMind reader.
 
-## Major changes
+#### Major changes
 
 - 25032bc: isolate build-time browser caches and test readiness as UID 1000 (#265, #269).
 - 0dd8e40: validate bundled GeoIP snapshots (#269).
@@ -24,8 +28,11 @@ Thanks to @TheBeastLT for the charset fix, @poulpor for the non-root startup rep
 
 **Full changelog:** https://github.com/germondai/trawl/compare/v1.10.0...v1.10.1
 
+---
+
 ### 1.10.0 (2026-11-04)
-## Highlights
+
+#### Highlights
 
 - **Safer MCP connections:** validate and pin public destination IPs for HTTP and browser traffic, including upstream proxies. Isolate MCP clearance caching and require public-only named sessions.
 - **Browser certificate revocations:** import bundled OneCRL data at startup and include the six eMudhra intermediate revocations in standard and baseline images.
@@ -33,7 +40,7 @@ Thanks to @TheBeastLT for the charset fix, @poulpor for the non-root startup rep
 - **Optional cold boot:** launch browsers on demand and combine it with idle retirement for occasional use. Warm startup remains the default.
 - **Native content endpoints:** use `/read` and `/extract` directly over HTTP. The typed client workspace supports Node.js, Bun, Deno and browsers; npm publication remains a separate step.
 
-## Major changes
+#### Major changes
 
 - 17cdb33: pin MCP connections, separate clearance caching and restrict named sessions (#263).
 - 587a590: backport browser certificate revocations and verify their effective state during image builds (#263).
@@ -50,27 +57,39 @@ Thanks to @StLyn4 for cold boot, @IkariDevGIT for suggesting wafmeow, @Leardian 
 
 **Full changelog:** https://github.com/germondai/trawl/compare/v1.9.3...v1.10.0
 
+---
+
 ### 1.9.3-build.3 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.9.3-build.2 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.9.3-build.1 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.9.3 (2026-10-24)
-## Highlights
+
+#### Highlights
 
 - **Readable UTF-8 fragments:** preserve charset-less HTML across the native API, FlareSolverr API, MCP and proxy, while keeping JavaScript-rendered content and solved challenges intact.
 - **Safer Cloudflare interaction:** stop pending click and keyboard fallbacks after an interstitial clears.
 - **Patched runtimes:** Bun 1.4.4 and Node.js build tooling 26.12.1 include the upstream Brotli security fixes.
 - Compatible dependency updates, Nginx 1.31.8 for web/docs, and the TRAWL logo favicon.
 
-## Major changes
+#### Major changes
 
 - c10eaab preserves UTF-8 fragments without replacing rendered results with stale source (#251, #252).
 - 80a6f72 retains adjacent fragment text in MCP outputs; 675c393 stops delayed Cloudflare clicks after clearance.
@@ -81,15 +100,18 @@ Thanks to @everpcpc and @Project516 for their contributions.
 
 **Full changelog:** https://github.com/germondai/trawl/compare/v1.9.2...v1.9.3
 
+---
+
 ### 1.9.2 (2026-10-20)
-## Highlights
+
+#### Highlights
 
 - **Prometheus metrics:** monitor main browser pool utilization, waiting requests and checkout counters through `GET /metrics`.
 - **Opt-in graceful shutdown:** let accepted HTTP requests finish before sessions and browsers close. The default remains immediate shutdown.
 - **Short document support:** use `allowShortContent` in native scraping for browser documents under 100 characters, while retaining challenge and network-error checks.
 - **MHTML compatibility:** export folded archive headers that work with readers expecting Blink-style boundaries.
 
-## Major changes
+#### Major changes
 
 - bf0b439 fixes MHTML Content-Type header folding (#243).
 - 1aa41ed adds `allowShortContent`; c38f449 retains rejection of short error pages (#246, #247).
@@ -101,11 +123,17 @@ Thanks to @emandel2630 for the contributions.
 
 **Full changelog:** https://github.com/germondai/trawl/compare/v1.9.1...v1.9.2
 
+---
+
 ### 1.9.1 (2026-10-19)
+
 No changelog available.
 
+---
+
 ### 1.9.0 (2026-10-19)
-## Highlights
+
+#### Highlights
 
 - **Faster repeat requests:** reuse browser-verified Cloudflare and Anubis clearance over HTTP without another browser navigation. Every request still fetches fresh content, with browser fallback when clearance is rejected.
 - **Less unnecessary browser work:** reduce repeated challenge checks, overlap supported widget verification with page settling, and improve Cloudflare, Turnstile, GeeTest and Anubis flows.
@@ -113,7 +141,7 @@ No changelog available.
 - **More control:** configure the default scrape deadline, choose whether to solve embedded widgets, or opt into Firefox TLS/HTTP2 impersonation while keeping Bun fetch as the default.
 - **Refreshed release stack:** compatible dependency updates, updated standard and baseline images, and clearer deployment and performance documentation.
 
-## Major changes
+#### Major changes
 
 - fc1aa5f and e11ad5a add automatic Cloudflare and Anubis HTTP clearance reuse. 03eb092 extends replay to other direct sessions only for a verified URL and matching document content, and avoids repeated HTTP attempts for known JavaScript shells (#222, #229).
 - 68b1701, 6d02547 and ba420c7 reduce unnecessary challenge waits, overlap widget verification with page settling and streamline GeeTest drags. f1f34bc preserves delayed JavaScript content (#222).
@@ -129,12 +157,18 @@ Thanks to @HenrINC and @DuLerWeil for their contributions.
 
 **Full changelog:** https://github.com/germondai/trawl/compare/v1.8.0...v1.9.0
 
+---
+
 ### 1.8.0-build.1 (2026-10-10)
+
 CI 变更
 - feat(addons): 为 6 个 addon 补充图标
 
+---
+
 ### 1.8.0 (2026-10-10)
-## Highlights
+
+#### Highlights
 
 - **Browser sessions:** keep cookies, localStorage and sessionStorage across requests, with shared session support for the native API, MCP and FlareSolverr-compatible clients.
 - **Better resource management:** bounded request deadlines, cancellation cleanup, browser crash recovery and memory-aware recycling. Optional controls let smaller deployments disable ad blocking, adjust advertised browser concurrency or retire idle browsers.
@@ -142,7 +176,7 @@ CI 变更
 - **Faster browser flows:** avoid unnecessary network-idle waits when a content selector is provided, while preserving default JavaScript settling.
 - **Updated release stack:** refresh compatible dependencies and build web/docs images from the monorepo lockfile.
 
-## Major changes
+#### Major changes
 
 - ca4bb00 and 4cabc71 add isolated browser sessions and FlareSolverr session compatibility (#188, #207).
 - efda2f0 improves resource cleanup, deadlines, browser recovery and challenge solvers; 35d99ba moves dashboard history aggregation into SQLite (#191, #205).

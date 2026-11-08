@@ -301,6 +301,7 @@ jobs:
           # 更新 CHANGELOG.md
           # 注：复合 reason（version_changed + 文件变更）优先按「上游版本变更」记录，
           #     以便取到上游 release notes；纯文件变更才走文件分支。
+          ENTRY_BODY=""
           if [ "$IS_FILE_TRIGGER" = "true" ] && [ "$IS_VERSION_CHANGE" != "true" ]; then
             # 文件变更：支持复合 reason（如 dockerfile,rootfs）
             CHANGELOG_TAG=""
@@ -310,45 +311,28 @@ jobs:
                 dockerfile)  TAG_PART="Dockerfile" ;;
                 rootfs)      TAG_PART="rootfs" ;;
                 config)      TAG_PART="config" ;;
-                workflow)    TAG_PART="CI" ;;
+                workflow)    TAG_PART="CI 工作流" ;;
                 *)           TAG_PART="$r" ;;
               esac
               [ -n "$CHANGELOG_TAG" ] && CHANGELOG_TAG="${CHANGELOG_TAG} + "
               CHANGELOG_TAG="${CHANGELOG_TAG}${TAG_PART}"
             done
-            CHANGELOG_TAG="${CHANGELOG_TAG} 变更"
-            CHANGELOG_CONTENT="${CHANGELOG_TAG}\n${COMMIT_MSG:-（本次构建无代码变更）}"
-            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
-              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-              rm -f temp_changelog.md combined.md
+            case "$CHANGELOG_TAG" in
+              *工作流) CHANGELOG_TAG="${CHANGELOG_TAG}维护" ;;
+              *)       CHANGELOG_TAG="${CHANGELOG_TAG} 维护" ;;
+            esac
+            if [ -n "$COMMIT_MSG" ]; then
+              ENTRY_BODY=$(printf "%s\n%s" "$CHANGELOG_TAG" "$COMMIT_MSG")
             else
-              printf "### %s (%s)\n%b\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
+              ENTRY_BODY=$(printf "%s\n- 自动化构建流水线与容器发布底座例行维护" "$CHANGELOG_TAG")
             fi
-            echo "Updated ${ADDON_DIR}/CHANGELOG.md with file change record"
+            echo "Prepared file change changelog entry"
           elif [ "$REASON" = "base_updated" ]; then
-            # 底包更新
-            CHANGELOG_CONTENT="底包更新至 ${BASE_TAG}，无功能变更"
-            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
-              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-              rm -f temp_changelog.md combined.md
-            else
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
-            fi
-            echo "Updated ${ADDON_DIR}/CHANGELOG.md with base image update record"
+            ENTRY_BODY="底包更新至 ${BASE_TAG}，无功能变更"
+            echo "Prepared base image update changelog entry"
           elif [ "$REASON" = "force_rebuild" ]; then
-            CHANGELOG_CONTENT="手动触发强制重建"
-            if [ -f "${ADDON_DIR}/CHANGELOG.md" ]; then
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > temp_changelog.md
-              cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
-              mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
-              rm -f temp_changelog.md combined.md
-            else
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$CHANGELOG_CONTENT" > "${ADDON_DIR}/CHANGELOG.md"
-            fi
+            ENTRY_BODY="手动触发强制重建"
+            echo "Prepared force rebuild changelog entry"
           elif [ "$IS_VERSION_CHANGE" = "true" ]; then
             # 1. 提取主仓库变更说明
             MAIN_LOG=""
@@ -381,16 +365,79 @@ jobs:
               done
             fi
 
-            # 3. 组合并写入 CHANGELOG.md
+            # 3. 组合并通过 Python 语法沙盒净化
             FULL_LOG=$(printf "%s%s" "$MAIN_LOG" "$DEP_LOG")
+            printf "%s" "$FULL_LOG" > raw_log.txt
+            python3 -c '
+import sys, re
+
+try:
+    with open("raw_log.txt", "r", encoding="utf-8", errors="ignore") as f:
+        content = f.read()
+
+    # 1. 移除 release-assets 噪音块
+    content = re.sub(
+        r"<!--\s*[\w-]+-release-assets:start\s*-->.*?<!--\s*[\w-]+-release-assets:end\s*-->\n*",
+        "", content, flags=re.DOTALL
+    )
+
+    # 2. 移除末尾对比链接
+    content = re.sub(r"\n*\*\*Full Changelog\*\*:\s*https?://\S+", "", content)
+
+    # 3. 清理首尾空白与末尾残留的分隔线
+    body = re.sub(r"(\n\s*---\s*)+\Z", "", content.strip()).strip()
+
+    # 4. 语法闭合检查：确保代码块闭合
+    if len(re.findall(r"```", body)) % 2 != 0:
+        body += "\n```"
+
+    # 5. 语法闭合检查：确保 HTML 注释闭合
+    if body.count("<!--") > body.count("-->"):
+        body += "\n-->"
+
+    # 6. 标题降级：将代码块外的 # 与 ## 降级为 ####，保证大纲层级
+    lines = body.split("\n")
+    in_code = False
+    new_lines = []
+    for l in lines:
+        if l.strip().startswith("```"):
+            in_code = not in_code
+            new_lines.append(l)
+            continue
+        if not in_code and re.match(r"^(#{1,2})\s+(.+)$", l):
+            m = re.match(r"^(#{1,2})\s+(.+)$", l)
+            new_lines.append(f"#### {m.group(2)}")
+        else:
+            new_lines.append(l)
+
+    cleaned = "\n".join(new_lines).strip()
+    if not cleaned:
+        cleaned = "No changelog available."
+
+    with open("clean_log.txt", "w", encoding="utf-8") as f:
+        f.write(cleaned)
+except Exception:
+    with open("clean_log.txt", "w", encoding="utf-8") as f:
+        f.write("No changelog available.")
+'
+            ENTRY_BODY=$(cat clean_log.txt)
+            rm -f raw_log.txt clean_log.txt
+            echo "Prepared version change changelog entry"
+          fi
+
+          # 统一将当前构建日志写入/前置入 CHANGELOG.md 并注入安全隔离边界
+          if [ -n "$ENTRY_BODY" ]; then
             if [ "$CHANGELOG_MODE" = "replace" ] && [ -z "$DEP_LOG" ]; then
-              echo "$FULL_LOG" > "${ADDON_DIR}/CHANGELOG.md"
-            else
-              printf "### %s (%s)\n%s\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$FULL_LOG" > temp_changelog.md
+              printf "%s\n" "$ENTRY_BODY" > "${ADDON_DIR}/CHANGELOG.md"
+            elif [ -f "${ADDON_DIR}/CHANGELOG.md" ] && [ -s "${ADDON_DIR}/CHANGELOG.md" ]; then
+              printf "### %s (%s)\n\n%s\n\n---\n\n" "$BUILD_VERSION" "$TIMESTAMP" "$ENTRY_BODY" > temp_changelog.md
               cat temp_changelog.md "${ADDON_DIR}/CHANGELOG.md" > combined.md 2>/dev/null || mv temp_changelog.md "${ADDON_DIR}/CHANGELOG.md"
               mv combined.md "${ADDON_DIR}/CHANGELOG.md" 2>/dev/null
               rm -f temp_changelog.md combined.md
+            else
+              printf "### %s (%s)\n\n%s\n" "$BUILD_VERSION" "$TIMESTAMP" "$ENTRY_BODY" > "${ADDON_DIR}/CHANGELOG.md"
             fi
+            echo "Successfully updated ${ADDON_DIR}/CHANGELOG.md"
           fi
 
           # 更新 version.yaml 中的 tracking 字段

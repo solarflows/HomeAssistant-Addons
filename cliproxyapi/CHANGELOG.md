@@ -1,21 +1,13 @@
 ### 8.0.60-build.1 (2026-11-08)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 8.0.60 (2026-11-07)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(auth): keep native Codex available during SIWC recovery (5f38d557)
 - Merge pull request #7305 from router-for-me/fix/codex-refresh-uncertain-outcome (bbefed68)
@@ -27,26 +19,14 @@ CI 变更
 - fix(openai): prevent SSE keep-alive injection mid-line during image streaming (91e0dee8)
 
 
-## What's Changed
+#### What's Changed
 * fix(auth): keep native Codex available during SIWC recovery by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/7305
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.59...v8.0.60
+---
 
 ### 8.0.59 (2026-11-07)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(codex): prevent replay after uncertain refresh outcomes (68cd7572)
 - feat(management): expose oauth_provider in credential list (0559fa3c)
@@ -61,27 +41,15 @@ CI 变更
 - fix(translator): preserve reasoning and text across multi-part gemini and antigravity chunks (c5251b57)
 
 
-## What's Changed
+#### What's Changed
 * feat(management): expose oauth_provider in credential list by @WizisCool in https://github.com/router-for-me/CLIProxyAPI/pull/7308
 * fix(claude): restore OAuth login compatibility by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/7317
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.58...v8.0.59
+---
 
 ### 8.0.58 (2026-11-06)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(models): add gpt-6-chat-thinking to registries (c1842be2)
 - fix(claude): correct gemini tool result and signature translation (55c05f70)
@@ -94,27 +62,15 @@ CI 变更
 - Merge pull request #7295 from router-for-me/fix/codex-hosted-image-request-scope (e5e6ad1e)
 
 
-## What's Changed
+#### What's Changed
 * fix(auth): preserve terminal responses across execution paths by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/7294
 * fix(codex): reject unsupported hosted image requests by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/7295
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.57...v8.0.58
+---
 
 ### 8.0.57 (2026-11-05)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(usage): clear consumed queue slot in usage manager dispatcher (f2e255f7)
 - fix(codex): handle Responses-Lite hosted image_generation compatibility (8fb60326)
@@ -122,23 +78,11 @@ CI 变更
 - fix(auth): keep count_tokens 501 and unsupported capability responses availability-neutral (1c537211)
 - fix(meta): send X-Tbh-Contributor-Mode header only for contributor models (c2f402b4)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.56...v8.0.57
+---
 
 ### 8.0.56 (2026-11-05)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(logging,clienterror): classify mid-stream cyber blocks as 400 and persist error logs (c3938b72)
 - fix(logging,executor): preserve Claude Fast classified error status and cap deferred body buffering (0a94b2ae)
@@ -158,52 +102,29 @@ CI 变更
 - fix(auth): pass context and headers to availableAuthsForSelector in HasAlternativeTargetForModel (585f97de)
 
 
-## What's Changed
+#### What's Changed
 * feat(codex): add support for gpt-image-2.6 models by @Nciae-Zyh in https://github.com/router-for-me/CLIProxyAPI/pull/7262
 * fix(clienterror,logging): classify mid-stream cyber blocks as 400 and persist error logs by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7242
 * fix(codex,auth): bypass SIWC for OpenAI image requests and route directly to Codex images endpoint by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7265
 
-## New Contributors
+#### New Contributors
 * @Nciae-Zyh made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7262
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.55...v8.0.56
+---
 
 ### 8.0.55 (2026-11-04)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(kvstore): add local bbolt key-value store and integration routing (ec14dc47)
 - fix(executor): support Codex remote compaction v2 on openai-compatible routes (d57270f4)
 - feat(claude): persist cloaked session date pins in persistent KV store (e6e5708e)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.54...v8.0.55
+---
 
 ### 8.0.54 (2026-11-04)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(usage): extract cached image/audio and interactions modality tokens (6d7e6a3b)
 - fix(thinking): prefer Claude mid-conversation effort directives in usage extraction (fb30a9e8)
@@ -219,27 +140,15 @@ CI 变更
 - chore(deps): update github.com/router-for-me/moego to v0.1.2 (78a9cc9a)
 
 
-## What's Changed
+#### What's Changed
 * feat(usage): extract cached image/audio and interactions modality tokens by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7231
 * feat(auth): extract Antigravity model discovery to sdk/auth by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7238
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.53...v8.0.54
+---
 
 ### 8.0.53 (2026-11-03)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(auth): prevent auto-refresh spin for disabled credentials with rejected refresh tokens (e5827065)
 - fix(claude): keep Fable-only 429 rejections model-scoped when 5h headers are omitted (0130d6f3)
@@ -259,33 +168,25 @@ CI 变更
 - fix(codex): preserve and forward max_output_tokens across request translators (01b24f1f)
 
 
-## What's Changed
+#### What's Changed
 * fix(devin): keep sealed reasoning items sent back via the Responses API by @maomaocun in https://github.com/router-for-me/CLIProxyAPI/pull/7229
 
-## New Contributors
+#### New Contributors
 * @maomaocun made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7229
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.52...v8.0.53
+---
 
 ### 8.0.52-build.2 (2026-11-03)
+
 CI 变更
 - chore(cliproxyapi): update PANEL_VERSION 1.14.5 → 1.14.10
 - chore(cliproxyapi): update PANEL_VERSION 1.14.5 → 1.14.10
 
+---
+
 ### 8.0.52-build.1 (2026-11-03)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(auth/antigravity): request aicode OAuth scope (7c627ffb)
 - fix(helps): release TransportCache mutex on builder panic and retire purged entries (8a82bed5)
@@ -303,7 +204,7 @@ CI 变更
 - refactor: migrate gjson, sjson, and base64 to MoeForge/moego (6e6afab9)
 
 
-## What's Changed
+#### What's Changed
 * fix(translator): normalize omitted and function roles in Gemini ingress translators by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7187
 * fix(helps): release TransportCache mutex on builder panic and retire purged entries by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7164
 * fix(config): include connection-pool settings in credential deduplication keys by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7165
@@ -311,13 +212,11 @@ CI 变更
 * fix(auth/antigravity): request aicode OAuth scope by @SomSamantray in https://github.com/router-for-me/CLIProxyAPI/pull/6315
 * fix(pluginhost): scope model execution streams to the owning plugin and instance by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7167
 
-## New Contributors
+#### New Contributors
 * @SomSamantray made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6315
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.51...v8.0.52
-
 #### PANEL_VERSION (seakee/CPA-Manager-Plus v1.14.10)
-# CPA Manager Plus v1.14.10
+#### CPA Manager Plus v1.14.10
 
 > 35 commits (including merges) · 37 files changed · +1323 / -108
 
@@ -341,11 +240,11 @@ CI 变更
 }
 -->
 
-## Overview
+#### Overview
 
 v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常用凭证置顶，并修复模型排除优先级、历史价格读取、插件配置默认值及同页面 URL 状态同步问题。Manager Server 还补充了范围受限的 CPA v8 API Key 分组只读转发。不包含 v2 架构改造。
 
-## Changes
+#### Changes
 
 ### 凭证管理与页面交互
 
@@ -364,7 +263,7 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - **依赖安全（#1093）**：更新仅在开发工具中使用的 Zod 锁定版本，解除依赖漏洞扫描对 CI 的阻断；不改变运行时依赖行为。
 - **依赖升级策略（#1070）**：关闭例行 Dependabot 版本升级 PR，依赖升级回归开发迭代与针对性安全维护；不改变产品运行逻辑。
 
-## Upgrade Notes
+#### Upgrade Notes
 
 - 从 v1.14.9 正常更新并重启即可；无数据库迁移、凭证重建或配置格式变更。
 - 凭证置顶仅在当前浏览器保留，不跨设备同步，也不会越过既有筛选；文件重命名或身份标识变化后旧置顶可能不再匹配。
@@ -375,22 +274,9 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 
 ---
 
-**Full Changelog**: https://github.com/seakee/CPA-Manager-Plus/compare/v1.14.9...v1.14.10
-
 ### 8.0.52 (2026-11-03)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(auth/antigravity): request aicode OAuth scope (7c627ffb)
 - fix(helps): release TransportCache mutex on builder panic and retire purged entries (8a82bed5)
@@ -408,7 +294,7 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - refactor: migrate gjson, sjson, and base64 to MoeForge/moego (6e6afab9)
 
 
-## What's Changed
+#### What's Changed
 * fix(translator): normalize omitted and function roles in Gemini ingress translators by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7187
 * fix(helps): release TransportCache mutex on builder panic and retire purged entries by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7164
 * fix(config): include connection-pool settings in credential deduplication keys by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7165
@@ -416,25 +302,14 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 * fix(auth/antigravity): request aicode OAuth scope by @SomSamantray in https://github.com/router-for-me/CLIProxyAPI/pull/6315
 * fix(pluginhost): scope model execution streams to the owning plugin and instance by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7167
 
-## New Contributors
+#### New Contributors
 * @SomSamantray made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6315
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.51...v8.0.52
+---
 
 ### 8.0.51 (2026-11-01)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - chore(meta): match Muse Code 1.4.14 client headers (d9a688e6)
 - fix(meta): include Muse namespace in tool-bearing requests (b147b8d2)
@@ -453,31 +328,20 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - Merge pull request #7142 from gabrielrinaldi/fix/grok-video-1.5-lite (7cad1cb7)
 
 
-## What's Changed
+#### What's Changed
 * fix(auth): prevent Codex refresh spin without refresh tokens by @LTbinglingfeng in https://github.com/router-for-me/CLIProxyAPI/pull/7143
 * fix(meta): add Muse tool namespace for subscription requests by @zoidypuh in https://github.com/router-for-me/CLIProxyAPI/pull/7113
 * fix(xai): support Grok Imagine Video 1.5 Lite by @gabrielrinaldi in https://github.com/router-for-me/CLIProxyAPI/pull/7142
 
-## New Contributors
+#### New Contributors
 * @zoidypuh made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7113
 * @gabrielrinaldi made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7142
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.50...v8.0.51
+---
 
 ### 8.0.49 (2026-11-01)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(claude): add opt-in visible Codex commentary with preserved replay (cc4b9949)
 - fix(gemini): strip empty part objects from systemInstruction (#7136) (4c46f0aa)
@@ -486,23 +350,11 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(antigravity): discard excess functionResponse parts per turn in fixCLIToolResponse (#7137) (234217d0)
 - perf(antigravity): make selectGroupResponses O(N+M) and deduplicate systemInstruction sanitize (250d5981)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.48...v8.0.49
+---
 
 ### 8.0.48 (2026-10-30)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - test(openai): assert websocket disconnect error event (fa42f390)
 - fix(devin): classify JSON control character errors (02ee3139)
@@ -533,7 +385,7 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(codex): expand recognized CPA compaction capsules before forwarding to OpenAI (dbb70621)
 
 
-## What's Changed
+#### What's Changed
 * Fix WebSocket disconnect test and Devin diagnostics by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7092
 * feat(usage): capture structured upstream usage details across Anthropic, xAI, OpenAI/Codex, and Gemini by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7074
 * fix(aistudio): reassemble SSE frames across relay chunks by @wozhenbang2004 in https://github.com/router-for-me/CLIProxyAPI/pull/7095
@@ -542,26 +394,15 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 * fix(auth): write the cooldown state next to the auth file when auth-dir is relative by @eaxeax in https://github.com/router-for-me/CLIProxyAPI/pull/7109
 * fix(gemini): preserve Claude tool-result error semantics by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/6838
 
-## New Contributors
+#### New Contributors
 * @wozhenbang2004 made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7095
 * @eaxeax made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7109
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.47...v8.0.48
+---
 
 ### 8.0.47 (2026-10-29)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - perf(pluginhost): allow frontend auth providers to opt out of request body delivery (e324e481)
 - feat(pluginhost): support raw request body byte-range patching (0fe38224)
@@ -570,28 +411,17 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(responses): use tsc_ item id prefix for Gemini tool search calls (90c447d3)
 
 
-## What's Changed
+#### What's Changed
 * docs(readme): add Nia Live Demo to "Who is with us?" by @nia-teams-admin in https://github.com/router-for-me/CLIProxyAPI/pull/7082
 
-## New Contributors
+#### New Contributors
 * @nia-teams-admin made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7082
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.46...v8.0.47
+---
 
 ### 8.0.46 (2026-10-28)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(openai/responses): drop response.metadata for non-Codex clients (86d951cd)
 - docs(readme): update Kimi model availability (8365de86)
@@ -612,7 +442,7 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(responses): reject late websocket interrupts after terminal events (9717e325)
 
 
-## What's Changed
+#### What's Changed
 * docs: add Ebb to "Who is with us?" by @lucasnsaraujo in https://github.com/router-for-me/CLIProxyAPI/pull/7057
 * docs(readme): update Kimi and OpenAI model availability by @kdcokenny in https://github.com/router-for-me/CLIProxyAPI/pull/6989
 * perf(executor): decode upstream zstd synchronously and sniff unlabeled bodies lazily by @JohnsonRan in https://github.com/router-for-me/CLIProxyAPI/pull/7023
@@ -620,27 +450,16 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 * perf(api): reuse response compression encoders with a smaller zstd window by @JohnsonRan in https://github.com/router-for-me/CLIProxyAPI/pull/7022
 * fix(openai/responses): drop response.metadata for non-Codex clients by @soulmachine in https://github.com/router-for-me/CLIProxyAPI/pull/6970
 
-## New Contributors
+#### New Contributors
 * @lucasnsaraujo made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7057
 * @leaderlemon made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6995
 * @soulmachine made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6970
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.45...v8.0.46
+---
 
 ### 8.0.45 (2026-10-27)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - perf(thinking): skip document copies when deleting absent fields (6b56ce6c)
 - fix(signature): recognize Vertex bare-Tink Gemini thought signatures (58a4d04f)
@@ -665,30 +484,19 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(middleware): bound zstd decompression output and window in request logging (ad8bdd3f)
 
 
-## What's Changed
+#### What's Changed
 * perf(thinking): skip document copies when deleting absent fields by @JohnsonRan in https://github.com/router-for-me/CLIProxyAPI/pull/6959
 * fix(signature): recognize and scope Vertex bare-Tink Gemini thought signatures by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7016
 * fix(signature): do not reject Antigravity CAQS signatures by channel ID by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7042
 
-## New Contributors
+#### New Contributors
 * @JohnsonRan made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6959
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.44...v8.0.45
+---
 
 ### 8.0.44 (2026-10-26)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(handlers): report cancellation when stream closes before first chunk (712e4970)
 - fix(auth,pluginapi,usage): share per-selection ID between Scheduler.Pick and UsageRecord (e5321f53)
@@ -709,26 +517,14 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - docs(readme): remove APIMart sponsor sections and assets (1f917e77)
 
 
-## What's Changed
+#### What's Changed
 * feat(discovery): align LAN discovery with IETF AI gateway draft by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7010
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.43...v8.0.44
+---
 
 ### 8.0.43 (2026-10-25)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(lint): resolve go vet lostcancel and static analysis warnings from v8.0.42 (2bb6ac6f)
 - fix(codex): bind duplex websocket turns to requested client model after interceptor rewrites (6340fe43)
@@ -750,26 +546,14 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(aistudio): translate every SSE frame of a relay stream chunk (30780351)
 
 
-## What's Changed
+#### What's Changed
 * fix(cliproxy): back off home subscriber retries by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6969
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.42...v8.0.43
+---
 
 ### 8.0.42 (2026-10-24)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(store,home): handle repository index and packfile corruption and wrap Redis connections with cancelable dialer (0d3ca1d3)
 - fix(kimi): share thinking replay across K3.1 Pro variants (ab139b45)
@@ -782,23 +566,11 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(pluginhost): run canonical thinking pipeline before plugin execution (c9af5290)
 - fix(logging): prevent path traversal vulnerabilities in request log filenames (179d43dc)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.41...v8.0.42
+---
 
 ### 8.0.41 (2026-10-23)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(home): add cluster latency telemetry and probing (e45f9426)
 - Merge pull request #6903 from router-for-me/home (41a4b9f4)
@@ -812,29 +584,20 @@ v1.14.10 是 v1.14.9 之后的 1.x 功能完善与问题修复版本。新增常
 - fix(usage): preserve interactions token semantics when merging stream usage (8289ec4c)
 
 
-## What's Changed
+#### What's Changed
 * feat(home): add cluster latency telemetry and probing by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6903
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.40...v8.0.41
+---
 
 ### 8.0.40 (2026-10-23)
+
 No changelog available.
 
+---
+
 ### 8.0.39 (2026-10-22)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(openai): reauthorize responses websocket turns and support denied status (b9bb031d)
 - chore(deps): bump Go version to 1.26.10 and update dependencies (633a294f)
@@ -854,26 +617,17 @@ No changelog available.
 - feat(usage): report effective outbound service tier after payload rules (07b5a7a1)
 - ci(workflow): bump Go version to 1.26.10 in release pipeline (ceb045a1)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.38...v8.0.39
+---
 
 ### 8.0.38-build.1 (2026-10-22)
+
 底包更新至 9.5.1，无功能变更
 
+---
+
 ### 8.0.38 (2026-10-21)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(home): add planned cluster rebalance handoff (befcba23)
 - fix(codex): preserve explicit parallel_tool_calls false in OpenAI translators (99d1698f)
@@ -889,28 +643,16 @@ No changelog available.
 - fix(codex): use original oauth credentials for alpha search (0db19025)
 
 
-## What's Changed
+#### What's Changed
 * feat(home): add planned cluster rebalance handoff by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6832
 * perf(claude/responses): resolve namespaces from cached state and extract request echo once by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6834
 * perf(codex/chat): cache tool metadata per stream instead of rescanning per tool call by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6836
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.37...v8.0.38
+---
 
 ### 8.0.37 (2026-10-21)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(vertex): support per-model and per-credential openapi routing settings (d44f8682)
 - feat(pluginhost): add host.auth.models callback for per-credential model lookup (4846a289)
@@ -927,28 +669,16 @@ No changelog available.
 - Merge pull request #6831 from router-for-me/perf/responses-echo-openai (3fa76394)
 
 
-## What's Changed
+#### What's Changed
 * perf(translator): cache per-stream request metadata and precompute Claude tool-name mapping by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6828
 * perf(codex/claude): cache short-to-original tool name map per stream by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6829
 * perf(openai/responses): extract request echo in one pass and drop request retention by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6831
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.36...v8.0.37
+---
 
 ### 8.0.36 (2026-10-20)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(openai): preserve tool_use stop reason and omitted-index parallel tool calls for Claude responses (c449529e)
 - fix(translator): map completion_tokens_details.reasoning_tokens in non-stream Responses translator (7db0935a)
@@ -972,27 +702,15 @@ No changelog available.
 - fix(claude): treat sdk-ts as native Claude Code and preserve caller headers under cloak_mode never (20c9095c)
 
 
-## What's Changed
+#### What's Changed
 * fix(meta): measure streaming TTFT on effective token frames by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/6794
 * fix(antigravity): align Hub requests and invalidate versioned model caches by @GavinKung in https://github.com/router-for-me/CLIProxyAPI/pull/6798
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.35...v8.0.36
+---
 
 ### 8.0.35 (2026-10-20)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(util): strip readOnly and writeOnly keywords in Gemini schema cleaners (154d5144)
 - feat(cache): add Home KV support to Claude web search result cache (ab9c06b4)
@@ -1002,26 +720,14 @@ No changelog available.
 - fix(management): reject legacy SIWC callbacks and symlink targets (ae3ee3be)
 
 
-## What's Changed
+#### What's Changed
 * feat(management): add v8 SIWC credential binding by @LTbinglingfeng in https://github.com/router-for-me/CLIProxyAPI/pull/6786
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.34...v8.0.35
+---
 
 ### 8.0.34 (2026-10-19)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(signature): recognize Meta Muse reasoning envelopes and gate replay by target (7a0b7563)
 - fix(translator): carry reasoning thought signatures through Gemini protocol (88ac14f3)
@@ -1053,27 +759,15 @@ No changelog available.
 - fix(codex): reconcile replayed web_search_call history with tool declarations (e7d4c731)
 
 
-## What's Changed
+#### What's Changed
 * feat(signature): support Meta Muse & router-suffixed reasoning signatures across Responses, Claude, Gemini, and Interactions by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6738
 * fix(api): allow empty home model catalog by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6765
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.33...v8.0.34
+---
 
 ### 8.0.33 (2026-10-18)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - docs(readme): add Hermes CLIProxyAPI Provider to "Who is with us?" (8071ef59)
 - Merge pull request #6684 from duu261/docs/readme-hermes-cliproxyapi-provider (cba68c25)
@@ -1102,30 +796,19 @@ No changelog available.
 - Merge pull request #6737 from router-for-me/plugins (2422c6b0)
 
 
-## What's Changed
+#### What's Changed
 * docs(readme): add Hermes CLIProxyAPI Provider to "Who is with us?" by @duu261 in https://github.com/router-for-me/CLIProxyAPI/pull/6684
 * fix(oauth): restore credential exclusion priority by @LTbinglingfeng in https://github.com/router-for-me/CLIProxyAPI/pull/6691
 * fix(cliproxy): apply excluded models to plugin models by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6737
 
-## New Contributors
+#### New Contributors
 * @duu261 made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6684
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.32...v8.0.33
+---
 
 ### 8.0.32 (2026-10-16)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(docs): add kedaya.ai as a new AI model API relay service provider in README files (e7003d2a)
 - feat(claude): clean and normalize Claude tool arguments against original schemas (202b8b8c)
@@ -1134,45 +817,21 @@ No changelog available.
 - feat(devin): add account-wide quota exhaustion tracking and credential cooldown refresh (b946d54e)
 - feat(claude): add automatic thinking block binding and beta policy for preserved-thinking models (911f49cb)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.31...v8.0.32
+---
 
 ### 8.0.31 (2026-10-16)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(claude): pin validated request body per-stream in OpenAI Responses translation (7a511e4d)
 - feat(management): add optimistic concurrency control with ETag and If-Match to v8 config endpoints (fa68946a)
 - feat(pluginhost): add content-addressed shadow copies for dynamic library loading (355fd10e)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.30...v8.0.31
+---
 
 ### 8.0.30 (2026-10-15)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(config): add operator overrides for Claude header defaults and client request ID modes (9db0729f)
 - feat(config): add operator overrides for Claude header defaults and client request ID modes (4e8a4125)
@@ -1189,29 +848,18 @@ No changelog available.
 - Merge pull request #6658 from xyonium/feat/vertex-api-key-full-baseurl (5be2cdab)
 
 
-## What's Changed
+#### What's Changed
 * fix(xai): drop web_search options the Responses API rejects by @trukhinyuri in https://github.com/router-for-me/CLIProxyAPI/pull/6642
 * feat(vertex): honor full /publishers/ prefix in API-key base-url by @xyonium in https://github.com/router-for-me/CLIProxyAPI/pull/6658
 
-## New Contributors
+#### New Contributors
 * @xyonium made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6658
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.29...v8.0.30
+---
 
 ### 8.0.29 (2026-10-14)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(registry): add gemini-3.8 model variants and update test cases (a19a8ecd)
 - feat(claude): ensure unique tool use IDs across turns in Gemini response translator (58257007)
@@ -1226,23 +874,11 @@ No changelog available.
 - fix(cliproxy): add model registration fencings and epoch-checked publications to prevent superseded updates (08e5762a)
 - feat(watcher): add file removal tracking and single-file auth snapshotting for robust deletion reconciliation (5fc580b1)
 
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.28...v8.0.29
+---
 
 ### 8.0.28 (2026-10-14)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - docs(readme): clarify Antigravity Claude 5.5 availability (a4a545c0)
 - docs(readme): add Haiku 5.5 and refresh Antigravity availability (02efbf13)
@@ -1274,65 +910,49 @@ No changelog available.
 - feat(claude): support model-specific default max tokens from registry in OpenAI chat completions (0d18d3b3)
 
 
-## What's Changed
+#### What's Changed
 * fix(claude): restore passthrough MCP tools wrapped with their full mcp__ name by @RoySRose in https://github.com/router-for-me/CLIProxyAPI/pull/6543
 * fix(claude): keep prompt cache when tool_search discovers the first deferred tool by @gracjankubicki in https://github.com/router-for-me/CLIProxyAPI/pull/6560
 * docs(readme): update Claude, Gemini and Meta model availability by @kdcokenny in https://github.com/router-for-me/CLIProxyAPI/pull/6327
 
-## New Contributors
+#### New Contributors
 * @RoySRose made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6543
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.27...v8.0.28
+---
 
 ### 8.0.27-build.2 (2026-10-13)
+
 Dockerfile + rootfs 变更
 （本次构建无代码变更）
+
+---
 
 ### 8.0.27-build.1 (2026-10-13)
+
 Dockerfile + rootfs 变更
 （本次构建无代码变更）
 
+---
+
 ### 8.0.27 (2026-10-13)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - feat(streaming): support send-keepalive-before-ft option (519d590e)
 - Merge pull request #6557 from devbymak/docs/add-sub2api (bf934162)
 
 
-## What's Changed
+#### What's Changed
 * docs: add sub2api to "Who is with us?" by @devbymak in https://github.com/router-for-me/CLIProxyAPI/pull/6557
 
-## New Contributors
+#### New Contributors
 * @devbymak made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6557
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.26...v8.0.27
+---
 
 ### 8.0.26 (2026-10-12)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - test(claude): pin executor clock in tool_search disabled golden (77cf88b0)
 - fix(executor): preserve websocket sessions across reload and auth removal (1e37b52b)
@@ -1341,32 +961,24 @@ Dockerfile + rootfs 变更
 - Merge pull request #6548 from gracjankubicki/fix/tool-search-golden-date (a27799ec)
 
 
-## What's Changed
+#### What's Changed
 * test(claude): pin executor clock in tool_search disabled golden by @gracjankubicki in https://github.com/router-for-me/CLIProxyAPI/pull/6548
 
-## New Contributors
+#### New Contributors
 * @gracjankubicki made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6548
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.25...v8.0.26
+---
 
 ### 8.0.24-build.1 (2026-10-12)
+
 Dockerfile + rootfs 变更
 （本次构建无代码变更）
 
+---
+
 ### 8.0.24 (2026-10-12)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(claude): ignore invalid and null cache control entries in executor (be8c35f2)
 - Merge pull request #6499 from seakee/docs/update-cpamp-description (763b41d4)
@@ -1400,34 +1012,26 @@ Dockerfile + rootfs 变更
 - feat(antigravity): persist model capability hints in auth metadata (091ff27f)
 
 
-## What's Changed
+#### What's Changed
 * docs: update CPA-Manager-Plus description in multilingual READMEs by @seakee in https://github.com/router-for-me/CLIProxyAPI/pull/6499
 * refactor(registry): use model getters for Devin and Meta by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6525
 * feat(claude): support Codex client tool_search on the Responses API by @gitrvc-hub in https://github.com/router-for-me/CLIProxyAPI/pull/6520
 
-## New Contributors
+#### New Contributors
 * @gitrvc-hub made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/6520
 
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.23...v8.0.24
+---
 
 ### 8.0.23-build.1 (2026-10-10)
+
 CI 变更
 - feat(addons): 为 6 个 addon 补充图标
 
+---
+
 ### 8.0.23 (2026-10-10)
-<!-- cliproxyapi-linux-release-assets:start -->
-## Linux release assets
 
-- `CLIProxyAPI_<version>_linux_<arch>.tar.gz` is the default Linux build. It supports dynamic library plugins and is built against a GLIBC 2.17 baseline.
-- `CLIProxyAPI_<version>_linux_<arch>_no-plugin.tar.gz` is the portable Linux build for musl-based or older systems such as OpenWrt. It does not support dynamic library plugins.
-
-## FreeBSD release assets
-
-- `CLIProxyAPI_<version>_freebsd_aarch64_no-plugin.tar.gz` is the FreeBSD arm64 build. It is built without CGO and does not support dynamic library plugins.
-
-<!-- cliproxyapi-linux-release-assets:end -->
-
-## Changelog
+#### Changelog
 
 - fix(codex): preserve resolved upstream model in direct openai image requests (51bde0ff)
 - fix(claude): defer stream message delta emission to trailing usage chunk (9a7db8e3)
@@ -1441,11 +1045,8 @@ CI 变更
 - fix(codex): handle late response interrupts on websocket sessions (d318bcc3)
 
 
-## What's Changed
+#### What's Changed
 * fix(openai-compat): measure streaming TTFT on effective token frames by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/6488
 * fix(auth): skip local filtering for home dispatch by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/6490
-
-
-**Full Changelog**: https://github.com/router-for-me/CLIProxyAPI/compare/v8.0.22...v8.0.23
 
 <!-- auto-generated by CI -->

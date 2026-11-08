@@ -1,17 +1,29 @@
 ### 2.5.9-build.4 (2026-11-08)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 2.5.9-build.3 (2026-11-05)
+
 底包更新至 9.5.2，无功能变更
 
+---
+
 ### 2.5.9-build.2 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 2.5.9-build.1 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 2.5.9 (2026-10-31)
 
@@ -26,10 +38,12 @@ CI 变更
 
 - GHSA-86ch-2247-gr56 fix: RSS cache poisoning (Thanks @the-arma-of-owl)
 - #8080 chore: drop outdated apicache, migrate to http-cache-semantics (related to the above issue)
-- #8050 chore: Update dependencies 
+- #8050 chore: Update dependencies
 
+---
 
 ### 2.5.8 (2026-10-26)
+
 ### 🐞 Bug Fixes
 - #8049 fix: Docker verification check sometimes not catching invalid responses (2.5.X backport) (Thanks @Abestanis)
 - #8038 fix: add `next-slim-rootless` docker tag
@@ -42,45 +56,64 @@ CI 变更
 ### Others
 - #8037 revert: hide/show password toggle in login page (#7672) (Because the height is inconsistent)
 
-
+---
 
 ### 2.5.7 (2026-10-23)
+
 ### 🐞 Bug Fixes
 - #7989 fix: retries ignored by TCP Port monitor with SSL/STARTTLS
 
 ### ⬆️ Security Fixes
 - [Docker] Images bumped to Node.js 22.23.4, now it rejects the leaked eMudhra 384 bit CA: `00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:04`. (Thanks @veteranbv)
 
+---
+
 ### 2.5.6-build.4 (2026-10-22)
+
 底包更新至 9.5.1，无功能变更
 
+---
+
 ### 2.5.6-build.3 (2026-10-10)
+
 CI 变更
 - fix(ci): 修复 CHANGELOG 采集到无关历史提交并清理既有噪音
 - feat(addons): 为 6 个 addon 补充图标
 
+---
+
 ### 2.5.6-build.2 (2026-10-10)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 2.5.6 (2026-10-09)
+
 ### 🐞 Bug Fixes
 - #7886 fix: use UptimeCalculator for avg-response badge endpoint 
 
 ### ⬆️ Security Fixes
-- #7858 chore: Update dependencies 
+- #7858 chore: Update dependencies
+
+---
 
 ### 2.5.5-build.1 (2026-09-27)
+
 底包更新至 9.5.0，无功能变更
 
+---
+
 ### 2.5.5 (2026-09-16)
+
 ### 🐞 Bug Fixes
-- #7848 fix: Memory leak from tcp monitor 
+- #7848 fix: Memory leak from tcp monitor
 
-
-
+---
 
 ### 2.5.4 (2026-09-11)
+
 ### 🆕 New Features
 - #7801 feat(notification): add Signalgrid as notification provider (Thanks @signalgridco)
 - #7740 feat: add Notify! notification provider (Thanks @simplytoast1)
@@ -105,19 +138,24 @@ CI 变更
 ### 🦎 Translation Contributions
 - #7812 #7757 chore: Translations Update from Weblate (Thanks @12LuA @aindriu80 @Aluisio @AnnAngela @AntonPalmqvist @cyril59310 @dodog @Gringit @helakostain @jamalkamaladdin @Kodashas @mcasellas @ueskici @xavivars)
 
-
-
+---
 
 ### 2.5.3 (2026-08-22)
-### 🐞 Bug Fixes
-- #7754 fix: release with wrong version number 
 
+### 🐞 Bug Fixes
+- #7754 fix: release with wrong version number
+
+---
 
 ### 2.5.0-build.1 (2026-08-18)
+
 底包更新至 9.4.0，无功能变更
 
+---
+
 ### 2.5.0 (2026-08-01)
-## 2.5.0
+
+#### 2.5.0
 
 ### Uncategorized
 
@@ -164,97 +202,168 @@ CI 变更
 - #7543 chore: add build "pr-test" workflow, add a message for testing to new pr. 
 - #7541 chore: Add an ability to enable node.js inspector 
 - #7535 chore: Remove meaningless entries from en.json 
-- #7496 chore: Login form minor changes 
+- #7496 chore: Login form minor changes
 
+---
 
 ### 2.4.0-build.25 (2026-07-25)
+
 CI 工作流变更
 无提交信息
+
+---
 
 ### 2.4.0-build.24 (2026-07-25)
+
 CI 工作流变更
 无提交信息
+
+---
 
 ### 2.4.0-build.23 (2026-07-25)
+
 CI 工作流变更
 无提交信息
 
+---
+
 ### 2.4.0-build.22 (2026-07-25)
+
 Dockerfile 变更
 无提交信息
 
+---
+
 ### 2.4.0-build.21 (2026-07-24)
+
 CI 工作流变更
 无提交信息
 
+---
+
 ### 2.4.0-build.20 (2026-07-24)
+
 CI 工作流变更
 fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
 
+---
+
 ### 2.4.0-build.19 (2026-07-24)
+
 CI 工作流变更
 fix(ci): show per-architecture compressed size using regctl in build summary
 
+---
+
 ### 2.4.0-build.18 (2026-07-24)
+
 CI 工作流变更
 fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
 
+---
+
 ### 2.4.0-build.17 (2026-07-24)
+
 Dockerfile 变更
 build(uptime-kuma): Dockerfile 变更 → 2.4.0-build.16
 
+---
+
 ### 2.4.0-build.16 (2026-07-24)
+
 Dockerfile 变更
 fix(uptime-kuma): npm rebuild native modules in runtime stage to prevent ABI mismatch
 
+---
+
 ### 2.4.0-build.15 (2026-07-24)
+
 Dockerfile 变更
 feat: ja3 curl-impersonate + pycurl-ja3 + sign labels
 
+---
+
 ### 2.4.0-build.14 (2026-07-24)
+
 CI 工作流变更
 fix(ci): 过滤 bot 提交避免 CI 自触发 config.yaml 循环重建
 
+---
+
 ### 2.4.0-build.13 (2026-07-24)
+
 CI 工作流变更
 fix(ci): file_sha 在 commit 后更新，避免 CI 自触发的 config.yaml 循环重建
 
+---
+
 ### 2.4.0-build.12 (2026-07-23)
+
 config.yaml/version.yaml 变更
 build(qdtoday): Dockerfile 变更 → 20250803-build.14
 
+---
+
 ### 2.4.0-build.11 (2026-07-23)
+
 CI 工作流变更
 fix(s6): stage2_hook 后台轮询等待 legacy-services 就绪
 
+---
+
 ### 2.4.0-build.10 (2026-07-23)
+
 Dockerfile 变更
 Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons into feat/upgrade-base-image
 
+---
+
 ### 2.4.0-build.9 (2026-07-23)
+
 config.yaml/version.yaml 变更
 build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.8
 
+---
+
 ### 2.4.0-build.8 (2026-07-23)
+
 CI 工作流变更
 fix(s6): cont-init 末尾 rm down 文件，修复 legacy-services 不自动启动
 
+---
+
 ### 2.4.0-build.7 (2026-07-23)
+
 CI 工作流变更\nMerge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+
+---
 
 ### 2026-07-23 - rootfs 脚本/配置变更: fix(s6): run 脚本添加 SIGTERM trap，防止停止时产生孤儿进程
 
+---
+
 ### 2026-07-23 - config.yaml/version.yaml 变更: build(lucky): CI 工作流变更 → 2.27.2-build.6
+
+---
 
 ### 2026-07-23 - CI 工作流变更: docs(skills): ha-addon-conventions 精简为英文核心模式 (220→110行)
 
+---
+
 ### 2026-07-23 - fix(ci): 三处增强保证 rootfs/workflow 变更触发构建
 
-### 2026-07-23 - 手动触发强制重建
+---
 
 ### 2026-07-23 - 手动触发强制重建
+
+---
+
+### 2026-07-23 - 手动触发强制重建
+
+---
 
 ### 2.4.0 (2026-07-22)
+
 ### 🆕 New Features
 - #7434 feat(notification): add EgoSMS SMS provider for Uganda (Thanks @kristianinc @cursoragent)
 - #7420 feat: Add incidents to RSS (Thanks @dj-tuxis)

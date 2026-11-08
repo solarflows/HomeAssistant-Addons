@@ -1,9 +1,15 @@
 ### 1.6.3-build.1 (2026-11-08)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.6.3 (2026-11-06)
-# 更新日志 (v1.6.3)
+
+#### 更新日志 (v1.6.3)
+
+---
 
 ### 2026.11.06 - 语言依赖未指定版本自动探测回填、备份与归档 Zip-Slip 目录遍历安全漏洞修复、动态机密 Upsert 与构建优化
 
@@ -89,11 +95,19 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.6.2-build.1 (2026-11-05)
+
 底包更新至 9.5.2，无功能变更
 
+---
+
 ### 1.6.2 (2026-11-04)
-# 更新日志 (v1.6.2)
+
+#### 更新日志 (v1.6.2)
+
+---
 
 ### 2026.11.04 - 单点登录第三方身份与本地账号绑定管理、标签管理跨分类重名误判修复与文档构建依赖加固
 
@@ -179,8 +193,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.6.1 (2026-11-04)
-# 更新日志 (v1.6.1)
+
+#### 更新日志 (v1.6.1)
+
+---
 
 ### 2026.11.04 - 旧备份两步验证死锁自愈修复、分页空数据白屏异常修复、依赖安全漏洞加固与运行时组件升级
 
@@ -266,8 +285,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.6.0 (2026-11-03)
-# 更新日志 (v1.6.0)
+
+#### 更新日志 (v1.6.0)
+
+---
 
 ### 2026.11.03 - 任务超时支持0不限制、限制并发任务运行中快捷停止、执行历史日志防重渲染、演示模式切面重构与容器控存调优
 
@@ -356,12 +380,20 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.9-build.1 (2026-11-03)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.5.9 (2026-10-30)
-# 更新日志 (v1.5.9)
+
+#### 更新日志 (v1.5.9)
+
+---
 
 ### 2026.10.30 - Docker 容器异步初始化内建助手库、Node.js 内建通知健壮性加固与返回值支持、变量机密编辑框最后编辑时间展示
 
@@ -447,8 +479,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.8 (2026-10-27)
-# 更新日志 (v1.5.8)
+
+#### 更新日志 (v1.5.8)
+
+---
 
 ### 2026.10.27 - 语言安装下载镜像加速与 Mise 运行时镜像源配置、已装应用更新检测与无损升级中枢、OpenAPI 文件管理能力开放与全站安全加固
 
@@ -537,11 +574,19 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.7-build.1 (2026-10-22)
+
 底包更新至 9.5.1，无功能变更
 
+---
+
 ### 1.5.7 (2026-10-21)
-# 更新日志 (v1.5.7)
+
+#### 更新日志 (v1.5.7)
+
+---
 
 ### 2026.10.21 - 任务日志自定义变量提取与通知模板注入、设置中心全局悬浮保存与改动追踪、脚本编辑终端重构及体验加固
 
@@ -637,8 +682,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.6 (2026-10-17)
-# 更新日志 (v1.5.6)
+
+#### 更新日志 (v1.5.6)
+
+---
 
 ### 2026.10.17 - 运行时PageCache控存策略重构、容器入口标准化与公共库抽取、OIDC领域层解耦及前端交互优化
 
@@ -731,8 +781,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.5 (2026-10-16)
-# 更新日志 (v1.5.5)
+
+#### 更新日志 (v1.5.5)
+
+---
 
 ### 2026.10.16 - 多身份源单点登录并行共存架构、SSO 独立路由与凭据解耦、移动端响应式与视觉体验打磨
 
@@ -826,7 +881,9 @@ chmod +x baihu-linux-amd64
 
 
 
-# 更新日志 (v1.5.5)
+#### 更新日志 (v1.5.5)
+
+---
 
 ### 2026.10.16 - 多身份源单点登录并行共存架构、SSO 独立路由与凭据解耦、移动端响应式与视觉体验打磨
 
@@ -917,9 +974,14 @@ chmod +x baihu-linux-amd64
 **访问面板：**
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
+
+---
 
 ### 1.5.4 (2026-10-15)
-# 更新日志 (v1.5.4)
+
+#### 更新日志 (v1.5.4)
+
+---
 
 ### 2026.10.15 - MCP 双传输共存架构 (Streamable HTTP + SSE)、通用 OAuth 2.0 单点登录与全站 Inter 字体排版
 
@@ -1007,8 +1069,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.3 (2026-10-15)
-# 更新日志 (v1.5.3)
+
+#### 更新日志 (v1.5.3)
+
+---
 
 ### 2026.10.15 - 原生 OIDC / Pocket ID 单点登录、任务批量设置多类型混选重构、表格分页数独立持久化与演示模式全面加固
 
@@ -1108,8 +1175,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.2 (2026-10-13)
-# 更新日志 (v1.5.2)
+
+#### 更新日志 (v1.5.2)
+
+---
 
 ### 2026.10.12 - 容器PageCache自适应回收与点杀、tini僵尸进程回收、树形目录批量加载与小屏代码编辑优化
 
@@ -1208,16 +1280,27 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.1-build.3 (2026-10-10)
+
 CI 变更
 - fix(ci): 修复 CHANGELOG 采集到无关历史提交并清理既有噪音
 
+---
+
 ### 1.5.1-build.2 (2026-10-10)
-CI 变更
-（本次构建无代码变更）
+
+CI 工作流维护
+- 自动化构建流水线与容器发布底座例行维护
+
+---
 
 ### 1.5.1 (2026-10-09)
-# 更新日志 (v1.5.1)
+
+#### 更新日志 (v1.5.1)
+
+---
 
 ### 2026.10.09 - Windows托盘无黑窗静默运行、容器内存口径对齐Docker Stats、OpenAPI MCP服务健壮性加固
 
@@ -1316,8 +1399,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.5.0 (2026-10-07)
-# 更新日志 (v1.5.0)
+
+#### 更新日志 (v1.5.0)
+
+---
 
 ### 2026.10.07 - 原生内置 Model Context Protocol (MCP) 服务、Server酱推送通道、向导式通知渠道网格、文件树懒加载与全局检索、Agent 实时同步与 Windows 二进制支持
 
@@ -1422,8 +1510,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.4.2 (2026-09-30)
-# 更新日志 (v1.4.2)
+
+#### 更新日志 (v1.4.2)
+
+---
 
 ### 2026.10.01 - 系统设置全模块视觉与交互重构、声明式应用卸载级联清理与标签自动回收、Windows托盘更新弹窗优化
 
@@ -1518,8 +1611,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.4.1 (2026-09-30)
-# 更新日志 (v1.4.1)
+
+#### 更新日志 (v1.4.1)
+
+---
 
 ### 2026.09.30 - 远程 Agent 工作目录解析修复、Windows Agent Shell 免依赖回退、Bark 动态参数覆盖与安全加固
 
@@ -1610,8 +1708,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.4.0 (2026-09-29)
-# 更新日志 (v1.4.0)
+
+#### 更新日志 (v1.4.0)
+
+---
 
 ### 2026.09.29 - RESTful 状态码与业务码双轨对齐、Bark 端到端加密推送、任务深层目录展开、安全防护与体验全面升级
 
@@ -1711,11 +1814,19 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.3.0-build.1 (2026-09-27)
+
 底包更新至 9.5.0，无功能变更
 
+---
+
 ### 1.3.0 (2026-09-23)
-# 更新日志 (v1.3.0)
+
+#### 更新日志 (v1.3.0)
+
+---
 
 ### 2026.09.23 - 机密端到端安全解密查看 (ECDH+AES-GCM)、日志表冗余任务名称、应用全量变量注入与文档体验升级
 
@@ -1808,11 +1919,19 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.2.0 (2026-09-22)
+
 No changelog available.
 
+---
+
 ### 1.1.30 (2026-09-11)
-# 更新日志 (v1.1.30)
+
+#### 更新日志 (v1.1.30)
+
+---
 
 ### 2026.09.11 - 标签关联资源穿透与跳转、输入法体验修复、调度引擎稳定性调优与安全升级
 
@@ -1892,8 +2011,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://baihu.local:38052` 或 `http://localhost:38052` (或单文件默认端口 `http://localhost:8052`)
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.29 (2026-09-08)
-# 更新日志 (v1.1.29)
+
+#### 更新日志 (v1.1.29)
+
+---
 
 ### 2026.09.08 - Windows 原生 ConPTY 伪终端重构、hosts 自动化域名映射、托盘 Modern UI 升级与仓库代理支持
 
@@ -1977,16 +2101,19 @@ chmod +x baihu-linux-amd64
 
 ---
 
-## What's Changed
+#### What's Changed
 * feat(repo): 仓库同步任务支持HTTP代理 by @hotlcc in https://github.com/engigu/baihu-panel/pull/164
 
-## New Contributors
+#### New Contributors
 * @hotlcc made their first contribution in https://github.com/engigu/baihu-panel/pull/164
 
-**Full Changelog**: https://github.com/engigu/baihu-panel/compare/v1.1.28...v1.1.29
+---
 
 ### 1.1.28 (2026-09-04)
-# 更新日志 (v1.1.28)
+
+#### 更新日志 (v1.1.28)
+
+---
 
 ### 2026.09.04 - IDE 底部 Terminal 控制台、运行环境持久化、任务配置批量更新、ConPTY 重叠修复与安全升级
 
@@ -2061,8 +2188,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.27 (2026-08-21)
-# 更新日志 (v1.1.27)
+
+#### 更新日志 (v1.1.27)
+
+---
 
 ### 2026.08.21 - 通知过滤与小屏适配、文件查看下载优化与 CLI 命令行文档增强
 
@@ -2137,11 +2269,19 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.26-build.1 (2026-08-18)
+
 底包更新至 9.4.0，无功能变更
 
+---
+
 ### 1.1.26 (2026-08-17)
-# 更新日志 (v1.1.26)
+
+#### 更新日志 (v1.1.26)
+
+---
 
 ### 2026.08.17 - 通知内容统一与 Options SDK 支持、SSE 实时流状态帧协议、日志全屏删除修复与 Go 1.26 升级
 
@@ -2215,10 +2355,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
-
+---
 
 ### 1.1.25 (2026-08-10)
-# 更新日志 (v1.1.25)
+
+#### 更新日志 (v1.1.25)
+
+---
 
 ### 2026.08.10 - 企业微信应用通知、备份恢复自动调度刷新与安全漏洞修复
 
@@ -2290,8 +2433,13 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.24 (2026-07-31)
-# 更新日志 (v1.1.24)
+
+#### 更新日志 (v1.1.24)
+
+---
 
 ### 2026.07.31 - 标签管理、编辑器多语言高亮、登录两步验证与响应式布局优化
 
@@ -2367,7 +2515,10 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.23-build.10 (2026-07-28)
+
 Dockerfile + rootfs 变更
 - fix(baihu-panel): healthcheck 使用原生 /api/v1/ping 端点
 - fix(baihu-panel): 修复 Ingress 子路径并持久化到 /config/baihu-panel/
@@ -2375,33 +2526,56 @@ Dockerfile + rootfs 变更
 - docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
 - fix: standalone 创建 /data/atv/config/ + baihu /app/data 持久化 symlink
 
+---
+
 ### 1.1.23-build.9 (2026-07-28)
+
 Dockerfile + rootfs 变更
 - fix(baihu-panel): healthcheck 使用原生 /api/v1/ping 端点
 
+---
+
 ### 1.1.23-build.8 (2026-07-28)
+
 Dockerfile + rootfs 变更
 - fix(baihu-panel): 修复 Ingress 子路径并持久化到 /config/baihu-panel/
 
+---
+
 ### 1.1.23-build.7 (2026-07-27)
+
 Dockerfile + rootfs 变更
 - fix(baihu-panel): 修复 Ingress 静态资源加载并清理内部配置暴露
 - docs: 为所有 9 个加载项添加/更新 analysis.yaml 文档
 
+---
+
 ### 1.1.23-build.3 (2026-07-25)
+
 CI 工作流变更
 无提交信息
+
+---
 
 ### 1.1.23-build.2 (2026-07-25)
+
 CI 工作流变更
 无提交信息
+
+---
 
 ### 1.1.23-build.1 (2026-07-25)
+
 CI 工作流变更
 无提交信息
 
+---
+
 ### 1.1.23 (2026-07-25)
-# 更新日志 (v1.1.23)
+
+#### 更新日志 (v1.1.23)
+
+---
 
 ### 2026.07.23 - Windows GUI 安装包与系统托盘守护程序
 
@@ -2489,98 +2663,174 @@ chmod +x baihu-linux-amd64
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
 
+---
+
 ### 1.1.22-build.26 (2026-07-25)
+
 Dockerfile 变更
 无提交信息
 
+---
+
 ### 1.1.22-build.25 (2026-07-24)
+
 CI 工作流变更
 无提交信息
 
+---
+
 ### 1.1.22-build.24 (2026-07-24)
+
 rootfs 脚本/配置变更
 build(baihu-panel): rootfs 脚本/配置变更 → 1.1.22-build.23
 
+---
+
 ### 1.1.22-build.23 (2026-07-24)
+
 rootfs 脚本/配置变更
 fix(qdtoday): revert to --prefix with safe shell-glob bridge for dist-packages
 
+---
+
 ### 1.1.22-build.22 (2026-07-24)
+
 CI 工作流变更
 fix(baihu): add BH_SERVER_URL_PREFIX for Ingress support; fix(ci): config/version.yaml changes no longer trigger rebuild
 
+---
+
 ### 1.1.22-build.21 (2026-07-24)
+
 Dockerfile 变更
 fix(qdtoday): remove obsolete site-packages→dist-packages bridge — no longer needed with same-base builder
 
+---
+
 ### 1.1.22-build.20 (2026-07-24)
+
 CI 工作流变更
 fix(ci): show per-architecture compressed size using regctl in build summary
 
+---
+
 ### 1.1.22-build.19 (2026-07-24)
+
 CI 工作流变更
 fix(ci): list built architectures in summary using jq from raw manifest
 
+---
+
 ### 1.1.22-build.18 (2026-07-24)
+
 CI 工作流变更
 fix(ci): summary uses always() + remove imagetools; all healthchecks add -o /dev/null
 
+---
+
 ### 1.1.22-build.17 (2026-07-24)
+
 Dockerfile 变更
 feat: ja3 curl-impersonate + pycurl-ja3 + sign labels
 
+---
+
 ### 1.1.22-build.16 (2026-07-24)
+
 CI 工作流变更
 fix(ci): 过滤 bot 提交避免 CI 自触发 config.yaml 循环重建
 
+---
+
 ### 1.1.22-build.15 (2026-07-24)
+
 CI 工作流变更
 fix(ci): file_sha 在 commit 后更新，避免 CI 自触发的 config.yaml 循环重建
 
+---
+
 ### 1.1.22-build.14 (2026-07-23)
+
 config.yaml/version.yaml 变更
 build(qdtoday): Dockerfile 变更 → 20250803-build.14
 
+---
+
 ### 1.1.22-build.13 (2026-07-23)
+
 CI 工作流变更
 fix(s6): stage2_hook 后台轮询等待 legacy-services 就绪
 
+---
+
 ### 1.1.22-build.12 (2026-07-23)
+
 Dockerfile 变更
 feat: S6_STAGE2_HOOK for all S6 addons
 
+---
+
 ### 1.1.22-build.11 (2026-07-23)
+
 config.yaml/version.yaml 变更
 build(filebrowser-quantum): CI 工作流变更 → 1.5.0-stable-build.8
 
+---
+
 ### 1.1.22-build.10 (2026-07-23)
+
 CI 工作流变更
 fix(s6): cont-init 末尾 rm down 文件，修复 legacy-services 不自动启动
 
+---
+
 ### 1.1.22-build.9 (2026-07-23)
+
 CI 工作流变更\nMerge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
+
+---
 
 ### 2026-07-23 - rootfs 脚本/配置变更: fix(s6): run 脚本添加 SIGTERM trap，防止停止时产生孤儿进程
 
+---
+
 ### 2026-07-23 - config.yaml/version.yaml 变更: build(lucky): CI 工作流变更 → 2.27.2-build.6
+
+---
 
 ### 2026-07-23 - CI 工作流变更: docs(skills): ha-addon-conventions 精简为英文核心模式 (220→110行)
 
+---
+
 ### 2026-07-23 - fix(ci): 三处增强保证 rootfs/workflow 变更触发构建
 
+---
+
 ### 2026-07-23 - 手动触发强制重建
+
+---
 
 ### 2026-07-23 - Merge branch 'main' of https://github.com/solarflows/HomeAssistant-Addons
 
+---
+
 ### 2026-07-23 - 手动触发强制重建
 
-### 2026-07-22 - 底包更新至 v9.3.0，无功能变更
+---
 
 ### 2026-07-22 - 底包更新至 v9.3.0，无功能变更
 
+---
+
+### 2026-07-22 - 底包更新至 v9.3.0，无功能变更
+
+---
 
 ### 1.1.22 (2026-07-21)
-# 更新日志 (v1.1.22)
+
+#### 更新日志 (v1.1.22)
+
+---
 
 ### 2026.07.20 - Windows 平台深度适配、网页终端 Ctrl+C 中止与 Linux PTY 回退机制修复
 
@@ -2658,6 +2908,3 @@ chmod +x baihu-linux-amd64
 **访问面板：**
 * 启动后访问：`http://localhost:8052`
 * **默认账号**：用户名 `admin`，密码见面板首次启动时的控制台日志。
-
-
-
