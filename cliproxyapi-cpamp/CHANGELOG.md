@@ -1,3 +1,12 @@
+### 8.0.61-1.14.10-build.2 (2026-11-09)
+
+Dockerfile 维护
+- fix(build): 为 cliproxyapi 及 cpamp 的 Dockerfile 资产下载注入防 504 抖动重试与多源 fallback
+- feat(migration,healthcheck): 引入一次性迁移延迟清理状态机与双轨精准探活机制
+- refactor(storage): 适配 HA 新版 addon_config 存储隔离架构并重构 map 权限矩阵
+
+---
+
 ### 8.0.61-1.14.10-build.1 (2026-11-09)
 
 CI 工作流维护
