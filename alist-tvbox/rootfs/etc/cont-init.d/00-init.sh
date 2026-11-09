@@ -3,8 +3,6 @@
 # ==============================================================================
 # alist-tvbox 初始化脚本
 # 等价于上游 entrypoint.sh 的初始化部分（去掉 JVM 启动，由 S6 longrun 接管）
-# 上游入口：docker/scripts/entrypoint.sh -> init-xiaoya.sh -> 启动服务
-# 我们拆分：00-init.sh -> init-xiaoya.sh（初始化）; alist-tvbox/run -> 启动服务
 # ==============================================================================
 
 export INSTALL=xiaoya
@@ -18,24 +16,54 @@ else
 fi
 bashio::log.info "alist-tvbox JVM memory: ${MEM_OPT}"
 
-# Spring Boot external config 目录：上游 entrypoint.sh 在 exec java 前创建
-# HAOS 中 /data 是持久卷，但空目录不会自动创建，需要显式 mkdir
-# 如果在 00-init.sh 中提前创建，即使 alist-tvbox/run 并行执行也能确保目录存在
-mkdir -p /data/atv/config/
+# 确保持久化与配置目录存在
+mkdir -p /config /config/alist /data/atv/config/ /data/log /data/index
 
-# ---- HAOS 特有：上游 Docker 不需要，但我们的容器每次重启会丢失这些 ----
-# AList 数据持久化：上游 Docker /data 是 volume，/opt/alist/data 自然持久
-# HAOS 中 /data 是 supervisor 挂载的持久卷，但 /opt/alist/data 是容器层，重启会丢失
-mkdir -p /data/alist
+# 标记 H2 数据库版本，避免反复触发旧版本升级逻辑
+[ -f /data/h2.version.txt ] || echo "2.3.232" > /data/h2.version.txt
+
+# ---- 兼容存量升级迁移 ----
+# 1. 迁移历史 atv.mv.db* 数据库至 /config 目录（实现零软链接纯原生持久化）
+if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
+    bashio::log.info "迁移历史 atv.mv.db 数据库至 /config 目录..."
+    cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
+    rm -f /data/atv.mv.db*
+fi
+# 2. 迁移历史 store 目录至 /config 目录
+if [ -d /data/store ] && [ ! -d /config/store ]; then
+    bashio::log.info "迁移历史 store 目录至 /config 目录..."
+    cp -an /data/store /config/ 2>/dev/null || true
+fi
+# 3. 迁移历史 /data/alist 目录至 /config/alist 目录
+if [ -d /data/alist ] && [ ! -f /config/alist/data.db ] && [ ! -f /config/alist/config.json ]; then
+    bashio::log.info "迁移历史 /data/alist 数据至 /config/alist 目录..."
+    cp -an /data/alist/* /config/alist/ 2>/dev/null || true
+fi
+
+# 兼容用户放置在 /config 中的 database.zip 恢复包
+if [ -f /config/database.zip ] && [ ! -e /data/database.zip ]; then
+    cp -an /config/database.zip /data/database.zip
+fi
+
+# ---- AList 与上游脚本路径桥接 ----
+# AList 数据持久化定向至 /config/alist
 rm -rf /opt/alist/data
-ln -sf /data/alist /opt/alist/data
+ln -sf /config/alist /opt/alist/data
 
 # inDocker 检测：上游 entrypoint.sh 本身就存在于 /，我们用 symlink 兼容
 [ -f /entrypoint.sh ] || ln -sf /docker/scripts/entrypoint.sh /entrypoint.sh
 
-# 确保小雅索引目录与软链接存在
-mkdir -p /data/index
+# 确保小雅大体积索引目录存在（保留在私有 /data/index，防止臃肿污染 HA 备份）
 [ -e /index ] || ln -sf /data/index /index
+
+# 兼容上游 shell 脚本对 /data 下配置文件名硬编码的检索（如 proxy.txt, my.json 等）
+for f in proxy.txt github_proxy.txt env my.json iptv.m3u; do
+    if [ -f "/config/$f" ] && [ ! -e "/data/$f" ]; then
+        ln -sf "/config/$f" "/data/$f"
+    elif [ -f "/data/$f" ] && [ ! -e "/config/$f" ]; then
+        cp -an "/data/$f" "/config/$f" 2>/dev/null || true
+    fi
+done
 
 # ---- 以下与上游 entrypoint.sh 保持一致 ----
 . /docker/scripts/lib/common.sh

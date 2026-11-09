@@ -3,17 +3,31 @@
 # ==============================================================================
 # alist-tvbox-standalone 初始化脚本
 # ==============================================================================
-# /config、/data 由 HAOS Supervisor 自动挂载（/data 持久但不在备份中）
+# /data 由 HAOS Supervisor 自动挂载
 
 bashio::log.info "Initializing alist-tvbox-standalone..."
 
-# 创建持久化目录（独立于 xiaoya 版的 /config/atv/）
-mkdir -p /config/atv-standalone/config
-mkdir -p /data/atv/config
-mkdir -p /data/log
+# 确保持久化目录存在（/config 映射自 addon_config:rw）
+mkdir -p /config /data/log
 
-# Spring Boot atv 数据直接写入 /data/store
-mkdir -p /data/store
+# 标记 H2 数据库版本，避免新装或已升级系统反复触发旧版本升级逻辑
+[ -f /data/h2.version.txt ] || echo "2.3.232" > /data/h2.version.txt
+
+# 兼容存量升级：若 /data/atv.mv.db 存在且 /config/atv.mv.db 不存在，静默迁移旧数据库
+if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
+    bashio::log.info "迁移历史 atv.mv.db 数据库至 /config 目录..."
+    cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
+    rm -f /data/atv.mv.db*
+fi
+if [ -d /data/store ] && [ ! -d /config/store ]; then
+    bashio::log.info "迁移历史 store 目录至 /config 目录..."
+    cp -an /data/store /config/ 2>/dev/null || true
+fi
+
+# 兼容用户放置在 /config 中的 database.zip 恢复包
+if [ -f /config/database.zip ] && [ ! -e /data/database.zip ]; then
+    cp -an /config/database.zip /data/database.zip
+fi
 
 # ---- 读取 HA addon 配置选项并导出为环境变量 ----
 LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')

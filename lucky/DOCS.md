@@ -38,7 +38,8 @@
 
 ## 数据持久化
 
-- `/config/luckyconf/lucky.conf` — 所有配置（端口转发、DDNS 等均在 Web 面板配置后写入）
+- `/config/lucky.conf` — 所有配置（由 `addon_config:rw` 映射，端口转发、DDNS 等均在 Web 面板配置后写入）
+- `/ssl` — 宿主机与 HA 现有 SSL/TLS 证书目录（由 `ssl:ro` 只读映射，用于 HTTPS 反向代理）
 
 ## 上游文档
 

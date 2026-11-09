@@ -4,16 +4,16 @@
 # CLIProxyAPI 初始化脚本
 # ==============================================================================
 # 数据布局:
-#   /config/cliproxyapi/config.yaml        主配置（首次启动生成，之后由面板接管）
-#   /config/cliproxyapi/auths/             OAuth 凭据（随 HA 备份一起保存）
-#   /config/cliproxyapi/management_key.txt 管理密钥明文副本（面板登录用）
+#   /config/config.yaml                    主配置（首次启动生成，之后由面板接管）
+#   /config/auths/                         OAuth 凭据（随 HA 备份一起保存）
+#   /config/management_key.txt             管理密钥明文副本（面板登录用）
 #   /data/cliproxyapi/{logs,plugins,static} 日志/插件/面板缓存（不参与 HA 备份）
 # ==============================================================================
 set -e
 
 bashio::log.info "Initializing CLIProxyAPI..."
 
-CONFIG_DIR="/config/cliproxyapi"
+CONFIG_DIR="/config"
 DATA_DIR="/data/cliproxyapi"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 AUTH_DIR="${CONFIG_DIR}/auths"
@@ -107,8 +107,19 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
+# 兼容历史子目录：若存在 /config/cliproxyapi 且根目录无 config.yaml，自动平铺至 /config 根目录
+if [ -d "/config/cliproxyapi" ] && [ ! -f "${CONFIG_FILE}" ]; then
+    bashio::log.info "检测到历史 cliproxyapi 子目录，自动平铺至 /config 根目录..."
+    cp -an /config/cliproxyapi/. /config/
+    rm -rf /config/cliproxyapi
+fi
+
 mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" \
          "${DATA_DIR}/logs" "${DATA_DIR}/plugins" "${DATA_DIR}/static" "${DATA_DIR}/discovery"
+
+# 兼容存量配置中可能硬编码的旧 auth-dir 路径
+mkdir -p /config/cliproxyapi
+ln -sfn "${AUTH_DIR}" /config/cliproxyapi/auths
 
 ################
 # CONFIG FILE  #
@@ -162,7 +173,7 @@ access:
 
 # OAuth/文件凭据目录（持久化，随 HA 备份）
 oauth:
-  auth-dir: "/config/cliproxyapi/auths"
+  auth-dir: "${AUTH_DIR}"
 YAML
         if [ -n "${PROXY_URL}" ]; then
             PROXY_URL_ESC=${PROXY_URL//\\/\\\\}

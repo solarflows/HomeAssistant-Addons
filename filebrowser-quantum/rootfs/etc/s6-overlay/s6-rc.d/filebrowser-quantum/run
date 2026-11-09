@@ -6,7 +6,7 @@
 bashio::log.info "Starting FileBrowser Quantum..."
 
 # 设置环境变量指向配置文件
-export FILEBROWSER_CONFIG="/config/filebrowser-quantum/config.yaml"
+export FILEBROWSER_CONFIG="/config/config.yaml"
 
 # 直接启动，不使用任何参数
 exec /usr/local/bin/filebrowser

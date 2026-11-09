@@ -30,8 +30,8 @@
 ## 快速开始
 
 1. 启动加载项。
-2. **轻量面板**（管理账号/OAuth/配置）：`http://<你的HA>:8317/management.html`，用**管理密钥**登录（见日志或 `/config/cliproxyapi-cpamp/management_key.txt`）。
-3. **完整面板**（监控/用量/成本）：`http://<你的HA>:18317/management.html`，用 **CPAMP 管理员密钥**登录（见日志或 `/config/cliproxyapi-cpamp/cpamp_admin_key.txt`）。
+2. **轻量面板**（管理账号/OAuth/配置）：`http://<你的HA>:8317/management.html`，用**管理密钥**登录（见日志或 `/config/management_key.txt`）。
+3. **完整面板**（监控/用量/成本）：`http://<你的HA>:18317/management.html`，用 **CPAMP 管理员密钥**登录（见日志或 `/config/cpamp_admin_key.txt`）。
 4. CPA 连接（URL 与管理密钥）已预配置好，打开完整面板即可看到数据；首次收到请求后监控页开始有记录。
 5. 在面板中替换示例 API Key、添加账号后即可对外提供服务。
 
@@ -58,10 +58,10 @@
 
 | 容器路径 | 内容 | 随 HA 备份 |
 |---|---|---|
-| `/config/cliproxyapi-cpamp/config.yaml` | 主配置 | ✅ |
-| `/config/cliproxyapi-cpamp/auths/` | OAuth 凭据 | ✅ |
-| `/config/cliproxyapi-cpamp/cpamp/` | usage.sqlite + data.key | ✅ |
-| `/config/cliproxyapi-cpamp/{management,cpamp_admin}_key.txt` | 密钥副本 | ✅ |
+| `/config/config.yaml` | 主配置 | ✅ |
+| `/config/auths/` | OAuth 凭据 | ✅ |
+| `/config/cpamp/` | usage.sqlite + data.key | ✅ |
+| `/config/{management,cpamp_admin}_key.txt` | 密钥副本 | ✅ |
 | `/data/cliproxyapi-cpamp/` | 日志 / 插件 / 面板缓存 | ❌ |
 
 > `data.key` 用于解密数据库中的 CPAMP 配置；请确保它与 `usage.sqlite` 一同备份（两者都在 `/config` 内，HA 快照已覆盖）。

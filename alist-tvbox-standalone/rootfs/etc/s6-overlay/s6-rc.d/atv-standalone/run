@@ -37,8 +37,11 @@ fi
 cd /opt/atv
 exec java ${MEM_OPT} \
     -Duser.timezone=Asia/Shanghai \
-    -Dspring.config.additional-location=file:/data/atv/config/ \
+    -Datv.data.dir=/config \
+    -Dspring.config.additional-location=file:/config/,file:/data/atv/config/ \
     -Dloader.main=cn.har01d.alist_tvbox.AListApplication \
     -cp application/BOOT-INF/classes:dependencies/BOOT-INF/lib/*:snapshot-dependencies/BOOT-INF/lib/*:spring-boot-loader \
     org.springframework.boot.loader.launch.PropertiesLauncher \
-    81 --spring.profiles.active=production,docker ${DEBUG_FLAG}
+    81 --spring.profiles.active=production,docker \
+    --spring.datasource.jdbc-url=jdbc:h2:file:/config/atv \
+    --spring.sql.init.data-locations=optional:file:/data/atv/data.sql,optional:file:/config/atv/data.sql ${DEBUG_FLAG}

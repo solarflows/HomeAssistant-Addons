@@ -40,12 +40,17 @@ http://<HA-IP>:4567/sub/0
 
 ## 数据持久化
 
+采用 Home Assistant 新版 `addon_config` 隔离存储规范：
+
 | 路径 | 说明 |
 |------|------|
-| `/config` | 随 HA 备份 |
-| `/data` | 持久但不备份（数据库、索引、配置） |
+| `/config/atv.mv.db` | ATV 核心数据库（随 HA 备份持久化，直接读写零软链接） |
+| `/config/alist` | AList 配置文件与 SQLite 数据库 |
+| `/config/*.txt` | 用户自定义 Token、代理及配置（`mytoken.txt`, `tv.txt`, `proxy.txt` 等） |
+| `/data/index` | 小雅大体积索引与下载临时目录（私有存储，不污染 HA 备份） |
+| `/data/log` | 运行日志（私有存储） |
 
-清空 `/data` 后重启，addon 会自动从零初始化（资源文件在镜像层，不受影响）。
+清空 `/data` 后重启，addon 会自动从零初始化；用户在 `/config` 下的数据始终安全保留。
 
 ## 上游参考
 

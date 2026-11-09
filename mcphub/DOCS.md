@@ -19,7 +19,7 @@ MCPHub 是 AI 客户端与 MCP 服务器之间的统一控制面：连接本地�
 2. 使用 `admin` 登录：
    - 设置了 `ADMIN_PASSWORD` 选项 → 用该密码；
    - 未设置 → 随机密码**仅在首次启动日志打印一次**，请及时在面板中修改。
-3. 添加 MCP 服务器（面板 → Servers），或编辑 `/config/mcphub/mcp_settings.json` 后重启加载项。
+3. 添加 MCP 服务器（面板 → Servers），或编辑 `/config/mcp_settings.json` 后重启加载项。
 
 ## 3. 客户端接入端点
 
@@ -43,7 +43,7 @@ MCPHub 是 AI 客户端与 MCP 服务器之间的统一控制面：连接本地�
 
 | 容器路径 | 内容 | 是否随 HA 备份 |
 |---|---|---|
-| `/config/mcphub/` | 设置、用户、凭据绑定、`mcp_settings.json`、`uploads/`（MCPB 上传包） | ✅ |
+| `/config/` | 设置、用户、凭据绑定、`mcp_settings.json`、`uploads/`（MCPB 上传包） | ✅ |
 | `/data/mcphub/npm` | npm 包缓存（npx 拉取的 server 包） | ❌ |
 | `/data/mcphub/cache` | uv/uvx 等其他缓存 | ❌ |
 | `/data/mcphub/cli-*` | mcphub CLI 的配置与凭据（仅交互式 CLI 使用） | ❌ |

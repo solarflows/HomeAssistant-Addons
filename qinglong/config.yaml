@@ -15,7 +15,7 @@ ports:
 ports_description:
   5700/tcp: "Web UI port"
 map:
-  - config:rw
+  - addon_config:rw
   - share:rw
 startup: application
 boot: manual

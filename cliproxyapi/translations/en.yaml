@@ -5,7 +5,7 @@ configuration:
     description: >-
       Key for the management API and panel login. Leave empty to auto-generate
       one on first start (printed in the log, stored at
-      /config/cliproxyapi/management_key.txt, and backfilled into this option).
+      /config/management_key.txt, and backfilled into this option).
       Change this option and restart to apply; leave empty to manage the key
       in the panel.
   PROXY_URL:

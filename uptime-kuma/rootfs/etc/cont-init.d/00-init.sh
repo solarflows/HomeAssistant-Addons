@@ -11,13 +11,20 @@ bashio::log.info "Initializing Uptime Kuma..."
 ################
 # DATA DIR     #
 ################
-DATA_DIR="/config/uptime-kuma/data"
+# 兼容历史子目录平铺至 /config 根目录
+if [ -d /config/uptime-kuma ] && [ ! -d /config/data ]; then
+    bashio::log.info "检测到历史 uptime-kuma 子目录，自动平铺至 /config 根目录..."
+    cp -an /config/uptime-kuma/. /config/
+    rm -rf /config/uptime-kuma
+fi
+
+DATA_DIR="/config/data"
 
 if [ ! -d "$DATA_DIR" ]; then
     if [ -d /opt/uptime-kuma/data ] && [ "$(ls -A /opt/uptime-kuma/data 2>/dev/null)" ]; then
         bashio::log.info "Migrating existing data to ${DATA_DIR}"
-        mkdir -p /config/uptime-kuma
-        cp -rn /opt/uptime-kuma/data/* /config/uptime-kuma/
+        mkdir -p /config/data
+        cp -rn /opt/uptime-kuma/data/* /config/data/
     fi
 fi
 mkdir -p "$DATA_DIR"
@@ -32,7 +39,7 @@ fi
 # MARIADB      #
 ################
 # 确保 MariaDB 数据目录可写 (UPTIME_KUMA_ENABLE_EMBEDDED_MARIADB=1 时可选使用)
-MYSQL_DIR="/config/uptime-kuma/mysql"
+MYSQL_DIR="/config/mysql"
 if [ ! -d "$MYSQL_DIR" ]; then
     mkdir -p "$MYSQL_DIR"
     bashio::log.info "Created MariaDB data dir: ${MYSQL_DIR}"

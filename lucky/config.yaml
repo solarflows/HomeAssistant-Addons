@@ -20,4 +20,5 @@ ingress_port: 16601
 icon: "mdi:server-network"
 host_network: true
 map:
-  - config:rw
+  - addon_config:rw
+  - ssl:ro

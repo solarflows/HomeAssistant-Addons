@@ -29,7 +29,7 @@
 1. 启动加载项，打开面板 `http://<你的HA>:7863/panel/`。
 2. 用**网关密钥**登录（浏览器本地记住）：
    - 设置了 `API_KEY` 选项 → 使用该值；
-   - 未设置 → 随机生成，保存于 `/config/workbuddy2api-panel/api_key.txt` 并打印在日志中。
+   - 未设置 → 随机生成，保存于 `/config/api_key.txt` 并打印在日志中。
 3. 面板右上「添加账号」→ 浏览器完成 OAuth 登录 → 凭证自动落盘并热加载进池。
 4. 客户端把 API 地址指向 `http://<你的HA>:7863/v1`，密钥填网关密钥。
 
@@ -44,9 +44,9 @@
 
 | 容器路径 | 内容 | 随 HA 备份 |
 |---|---|---|
-| `/config/workbuddy2api-panel/config.json` | 主配置 | ✅ |
-| `/config/workbuddy2api-panel/auths/` | 账号凭据（明文 token，注意保护） | ✅ |
-| `/config/workbuddy2api-panel/api_key.txt` | 网关密钥副本 | ✅ |
+| `/config/config.json` | 主配置 | ✅ |
+| `/config/auths/` | 账号凭据（明文 token，注意保护） | ✅ |
+| `/config/api_key.txt` | 网关密钥副本 | ✅ |
 | `/data/workbuddy2api-panel/data/` | 池状态 / 请求归档（可再生） | ❌ |
 
 ## 说明

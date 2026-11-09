@@ -26,6 +26,6 @@ schema:
   LOW_MEMORY: bool?
   ATV_DEBUG: bool?
 map:
-  - config:rw
+  - addon_config:rw
 startup: application
 boot: manual

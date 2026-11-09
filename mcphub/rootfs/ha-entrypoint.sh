@@ -2,7 +2,7 @@
 #=============================================================================
 # MCPHub HA 适配入口
 #=============================================================================
-#   1) 数据目录接管: /app/data → /config/mcphub（设置/用户/凭据绑定，随 HA 备份）
+#   1) 数据目录接管: /app/data → /config（设置/用户/凭据绑定，随 HA 备份）
 #   2) 软件包缓存接管: /root/.npm、/root/.cache → /data/mcphub
 #      （npx/uvx 拉取的 MCP server 包在 addon 更新后不丢失，冷启动更快）
 #   3) CLI profile 接管: /root/.config/mcphub、/root/.local/share/mcphub → /data/mcphub
@@ -12,18 +12,25 @@
 set -e
 
 echo "[mcphub] Preparing persistent directories..."
-mkdir -p /config/mcphub /data/mcphub/npm /data/mcphub/cache
+# 兼容历史子目录平铺至 /config 根目录
+if [ -d /config/mcphub ] && [ ! -f /config/config.json ]; then
+    echo "[mcphub] Migrating legacy /config/mcphub to /config root..."
+    cp -an /config/mcphub/. /config/
+    rm -rf /config/mcphub
+fi
 
-# ---- /app/data → /config/mcphub ----
+mkdir -p /config /data/mcphub/npm /data/mcphub/cache
+
+# ---- /app/data → /config ----
 if [ ! -L /app/data ]; then
     if [ -d /app/data ]; then
         # 迁移同容器内可能产生的数据（正常路径下为空目录）
-        if ! cp -a /app/data/. /config/mcphub/; then
-            echo "[mcphub] WARNING: failed to migrate /app/data into /config/mcphub (continuing)"
+        if ! cp -a /app/data/. /config/; then
+            echo "[mcphub] WARNING: failed to migrate /app/data into /config (continuing)"
         fi
         rm -rf /app/data
     fi
-    ln -s /config/mcphub /app/data
+    ln -s /config /app/data
 fi
 
 # ---- npm / uv 缓存 → /data ----

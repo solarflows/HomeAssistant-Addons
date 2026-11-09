@@ -30,10 +30,10 @@
 1. 启动加载项（首次启动约需数十秒完成初始化）。
 2. 打开**完整面板** `:18317/management.html`，使用 CPAMP 管理员密钥登录：
    - 未配置 `CPAMP_ADMIN_KEY` 选项时，首次启动自动生成，在加载项日志中打印一次，并自动**回填到加载项选项**；
-   - 同时保存于 `/config/cliproxyapi-cpamp/cpamp_admin_key.txt`。
+   - 同时保存于 `/config/cpamp_admin_key.txt`。
    - **CPA 连接（URL 与 CPA 管理密钥）已预配置**，无需在首次设置中手工填写。
 3. 打开**轻量面板** `:8317/management.html`，使用**管理密钥**登录：
-   - 未配置 `MANAGEMENT_KEY` 选项时，首启自动生成（日志打印一次、回填到选项），或见 `/config/cliproxyapi-cpamp/management_key.txt`。
+   - 未配置 `MANAGEMENT_KEY` 选项时，首启自动生成（日志打印一次、回填到选项），或见 `/config/management_key.txt`。
 4. 在任一面板的 Accounts / OAuth 页面添加账号；在 Configuration / Access 中把占位 API Key（`your-api-key-1`）替换为真实客户端密钥。
 5. 产生一次模型请求后，完整面板的监控/用量页即开始有数据。
 
@@ -74,7 +74,7 @@
 ## 6. 监控与用量（完整版独有）
 
 - 依赖 CPA 的用量发布：配置中已开启 `observability.usage.usage-statistics-enabled: true`（勿在面板中关闭，否则监控无数据）。
-- 请求历史 / 用量 / 成本数据保存在 `/config/cliproxyapi-cpamp/cpamp/usage.sqlite`。
+- 请求历史 / 用量 / 成本数据保存在 `/config/cpamp/usage.sqlite`。
 - **单消费者原则**：CPAMP 已占用 CPA 用量队列。请勿再给同一 CPA 接第二个采集器（CPA Usage Keeper / Oh-My-CPA / 另一套 CPAMP），否则采集会中断或不完整。
 - 若升级后完整面板提示 `databaseMaintenance.required`（历史查询变慢）：停止加载项后用 CPAMP 的离线维护命令处理（`cleanup-derived`，详见上游文档），再启动。
 
@@ -82,13 +82,13 @@
 
 | 容器路径 | 内容 | 是否随 HA 备份 |
 |---|---|---|
-| `/config/cliproxyapi-cpamp/config.yaml` | 主配置 | ✅ |
-| `/config/cliproxyapi-cpamp/auths/` | OAuth 凭据（refresh token 等） | ✅ |
-| `/config/cliproxyapi-cpamp/management_key.txt` | CPA 管理密钥明文副本 | ✅ |
-| `/config/cliproxyapi-cpamp/cpamp_admin_key.txt` | CPAMP 管理员密钥副本 | ✅ |
-| `/config/cliproxyapi-cpamp/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
-| `/config/cliproxyapi-cpamp/cpamp/usage.sqlite` | 请求历史与用量 | ✅ |
-| `/config/cliproxyapi-cpamp/cpamp/data.key` | 数据加密密钥（解密库内 CPA 密钥） | ✅ |
+| `/config/config.yaml` | 主配置 | ✅ |
+| `/config/auths/` | OAuth 凭据（refresh token 等） | ✅ |
+| `/config/management_key.txt` | CPA 管理密钥明文副本 | ✅ |
+| `/config/cpamp_admin_key.txt` | CPAMP 管理员密钥副本 | ✅ |
+| `/config/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
+| `/config/cpamp/usage.sqlite` | 请求历史与用量 | ✅ |
+| `/config/cpamp/data.key` | 数据加密密钥（解密库内 CPA 密钥） | ✅ |
 | `/data/cliproxyapi-cpamp/{logs,plugins,static}` | 日志 / 插件 / 面板缓存 | ❌ |
 
 > `usage.sqlite` 与 `data.key` 必须**成对**备份：仅恢复数据库而无 `data.key` 时，库内保存的 CPAMP 配置无法解密（需重新设置 CPA 连接）。
@@ -97,7 +97,7 @@
 ## 8. 故障排查
 
 - **打不开任一面板** → 检查端口映射（8317 / 18317）；确认加载项日志无启动错误。
-- **完整面板提示未连接 CPA** → 点击设置核对 CPA URL 为 `http://127.0.0.1:8317` 且密钥正确；若你更换过 CPA 管理密钥，请同步更新：编辑 `/config/cliproxyapi-cpamp/management_key.txt` 后重启，或在面板中重新保存连接。
+- **完整面板提示未连接 CPA** → 点击设置核对 CPA URL 为 `http://127.0.0.1:8317` 且密钥正确；若你更换过 CPA 管理密钥，请同步更新：编辑 `/config/management_key.txt` 后重启，或在面板中重新保存连接。
 - **监控页为空** → 确认 CPA 已产生过请求；确认 `usage-statistics-enabled: true` 未被关闭；确认没有第二个采集器抢队列。
 - **轻量面板显示“示例 API 密钥检测”警告** → 在面板中把 `your-api-key-1` 换成真实密钥。
 - **面板没有更新到新版** → 停止加载项 → 删除 `/data/cliproxyapi-cpamp/static/management.html` → 重启（联网时自动下载最新面板）。

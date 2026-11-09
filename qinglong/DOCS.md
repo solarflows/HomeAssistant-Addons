@@ -28,8 +28,8 @@ ql extra             # 执行自定义脚本
 
 ## 数据持久化
 
-- `/config/qinglong/data` — 所有数据（脚本、数据库、配置、日志）
-- `/share` — HA 共享目录（读写），可与其他 addon 交换脚本
+- `/config/data` — 所有数据（脚本、数据库、配置、日志，位于新版 `addon_config` 独立目录中，随 HA 备份持久化）
+- `/share` — 跨加载项脚本与公共数据交换（由 `share:rw` 映射）
 
 ## 通知推送
 

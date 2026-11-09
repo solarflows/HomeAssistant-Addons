@@ -34,12 +34,17 @@ curl -L -X POST 'http://localhost:8191/v1' \
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
+| `LOG_FILE` | (空) | 日志输出文件路径（如 `/config/flaresolverr.log`） |
 | `HEADLESS` | `true` | Chrome 无头模式 |
 | `DISABLE_MEDIA` | `false` | 禁用媒体资源请求 |
 | `PROMETHEUS_ENABLED` | `false` | 启用 Prometheus 指标 |
 | `PROXY_URL` | (空) | 上游代理地址 |
 | `PROXY_USERNAME` | (空) | 上游代理用户名 |
 | `PROXY_PASSWORD` | (空) | 上游代理密码 |
+
+## 数据持久化
+
+- `/config` — 由 `addon_config:rw` 映射，可通过选项 `LOG_FILE: /config/flaresolverr.log` 将排查日志持久化至此供下载分析。
 
 ## 资源要求
 

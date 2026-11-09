@@ -6,4 +6,4 @@
 # ==============================================================================
 bashio::log.info "Starting Lucky..."
 
-exec /usr/local/bin/lucky -c /config/luckyconf/lucky.conf
+exec /usr/local/bin/lucky -c /config/lucky.conf

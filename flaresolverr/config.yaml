@@ -42,6 +42,6 @@ cap_add:
   - IPC_LOCK
 tmpfs: true
 map:
-  - config:rw
+  - addon_config:rw
 startup: application
 boot: manual

@@ -35,8 +35,12 @@ http://<HA-IP>:4567/sub/0
 
 ## 数据持久化
 
-- `/config/atv/config` — 应用配置文件
-- `/data/store` — TvBox 数据
+采用 Home Assistant 新版 `addon_config` 隔离存储规范：
+
+- `/config/atv.mv.db` — H2 核心数据库（随 HA 备份持久化，直接读写零软链接）
+- `/config/store` — TvBox 站点与订阅数据
+- `/config/*.txt` — 用户自定义 Token 及配置（`mytoken.txt`, `tv.txt` 等）
+- `/data/log` — 运行日志（私有存储，不污染 HA 备份）
 
 ## 上游文档
 

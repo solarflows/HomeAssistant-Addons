@@ -27,7 +27,7 @@ ports_description:
   51121/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
   11451/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
 map:
-  - config:rw
+  - addon_config:rw
 options:
   MANAGEMENT_KEY: ""
   PROXY_URL: ""

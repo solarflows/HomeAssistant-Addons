@@ -14,9 +14,12 @@ ports:
 ports_description:
   8080/tcp: 'FileBrowser Quantum Web UI port'
 map:
-  - config:rw
-  - ssl:ro
+  - addon_config:rw
+  - all_addon_configs:rw
+  - homeassistant_config:rw
   - share:rw
+  - ssl:ro
+  - media:rw
 startup: application
 boot: manual
 options:

@@ -14,8 +14,9 @@ ports:
 ports_description:
   3001/tcp: 'Uptime Kuma Web UI port'
 map:
-  - config:rw
+  - addon_config:rw
   - share:rw
+  - ssl:ro
 startup: application
 boot: manual
 ingress: true

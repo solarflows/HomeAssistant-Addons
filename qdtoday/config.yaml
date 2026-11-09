@@ -45,7 +45,7 @@ schema:
   TASK_WHILE_LOOP_TIMEOUT: int?
   NEW_TASK_DELAY: int?
 map:
-  - config:rw
+  - addon_config:rw
   - ssl:ro
 startup: application
 boot: manual

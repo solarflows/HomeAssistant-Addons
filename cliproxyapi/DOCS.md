@@ -21,7 +21,7 @@ CLIProxyAPI（下称 CPA）把各 AI 厂商的 **CLI/OAuth 账号**（Gemini CLI
 1. 启动加载项（首次启动约需数十秒完成初始化）。
 2. 打开 Web UI：`http://<你的HA地址>:8317/management.html`。
 3. 使用**管理密钥**登录面板：
-   - 未配置 `MANAGEMENT_KEY` 选项时，首次启动会生成随机密钥，在**加载项日志**中打印一次，并自动**回填到加载项选项**（配置界面可见）；同时保存于 `/config/cliproxyapi/management_key.txt`；
+   - 未配置 `MANAGEMENT_KEY` 选项时，首次启动会生成随机密钥，在**加载项日志**中打印一次，并自动**回填到加载项选项**（配置界面可见）；同时保存于 `/config/management_key.txt`；
    - 也可以在启动前于加载项配置中预设 `MANAGEMENT_KEY`。
 4. 在面板的 **Accounts / OAuth** 页面添加账号（OAuth 登录或导入凭据文件）。
 5. 在 **Configuration / Access** 中把示例占位 API Key（`your-api-key-1`）替换为你的真实客户端密钥。
@@ -80,10 +80,10 @@ OAuth 登录（如 Codex、Antigravity）在部分流程中需要浏览器回调
 
 | 容器路径 | 内容 | 是否随 HA 备份 |
 |---|---|---|
-| `/config/cliproxyapi/config.yaml` | 主配置 | ✅ |
-| `/config/cliproxyapi/auths/` | OAuth 凭据（refresh token 等） | ✅ |
-| `/config/cliproxyapi/management_key.txt` | 管理密钥明文副本 | ✅ |
-| `/config/cliproxyapi/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
+| `/config/config.yaml` | 主配置 | ✅ |
+| `/config/auths/` | OAuth 凭据（refresh token 等） | ✅ |
+| `/config/management_key.txt` | 管理密钥明文副本 | ✅ |
+| `/config/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
 | `/data/cliproxyapi/logs` | 文件日志（默认关闭，输出到加载项日志） | ❌ |
 | `/data/cliproxyapi/plugins` | 插件（默认未启用） | ❌ |
 | `/data/cliproxyapi/static` | 管理面板缓存 | ❌ |

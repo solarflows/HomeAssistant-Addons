@@ -6,6 +6,8 @@
 
 bashio::log.info "Starting Baihu Panel..."
 
+export BH_DB_PATH=/config/data/baihu.db
+
 # mise 运行时环境
 export MISE_DATA_DIR=/app/envs/mise
 export MISE_CONFIG_DIR=/app/envs/mise

@@ -10,12 +10,19 @@ bashio::log.info "Initializing FileBrowser Quantum..."
 ################
 # DIRS         #
 ################
-mkdir -p /config/filebrowser-quantum /cache
+# 兼容历史子目录平铺至 /config 根目录
+if [ -d /config/filebrowser-quantum ] && [ ! -f /config/config.yaml ]; then
+    bashio::log.info "检测到历史 filebrowser-quantum 子目录，自动平铺至 /config 根目录..."
+    cp -an /config/filebrowser-quantum/. /config/
+    rm -rf /config/filebrowser-quantum
+fi
+
+mkdir -p /config /cache
 
 ################
 # CONFIG FILE  #
 ################
-FILEBROWSER_CONFIG="/config/filebrowser-quantum/config.yaml"
+FILEBROWSER_CONFIG="/config/config.yaml"
 DEFAULT_CONFIG="/usr/local/share/filebrowser/config.yaml"
 
 # 复制默认配置 (首次启动)
@@ -25,7 +32,7 @@ if [ ! -f "$FILEBROWSER_CONFIG" ]; then
 server:
   port: 8080
   listen: 0.0.0.0
-  database: /config/filebrowser-quantum/database.db
+  database: /config/database.db
   cacheDir: /cache
   sources:
     - path: /
@@ -51,7 +58,7 @@ fi
 bashio::log.info "Applying server config..."
 yq e -i '.server.port = 8080'                      "$FILEBROWSER_CONFIG"
 yq e -i '.server.listen = "0.0.0.0"'               "$FILEBROWSER_CONFIG"
-yq e -i '.server.database = "/config/filebrowser-quantum/database.db"' "$FILEBROWSER_CONFIG"
+yq e -i '.server.database = "/config/database.db"' "$FILEBROWSER_CONFIG"
 yq e -i '.server.cacheDir = "/cache"'               "$FILEBROWSER_CONFIG"
 
 ################

@@ -5,7 +5,7 @@ configuration:
     description: >-
       Key for the management API and lightweight panel (:8317). Leave empty to
       auto-generate one on first start (printed in the log, stored at
-      /config/cliproxyapi-cpamp/management_key.txt, and backfilled into this
+      /config/management_key.txt, and backfilled into this
       option). Change this option and restart to apply; leave empty to manage
       the key in the panel.
   CPAMP_ADMIN_KEY:
@@ -13,7 +13,7 @@ configuration:
     description: >-
       Login key for the CPAMP full panel (:18317). Leave empty to auto-generate
       one on first start (printed in the log, stored at
-      /config/cliproxyapi-cpamp/cpamp_admin_key.txt, and backfilled into this
+      /config/cpamp_admin_key.txt, and backfilled into this
       option). Change this option and restart to apply.
   PROXY_URL:
     name: Proxy URL

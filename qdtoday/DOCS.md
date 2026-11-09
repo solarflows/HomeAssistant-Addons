@@ -44,7 +44,8 @@ MAIL_PASSWORD: "app-password"
 
 ## 数据持久化
 
-- `/config/qd` — QD 数据库和配置文件
+- `/config` — QD 数据库和配置文件（由 `addon_config:rw` 映射，随 HA 备份持久化）
+- `/ssl` — 证书与自定义 CA 目录（由 `ssl:ro` 只读映射）
 
 ## 上游文档
 

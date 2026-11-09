@@ -29,8 +29,8 @@
 2. 打开面板：`http://<你的HA>:7863/panel/`。
 3. 用**网关密钥**登录（`api_key`）：
    - 设置了 `API_KEY` 选项 → 使用该值；
-   - 未设置 → 首启随机生成，日志打印一次，自动**回填到加载项选项**，且保存于 `/config/workbuddy2api-panel/api_key.txt`。
-4. 面板「添加账号」→ 按提示完成 OAuth 登录（浏览器内）→ 凭证自动落盘、热加载进池。
+   - 未设置 → 首启随机生成，日志打印一次，自动**回填到加载项选项**，且保存于 `/config/api_key.txt`。
+3. 面板「添加账号」→ 按提示完成 OAuth 登录（浏览器内）→ 凭证自动落盘、热加载进池。
 5. 客户端配置：
    ```
    base_url: http://<你的HA>:7863/v1
@@ -60,11 +60,11 @@
 
 | 容器路径 | 内容 | 是否随 HA 备份 |
 |---|---|---|
-| `/config/workbuddy2api-panel/config.json` | 主配置 | ✅ |
-| `/config/workbuddy2api-panel/auths/` | 账号凭据（明文 token） | ✅ |
-| `/config/workbuddy2api-panel/api_key.txt` | 网关密钥副本 | ✅ |
-| `/config/workbuddy2api-panel/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
-| `/config/workbuddy2api-panel/config.example.json` | 上游示例配置（参考用） | ✅ |
+| `/config/config.json` | 主配置 | ✅ |
+| `/config/auths/` | 账号凭据（明文 token） | ✅ |
+| `/config/api_key.txt` | 网关密钥副本 | ✅ |
+| `/config/options_applied.json` | 选项同步状态（判断选项是否变更） | ✅ |
+| `/config/config.example.json` | 上游示例配置（参考用） | ✅ |
 | `/data/workbuddy2api-panel/data/` | state.json 池状态、请求归档（默认 7 天 / 100MB 上限） | ❌ |
 
 > 恢复备份后账号池自动对齐 `auths/` 目录；`state.json` 丢失只会重置冷却/统计，不影响账号。
@@ -77,7 +77,7 @@
 
 ## 7. 故障排查
 
-- **面板打不开 / 提示 401** → 用网关密钥登录；忘记密钥可查看 `/config/workbuddy2api-panel/api_key.txt` 或 `config.json` 中的 `api_key`。
+- **面板打不开 / 提示 401** → 用网关密钥登录；忘记密钥可查看 `/config/api_key.txt` 或 `config.json` 中的 `api_key`。
 - **健康检查显示 unhealthy** → 若尚未添加任何账号，属预期（`/healthz` 无账号返回 503 仅影响直接访问该端点；加载项探活用面板页面）。
 - **签到/任务未按时执行** → 检查 `TZ` 是否为期望时区；面板「配置」页中定时任务开关是否开启。
 - **OAuth 添加账号失败** → 面板给的是设备授权流程，需在浏览器完成登录；若上游接口变动导致失败，请关注上游仓库更新。

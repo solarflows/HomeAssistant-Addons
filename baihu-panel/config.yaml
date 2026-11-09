@@ -17,6 +17,7 @@ ports_description:
 options: {}
 schema: {}
 map:
-  - config:rw
+  - addon_config:rw
+  - share:rw
 startup: application
 boot: manual

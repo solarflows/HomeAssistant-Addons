@@ -4,17 +4,17 @@
 # CLIProxyAPI + CPAMP 初始化脚本
 # ==============================================================================
 # 数据布局:
-#   /config/cliproxyapi-cpamp/config.yaml          主配置（首次启动生成）
-#   /config/cliproxyapi-cpamp/auths/               OAuth 凭据（随 HA 备份）
-#   /config/cliproxyapi-cpamp/management_key.txt   管理密钥明文副本
-#   /config/cliproxyapi-cpamp/cpamp/               CPAMP 数据（usage.sqlite/data.key，随 HA 备份）
+#   /config/config.yaml                            主配置（首次启动生成）
+#   /config/auths/                                 OAuth 凭据（随 HA 备份）
+#   /config/management_key.txt                     管理密钥明文副本
+#   /config/cpamp/                                 CPAMP 数据（usage.sqlite/data.key，随 HA 备份）
 #   /data/cliproxyapi-cpamp/{logs,plugins,static}  日志/插件/面板缓存（不备份）
 # ==============================================================================
 set -e
 
 bashio::log.info "Initializing CLIProxyAPI + CPAMP..."
 
-CONFIG_DIR="/config/cliproxyapi-cpamp"
+CONFIG_DIR="/config"
 DATA_DIR="/data/cliproxyapi-cpamp"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
 AUTH_DIR="${CONFIG_DIR}/auths"
@@ -111,8 +111,19 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
+# 兼容历史子目录：若存在 /config/cliproxyapi-cpamp 且根目录无 config.yaml，自动平铺至 /config 根目录
+if [ -d "/config/cliproxyapi-cpamp" ] && [ ! -f "${CONFIG_FILE}" ]; then
+    bashio::log.info "检测到历史 cliproxyapi-cpamp 子目录，自动平铺至 /config 根目录..."
+    cp -an /config/cliproxyapi-cpamp/. /config/
+    rm -rf /config/cliproxyapi-cpamp
+fi
+
 mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" "${CPAMP_DATA_DIR}" \
          "${DATA_DIR}/logs" "${DATA_DIR}/plugins" "${DATA_DIR}/static" "${DATA_DIR}/discovery"
+
+# 兼容存量配置中可能硬编码的旧 auth-dir 路径
+mkdir -p /config/cliproxyapi-cpamp
+ln -sfn "${AUTH_DIR}" /config/cliproxyapi-cpamp/auths
 
 ################
 # CONFIG FILE  #
@@ -165,7 +176,7 @@ access:
 
 # OAuth/文件凭据目录（持久化，随 HA 备份）
 oauth:
-  auth-dir: "/config/cliproxyapi-cpamp/auths"
+  auth-dir: "${AUTH_DIR}"
 
 # 用量统计（CPAMP 请求监控依赖此项）
 observability:

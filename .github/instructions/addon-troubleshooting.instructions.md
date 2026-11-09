@@ -16,7 +16,7 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - **图标静态资产免触发**：`icon.png` 与 `logo.png` 置于加载项根目录；不纳入 CI 监控路径，增删图标不触发镜像重构。
 - **服务配置默认端口**：应用配置若无默认端口会绑定 `:0` 导致端口映射失效；生成初始配置时必须显式填入有效默认端口（如 `8317`）。
 - **合并回填加载项选项**：调用 `POST /addons/self/options` 会全量覆盖选项；必须先读取合并后再执行单次请求，严禁连续分散请求。
-- **配置持久同步 sidecar 机制**：采用 `/config/<slug>/options_applied.json` 记录已应用选项；首次启动跳过同步以防覆盖，非空且变更时覆写对应配置。
+- **配置持久同步 sidecar 机制**：采用 `/config/options_applied.json`（或未映射 `addon_config` 时使用 `/data/options_applied.json`）记录已应用选项；首次启动跳过同步以防覆盖，非空且变更时覆写对应配置。
 - **冷启动与看门狗窗口**：ARM 设备冷启动高负载服务（如 JVM）需 150~200s；Dockerfile `HEALTHCHECK` 必须设置 `start-period=300s, retries=5`，防止 Supervisor 看门狗提前杀进程。
 - **初始化与运行串行化**：`cont-init.d/00-init.sh` 结束时创建 `/run/<slug>-initialized`；S6 `run` 脚本必须有界循环等待该标记，严禁二者无序争抢 CPU/IO。
 
@@ -46,13 +46,16 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 | alist-tvbox | `/h2-2.1.214.jar` | Dockerfile 中 `curl` 预下载 |
 | alist-tvbox | `/var/lib/data.zip` | `COPY --from=alist-source` |
 | alist-tvbox | `/alist.json` | `COPY --from=source /src/config/alist.json` |
-| alist-tvbox | `/index` | Dockerfile 及 00-init.sh 软链接至 `/data/index` |
+| alist-tvbox | `/config/atv.mv.db`, `/config/alist` | 原生 `-Datv.data.dir=/config` 与 `jdbc-url` 持久化，AList 软链接至 `/config/alist` |
+| alist-tvbox-standalone | `/config/atv.mv.db` | 原生 `-Datv.data.dir=/config` 与 `jdbc-url`，纯物理路径零软链接 |
+| alist-tvbox | `/index` | Dockerfile 及 00-init.sh 软链接至 `/data/index`（私有卷，防止备份臃肿） |
 | alist-tvbox | `pkill` (AList 优雅终止) | Dockerfile 预装 `procps` |
 | alist-tvbox-standalone | Spring `file:/data/atv/config/` | 00-init.sh 中 `mkdir -p` |
-| baihu-panel | `/app/data`, `/app/configs`, `/app/envs` | 00-init.sh 软链接至 `/data` 或 `/config` |
-| qinglong | `/ql/` | 软链接 `/ql -> /config/qinglong` |
-| qdtoday | `/usr/src/app/config` | 00-init.sh 软链接 |
-| uptime-kuma | `/opt/uptime-kuma/data` | 00-init.sh 软链接 |
+| baihu-panel | `/app/data`, `/app/configs`, `/app/envs` | 00-init.sh 软链接至 `/config/data`、`/config/configs`、`/config/envs` |
+| qinglong | `/ql/` | 软链接 `/ql -> /config`，数据持久化于 `/config/data` |
+| qdtoday | `/usr/src/app/config` | 00-init.sh 软链接至 `/config` |
+| uptime-kuma | `/opt/uptime-kuma/data` | 00-init.sh 软链接至 `/config/data` |
+| mcphub | `/app/data` | 软链接 `/app/data -> /config` |
 
 ## S6 进程监督约束
 - **严禁新增不支持的服务文件**：`debian-base:9.3.0` 内置老版本 S6；严禁添加 `notification-fd` 或 `timeout-up`，否则服务被静默跳过。
@@ -65,6 +68,8 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - Chromium 140+ 包装脚本包含 Bash 特有条件判断时，入口必须强制使用 `/bin/bash` 解释执行。
 
 ## 数据持久化与路径映射
-- `/data/` 为 Supervisor 挂载的独立持久卷；`/config/` 为共享备份卷。
+- `/data/` 为 Supervisor 挂载的每个加载项独立私有持久卷（宿主 `/usr/share/hassio/addons/data/<slug>/`）。
+- `addon_config:rw` 映射至容器内部 `/config/`，对应宿主 `/homeassistant/addon_configs/<slug>/`，为新版 HA 推荐的独立用户配置目录；扁平化直出根级，严禁在此目录下再次嵌套 `<slug>/` 子目录。
+- 严禁滥用旧版全局 `config:rw`（暴露整个 `/homeassistant` 核心目录）与 `share:rw`（非共享数据严禁污染宿主公共区）。
 - 容器重启会丢弃非卷目录；上游硬编码于 `/opt` 等目录的读写数据，必须在 `00-init.sh` 中软链接至 `/data/` 或 `/config/`。
 - 跨进程环境变量无法通过 `export` 穿透；S6 `run` 脚本中必须使用 `bashio::config` 直接读取用户配置。

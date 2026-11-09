@@ -17,7 +17,7 @@ ports:
 ports_description:
   7863/tcp: "API / Web 管理面板"
 map:
-  - config:rw
+  - addon_config:rw
 options:
   API_KEY: ""
   TZ: "Asia/Shanghai"

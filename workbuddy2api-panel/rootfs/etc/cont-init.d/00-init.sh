@@ -4,17 +4,17 @@
 # WorkBuddy2API Panel 初始化脚本
 # ==============================================================================
 # 数据布局:
-#   /config/workbuddy2api-panel/config.json    主配置（首次启动生成，面板接管）
-#   /config/workbuddy2api-panel/auths/         账号凭据（随 HA 备份）
-#   /config/workbuddy2api-panel/api_key.txt    API Key 明文副本
-#   /config/workbuddy2api-panel/config.example.json  上游示例配置（参考）
+#   /config/config.json                        主配置（首次启动生成，面板接管）
+#   /config/auths/                             账号凭据（随 HA 备份）
+#   /config/api_key.txt                        API Key 明文副本
+#   /config/config.example.json                上游示例配置（参考）
 #   /data/workbuddy2api-panel/data/            运行状态 / 请求归档（不备份）
 # ==============================================================================
 set -e
 
 bashio::log.info "Initializing WorkBuddy2API Panel..."
 
-CONFIG_DIR="/config/workbuddy2api-panel"
+CONFIG_DIR="/config"
 DATA_DIR="/data/workbuddy2api-panel"
 CONFIG_FILE="${CONFIG_DIR}/config.json"
 AUTH_DIR="${CONFIG_DIR}/auths"
@@ -59,6 +59,13 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
+# 兼容历史子目录：若存在 /config/workbuddy2api-panel 且根目录无 config.json，自动平铺至 /config 根目录
+if [ -d "/config/workbuddy2api-panel" ] && [ ! -f "${CONFIG_FILE}" ]; then
+    bashio::log.info "检测到历史 workbuddy2api-panel 子目录，自动平铺至 /config 根目录..."
+    cp -an /config/workbuddy2api-panel/. /config/
+    rm -rf /config/workbuddy2api-panel
+fi
+
 mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" "${APP_DATA_DIR}" /app
 
 ################

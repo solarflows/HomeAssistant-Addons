@@ -133,7 +133,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # 端口
 EXPOSE 4567/tcp 80/tcp
 
-# 持久化目录（/config、/data 由 HAOS Supervisor 自动挂载）
+# 持久化目录（/data 由 HAOS Supervisor 自动挂载）
 VOLUME ["/www/static"]
 
 # Healthcheck

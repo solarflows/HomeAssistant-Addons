@@ -28,7 +28,7 @@ ENV LOG_LEVEL=info
 # 端口
 EXPOSE 8191/tcp 8192/tcp
 
-# 持久化目录（/config 由 HAOS Supervisor 自动挂载，/data 用于上游容器标准卷）
+# 持久化目录（/data 由 HAOS Supervisor 自动挂载）
 VOLUME ["/data"]
 
 # 使用定制入口脚本（Chromium 兼容修复 + dumb-init）
