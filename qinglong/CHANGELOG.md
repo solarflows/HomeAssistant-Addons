@@ -1,3 +1,2 @@
-Dockerfile + rootfs 维护
-- feat(migration,healthcheck): 引入一次性迁移延迟清理状态机与双轨精准探活机制
-- refactor(storage): 适配 HA 新版 addon_config 存储隔离架构并重构 map 权限矩阵
+rootfs 维护
+- fix(s6): 为 baihu-panel 等 6 个插件补齐初始化等待锁消除启动竞态
