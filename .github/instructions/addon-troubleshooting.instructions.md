@@ -18,6 +18,7 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - **合并回填加载项选项**：调用 `POST /addons/self/options` 会全量覆盖选项；必须先读取合并后再执行单次请求，严禁连续分散请求。
 - **配置持久同步 sidecar 机制**：采用 `/config/options_applied.json`（或未映射 `addon_config` 时使用 `/data/options_applied.json`）记录已应用选项；首次启动跳过同步以防覆盖，非空且变更时覆写对应配置。
 - **冷启动与看门狗窗口**：ARM 设备冷启动高负载服务（如 JVM）需 150~200s；Dockerfile `HEALTHCHECK` 必须设置 `start-period=300s, retries=5`，防止 Supervisor 看门狗提前杀进程。
+- **健康检查与探活免刷屏**：优先使用上游原生免鉴权静默健康检查路由（如 `/health`, `/healthz`, `/api/v1/ping`），严禁请求前端根路径或需要加载全量静态资源/渲染 SPA 页面的路径；无原生健康端点的服务，在 S6 运行时监控中采用 Bash 原生零日志 TCP 握手探活 `(exec 3<>/dev/tcp/127.0.0.1/<PORT> && exec 3>&-)`，彻底杜绝 HTTP 访问日志污染与代理环境变量反噬。
 - **初始化与运行串行化**：`cont-init.d/00-init.sh` 结束时创建 `/run/<slug>-initialized`；S6 `run` 脚本必须有界循环等待该标记，严禁二者无序争抢 CPU/IO。
 
 ## 语言构建策略规范
@@ -73,3 +74,4 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - 严禁滥用旧版全局 `config:rw`（暴露整个 `/homeassistant` 核心目录）与 `share:rw`（非共享数据严禁污染宿主公共区）。
 - 容器重启会丢弃非卷目录；上游硬编码于 `/opt` 等目录的读写数据，必须在 `00-init.sh` 中软链接至 `/data/` 或 `/config/`。
 - 跨进程环境变量无法通过 `export` 穿透；S6 `run` 脚本中必须使用 `bashio::config` 直接读取用户配置。
+- **一次性迁移与启动后清理铁律**：所有存量数据迁移代码必须且只能执行一次（通过 `/config/.migrated` 标记永久闭环）；在 `00-init.sh` 中仅暂存/复制并写入 `/run/migration_cleanup_pending`，严禁在服务启动前直接删除旧数据；必须由 S6 `run` 后台监控守护等待服务监听端口/HTTP 成功响应后，确认数据完好方可彻底清空旧目录内容，防止启动失败导致不可逆数据损坏。

@@ -8,14 +8,20 @@ set -e
 
 bashio::log.info "Initializing Uptime Kuma..."
 
+mkdir -p /config
+
 ################
 # DATA DIR     #
 ################
-# 兼容历史子目录平铺至 /config 根目录
-if [ -d /config/uptime-kuma ] && [ ! -d /config/data ]; then
-    bashio::log.info "检测到历史 uptime-kuma 子目录，自动平铺至 /config 根目录..."
-    cp -an /config/uptime-kuma/. /config/
-    rm -rf /config/uptime-kuma
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d /config/uptime-kuma ] && [ ! -d /config/data ]; then
+        bashio::log.info "检测到历史 uptime-kuma 子目录，平铺至 /config 根目录..."
+        cp -an /config/uptime-kuma/. /config/
+        echo "/config/uptime-kuma" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 DATA_DIR="/config/data"

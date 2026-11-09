@@ -59,11 +59,15 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
-# 兼容历史子目录：若存在 /config/workbuddy2api-panel 且根目录无 config.json，自动平铺至 /config 根目录
-if [ -d "/config/workbuddy2api-panel" ] && [ ! -f "${CONFIG_FILE}" ]; then
-    bashio::log.info "检测到历史 workbuddy2api-panel 子目录，自动平铺至 /config 根目录..."
-    cp -an /config/workbuddy2api-panel/. /config/
-    rm -rf /config/workbuddy2api-panel
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d "/config/workbuddy2api-panel" ] && [ ! -f "${CONFIG_FILE}" ]; then
+        bashio::log.info "检测到历史 workbuddy2api-panel 子目录，自动平铺至 /config 根目录..."
+        cp -an /config/workbuddy2api-panel/. /config/
+        echo "/config/workbuddy2api-panel" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" "${APP_DATA_DIR}" /app

@@ -12,11 +12,15 @@
 set -e
 
 echo "[mcphub] Preparing persistent directories..."
-# 兼容历史子目录平铺至 /config 根目录
-if [ -d /config/mcphub ] && [ ! -f /config/config.json ]; then
-    echo "[mcphub] Migrating legacy /config/mcphub to /config root..."
-    cp -an /config/mcphub/. /config/
-    rm -rf /config/mcphub
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d /config/mcphub ] && [ ! -f /config/config.json ]; then
+        echo "[mcphub] Migrating legacy /config/mcphub to /config root..."
+        cp -an /config/mcphub/. /config/
+        echo "/config/mcphub" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 mkdir -p /config /data/mcphub/npm /data/mcphub/cache
@@ -80,6 +84,27 @@ with open('/tmp/ha_options.env', 'w') as out:
 "
     set -a; . /tmp/ha_options.env; set +a
     rm -f /tmp/ha_options.env
+fi
+
+# 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
+if [ -f /run/migration_cleanup_pending ]; then
+    (
+        echo "[mcphub] Waiting for MCPHub to start before cleaning up legacy directory..."
+        for _ in $(seq 1 60); do
+            if curl -s -m 2 -o /dev/null http://127.0.0.1:3000/health 2>/dev/null || (exec 3<>/dev/tcp/127.0.0.1/3000 && exec 3>&-) 2>/dev/null; then
+                echo "[mcphub] MCPHub started successfully, cleaning up legacy directory..."
+                CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
+                for p in ${CLEANUP_PATHS}; do
+                    rm -rf "${p}" 2>/dev/null || true
+                done
+                rm -f /run/migration_cleanup_pending
+                touch /config/.migrated
+                echo "[mcphub] Legacy directory cleaned up, migration completed."
+                break
+            fi
+            sleep 2
+        done
+    ) >/dev/null 2>&1 &
 fi
 
 echo "[mcphub] Starting..."

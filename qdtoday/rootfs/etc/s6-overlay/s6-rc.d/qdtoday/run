@@ -6,6 +6,27 @@
 # ==============================================================================
 bashio::log.info "Starting QD-Today..."
 
+# 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
+if [ -f /run/migration_cleanup_pending ]; then
+    (
+        bashio::log.info "等待 QD-Today 服务启动成功以完成迁移后旧目录清理..."
+        for _ in $(seq 1 60); do
+            if (exec 3<>/dev/tcp/127.0.0.1/8923 && exec 3>&-) 2>/dev/null; then
+                bashio::log.info "QD-Today 服务启动成功，开始清空旧迁移数据..."
+                CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
+                for p in ${CLEANUP_PATHS}; do
+                    rm -rf ${p} 2>/dev/null || true
+                done
+                rm -f /run/migration_cleanup_pending
+                touch /config/.migrated
+                bashio::log.info "旧迁移数据已彻底清空，一次性迁移完成。"
+                break
+            fi
+            sleep 2
+        done
+    ) >/dev/null 2>&1 &
+fi
+
 # 导出所有配置项为环境变量
 # - bool/int 类型: 始终导出（options 默认值即 QD 默认值）
 # - str 类型: 仅非空时导出，空字符串由 QD 使用自身内置默认值

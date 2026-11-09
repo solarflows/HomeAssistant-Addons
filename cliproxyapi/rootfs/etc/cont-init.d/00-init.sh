@@ -107,11 +107,15 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
-# 兼容历史子目录：若存在 /config/cliproxyapi 且根目录无 config.yaml，自动平铺至 /config 根目录
-if [ -d "/config/cliproxyapi" ] && [ ! -f "${CONFIG_FILE}" ]; then
-    bashio::log.info "检测到历史 cliproxyapi 子目录，自动平铺至 /config 根目录..."
-    cp -an /config/cliproxyapi/. /config/
-    rm -rf /config/cliproxyapi
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d "/config/cliproxyapi" ] && [ ! -L "/config/cliproxyapi" ] && [ ! -f "${CONFIG_FILE}" ]; then
+        bashio::log.info "检测到历史 cliproxyapi 子目录，自动平铺至 /config 根目录..."
+        cp -an /config/cliproxyapi/. /config/
+        echo "/config/cliproxyapi" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" \

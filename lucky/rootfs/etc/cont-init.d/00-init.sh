@@ -7,12 +7,18 @@
 
 bashio::log.info "Initializing Lucky..."
 
-# 若存在历史 luckyconf 子目录配置，自动平铺至 /config 根目录
-if [ -d /config/luckyconf ]; then
-    if [ -f /config/luckyconf/lucky.conf ] && [ ! -f /config/lucky.conf ]; then
-        mv /config/luckyconf/lucky.conf /config/lucky.conf
+mkdir -p /config
+
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d /config/luckyconf ]; then
+        if [ -f /config/luckyconf/lucky.conf ] && [ ! -f /config/lucky.conf ]; then
+            cp -an /config/luckyconf/lucky.conf /config/lucky.conf
+        fi
+        echo "/config/luckyconf" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
     fi
-    rm -rf /config/luckyconf
 fi
 
 bashio::log.info "Lucky initialization completed"

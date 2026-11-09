@@ -15,5 +15,28 @@ if [ ! -f /CLIProxyAPI/config.yaml ]; then
     bashio::log.warning "config.yaml 仍未生成（cont-init 可能失败），继续启动以暴露错误"
 fi
 
+# 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
+if [ -f /run/migration_cleanup_pending ]; then
+    (
+        bashio::log.info "等待 CLIProxyAPI 服务启动成功以完成迁移后旧目录清理..."
+        for _ in $(seq 1 60); do
+            if curl -s -m 2 -o /dev/null http://127.0.0.1:8317/healthz 2>/dev/null || (exec 3<>/dev/tcp/127.0.0.1/8317 && exec 3>&-) 2>/dev/null; then
+                bashio::log.info "CLIProxyAPI 服务启动成功，开始清空历史子目录..."
+                CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
+                for p in ${CLEANUP_PATHS}; do
+                    rm -rf "${p}" 2>/dev/null || true
+                done
+                rm -f /run/migration_cleanup_pending
+                touch /config/.migrated
+                mkdir -p /config/cliproxyapi
+                ln -sfn /config/auths /config/cliproxyapi/auths
+                bashio::log.info "历史子目录已彻底清空，一次性迁移完成。"
+                break
+            fi
+            sleep 2
+        done
+    ) >/dev/null 2>&1 &
+fi
+
 cd /CLIProxyAPI
 exec /CLIProxyAPI/cli-proxy-api -config /CLIProxyAPI/config.yaml

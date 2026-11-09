@@ -10,11 +10,15 @@ bashio::log.info "Initializing FileBrowser Quantum..."
 ################
 # DIRS         #
 ################
-# 兼容历史子目录平铺至 /config 根目录
-if [ -d /config/filebrowser-quantum ] && [ ! -f /config/config.yaml ]; then
-    bashio::log.info "检测到历史 filebrowser-quantum 子目录，自动平铺至 /config 根目录..."
-    cp -an /config/filebrowser-quantum/. /config/
-    rm -rf /config/filebrowser-quantum
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    if [ -d /config/filebrowser-quantum ] && [ ! -f /config/config.yaml ]; then
+        bashio::log.info "检测到历史 filebrowser-quantum 子目录，自动平铺至 /config 根目录..."
+        cp -an /config/filebrowser-quantum/. /config/
+        echo "/config/filebrowser-quantum" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 mkdir -p /config /cache

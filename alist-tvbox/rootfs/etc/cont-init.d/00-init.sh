@@ -22,22 +22,38 @@ mkdir -p /config /config/alist /data/atv/config/ /data/log /data/index
 # 标记 H2 数据库版本，避免反复触发旧版本升级逻辑
 [ -f /data/h2.version.txt ] || echo "2.3.232" > /data/h2.version.txt
 
-# ---- 兼容存量升级迁移 ----
-# 1. 迁移历史 atv.mv.db* 数据库至 /config 目录（实现零软链接纯原生持久化）
-if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
-    bashio::log.info "迁移历史 atv.mv.db 数据库至 /config 目录..."
-    cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
-    rm -f /data/atv.mv.db*
-fi
-# 2. 迁移历史 store 目录至 /config 目录
-if [ -d /data/store ] && [ ! -d /config/store ]; then
-    bashio::log.info "迁移历史 store 目录至 /config 目录..."
-    cp -an /data/store /config/ 2>/dev/null || true
-fi
-# 3. 迁移历史 /data/alist 目录至 /config/alist 目录
-if [ -d /data/alist ] && [ ! -f /config/alist/data.db ] && [ ! -f /config/alist/config.json ]; then
-    bashio::log.info "迁移历史 /data/alist 数据至 /config/alist 目录..."
-    cp -an /data/alist/* /config/alist/ 2>/dev/null || true
+# ---- 一次性存量数据迁移（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    MIGRATION_ITEMS=""
+    if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
+        bashio::log.info "检测到历史 atv.mv.db 数据库，迁移至 /config..."
+        cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/atv.mv.db*"
+    fi
+    if [ -d /data/store ] && [ ! -d /config/store ]; then
+        bashio::log.info "检测到历史 store 目录，迁移至 /config..."
+        cp -an /data/store /config/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/store"
+    fi
+    if [ -d /data/alist ] && [ ! -f /config/alist/data.db ] && [ ! -f /config/alist/config.json ]; then
+        bashio::log.info "检测到历史 /data/alist 数据，迁移至 /config/alist 目录..."
+        cp -an /data/alist/* /config/alist/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/alist"
+    fi
+
+    # 迁移历史散落配置文件至 /config
+    for f in proxy.txt github_proxy.txt env my.json iptv.m3u; do
+        if [ -f "/data/$f" ] && [ ! -e "/config/$f" ]; then
+            mv "/data/$f" "/config/$f" 2>/dev/null || true
+        fi
+    done
+
+    if [ -n "${MIGRATION_ITEMS}" ]; then
+        echo "${MIGRATION_ITEMS}" > /run/migration_cleanup_pending
+        bashio::log.info "已暂存迁移数据，待服务启动成功并验证后清空旧目录"
+    else
+        touch /config/.migrated
+    fi
 fi
 
 # 兼容用户放置在 /config 中的 database.zip 恢复包
@@ -60,8 +76,6 @@ ln -sf /config/alist /opt/alist/data
 for f in proxy.txt github_proxy.txt env my.json iptv.m3u; do
     if [ -f "/config/$f" ] && [ ! -e "/data/$f" ]; then
         ln -sf "/config/$f" "/data/$f"
-    elif [ -f "/data/$f" ] && [ ! -e "/config/$f" ]; then
-        cp -an "/data/$f" "/config/$f" 2>/dev/null || true
     fi
 done
 

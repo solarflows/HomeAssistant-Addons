@@ -3,8 +3,28 @@
 # ==============================================================================
 # Baihu Panel 启动脚本 (S6 longrun service)
 # ==============================================================================
-
 bashio::log.info "Starting Baihu Panel..."
+
+# 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
+if [ -f /run/migration_cleanup_pending ]; then
+    (
+        bashio::log.info "等待白虎面板服务启动成功以完成迁移后旧目录清理..."
+        for _ in $(seq 1 60); do
+            if curl -s -m 2 -o /dev/null http://127.0.0.1:8052/api/v1/ping 2>/dev/null || (exec 3<>/dev/tcp/127.0.0.1/8052 && exec 3>&-) 2>/dev/null; then
+                bashio::log.info "白虎面板服务启动成功，开始清空历史子目录..."
+                CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
+                for p in ${CLEANUP_PATHS}; do
+                    rm -rf "${p}" 2>/dev/null || true
+                done
+                rm -f /run/migration_cleanup_pending
+                touch /config/.migrated
+                bashio::log.info "历史子目录已彻底清空，一次性迁移完成。"
+                break
+            fi
+            sleep 2
+        done
+    ) >/dev/null 2>&1 &
+fi
 
 export BH_DB_PATH=/config/data/baihu.db
 

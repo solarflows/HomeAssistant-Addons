@@ -34,6 +34,6 @@ VOLUME ["/data"]
 # 使用定制入口脚本（Chromium 兼容修复 + dumb-init）
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Healthcheck (参考 alexbelgium)
+# Healthcheck (上游原生 /health 免启动浏览器轻量端点)
 HEALTHCHECK --interval=30s --start-period=30s --timeout=25s --retries=5 \
-    CMD curl -A "HealthCheck: Docker/1.0" -sfo /dev/null "http://127.0.0.1:8191/" || exit 1
+    CMD curl -A "HealthCheck: Docker/1.0" -sfo /dev/null "http://127.0.0.1:8191/health" || exit 1

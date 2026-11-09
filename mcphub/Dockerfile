@@ -31,6 +31,6 @@ CMD ["node", "dist/index.js"]
 
 EXPOSE 3000/tcp
 
-# Healthcheck（面板首页；MCP/API 端点默认需 Bearer，不用作探活）
+# Healthcheck（原生 /health 免鉴权轻量健康检查路由）
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sfo /dev/null http://127.0.0.1:3000/ || exit 1
+    CMD curl -sfo /dev/null http://127.0.0.1:3000/health || exit 1

@@ -6,15 +6,26 @@
 
 bashio::log.info "Initializing Baihu Panel..."
 
-# 兼容历史子目录平铺至 /config 根目录
-if [ -d /config/baihu-panel ] && [ ! -d /config/data ]; then
-    bashio::log.info "检测到历史 baihu-panel 子目录，自动平铺至 /config 根目录..."
-    cp -an /config/baihu-panel/. /config/
-    rm -rf /config/baihu-panel
-fi
-if [ -d /config/baihu ]; then
-    cp -an /config/baihu/. /config/ 2>/dev/null || true
-    rm -rf /config/baihu
+mkdir -p /config
+
+# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    MIGRATION_ITEMS=""
+    if [ -d /config/baihu-panel ] && [ ! -d /config/data ]; then
+        bashio::log.info "检测到历史 baihu-panel 子目录，平铺至 /config 根目录..."
+        cp -an /config/baihu-panel/. /config/
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /config/baihu-panel"
+    fi
+    if [ -d /config/baihu ]; then
+        cp -an /config/baihu/. /config/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /config/baihu"
+    fi
+
+    if [ -n "${MIGRATION_ITEMS}" ]; then
+        echo "${MIGRATION_ITEMS}" > /run/migration_cleanup_pending
+    else
+        touch /config/.migrated
+    fi
 fi
 
 # 创建持久化目录

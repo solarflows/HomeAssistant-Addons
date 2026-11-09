@@ -5,6 +5,27 @@
 # ==============================================================================
 bashio::log.info "Starting FileBrowser Quantum..."
 
+# 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
+if [ -f /run/migration_cleanup_pending ]; then
+    (
+        bashio::log.info "等待 FileBrowser Quantum 服务启动成功以完成迁移后旧目录清理..."
+        for _ in $(seq 1 60); do
+            if curl -s -m 2 -o /dev/null http://127.0.0.1:8080/health 2>/dev/null || (exec 3<>/dev/tcp/127.0.0.1/8080 && exec 3>&-) 2>/dev/null; then
+                bashio::log.info "FileBrowser Quantum 服务启动成功，开始清空历史子目录..."
+                CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
+                for p in ${CLEANUP_PATHS}; do
+                    rm -rf "${p}" 2>/dev/null || true
+                done
+                rm -f /run/migration_cleanup_pending
+                touch /config/.migrated
+                bashio::log.info "历史子目录已彻底清空，一次性迁移完成。"
+                break
+            fi
+            sleep 2
+        done
+    ) >/dev/null 2>&1 &
+fi
+
 # 设置环境变量指向配置文件
 export FILEBROWSER_CONFIG="/config/config.yaml"
 

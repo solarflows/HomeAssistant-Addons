@@ -13,15 +13,26 @@ mkdir -p /config /data/log
 # 标记 H2 数据库版本，避免新装或已升级系统反复触发旧版本升级逻辑
 [ -f /data/h2.version.txt ] || echo "2.3.232" > /data/h2.version.txt
 
-# 兼容存量升级：若 /data/atv.mv.db 存在且 /config/atv.mv.db 不存在，静默迁移旧数据库
-if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
-    bashio::log.info "迁移历史 atv.mv.db 数据库至 /config 目录..."
-    cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
-    rm -f /data/atv.mv.db*
-fi
-if [ -d /data/store ] && [ ! -d /config/store ]; then
-    bashio::log.info "迁移历史 store 目录至 /config 目录..."
-    cp -an /data/store /config/ 2>/dev/null || true
+# ---- 一次性存量数据迁移（服务启动成功后清理旧源） ----
+if [ ! -f /config/.migrated ]; then
+    MIGRATION_ITEMS=""
+    if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
+        bashio::log.info "检测到历史 atv.mv.db 数据库，迁移至 /config..."
+        cp -an /data/atv.mv.db* /config/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/atv.mv.db*"
+    fi
+    if [ -d /data/store ] && [ ! -d /config/store ]; then
+        bashio::log.info "检测到历史 store 目录，迁移至 /config..."
+        cp -an /data/store /config/ 2>/dev/null || true
+        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/store"
+    fi
+
+    if [ -n "${MIGRATION_ITEMS}" ]; then
+        echo "${MIGRATION_ITEMS}" > /run/migration_cleanup_pending
+        bashio::log.info "已暂存迁移数据，待服务启动成功并验证后清空旧目录"
+    else
+        touch /config/.migrated
+    fi
 fi
 
 # 兼容用户放置在 /config 中的 database.zip 恢复包
