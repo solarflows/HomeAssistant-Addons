@@ -1,2 +1,2 @@
 rootfs 维护
-- fix(s6): 为 baihu-panel 等 6 个插件补齐初始化等待锁消除启动竞态
+- refactor: 全量升级 v3 map 对象化映射架构与零软链重构，修复 README 下载量徽章
