@@ -29,13 +29,22 @@ RUN test -n "${PANEL_VERSION}" || { echo "PANEL_VERSION is required"; exit 1; } 
     && mkdir -p /opt/cliproxyapi-seed \
     && PANEL_URL="https://github.com/seakee/CPA-Manager-Plus/releases/download/v${PANEL_VERSION}/management.html" \
     && echo "Downloading CPAMP panel from: ${PANEL_URL}" \
-    && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html
+    && ( \
+        curl -fsSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" --connect-timeout 20 --max-time 180 --retry 5 --retry-delay 5 --retry-all-errors "${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://ghfast.top/${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://mirror.ghproxy.com/${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
+    ) \
+    && test -s /opt/cliproxyapi-seed/management.html
 
 # ---- 层2: CPAMP Manager Server 二进制（PANEL_VERSION 变更时重建此层与层1）----
 # 完整版面板：请求监控/用量/成本/配额
 RUN CPAMP_URL="https://github.com/seakee/CPA-Manager-Plus/releases/download/v${PANEL_VERSION}/cpa-manager-plus_v${PANEL_VERSION}_linux_${TARGETARCH}.tar.gz" \
     && echo "Downloading CPAMP Manager Server from: ${CPAMP_URL}" \
-    && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${CPAMP_URL}" -o /tmp/cpamp.tar.gz \
+    && ( \
+        curl -fsSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" --connect-timeout 20 --max-time 180 --retry 5 --retry-delay 5 --retry-all-errors "${CPAMP_URL}" -o /tmp/cpamp.tar.gz \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://ghfast.top/${CPAMP_URL}" -o /tmp/cpamp.tar.gz \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://mirror.ghproxy.com/${CPAMP_URL}" -o /tmp/cpamp.tar.gz \
+    ) \
     && mkdir -p /tmp/cpamp \
     && tar -xzf /tmp/cpamp.tar.gz -C /tmp/cpamp --strip-components=1 \
     && mv /tmp/cpamp/cpa-manager-plus /usr/local/bin/cpa-manager-plus \
@@ -53,7 +62,11 @@ RUN test -n "${CPA_VERSION}" || { echo "CPA_VERSION is required"; exit 1; } \
     && mkdir -p /CLIProxyAPI \
     && CPA_URL="https://github.com/router-for-me/CLIProxyAPI/releases/download/v${CPA_VERSION}/CLIProxyAPI_${CPA_VERSION}_linux_${ARCH}.tar.gz" \
     && echo "Downloading CLIProxyAPI from: ${CPA_URL}" \
-    && curl -fsSL --retry 3 --retry-delay 3 --retry-all-errors "${CPA_URL}" -o /tmp/cpa.tar.gz \
+    && ( \
+        curl -fsSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" --connect-timeout 20 --max-time 180 --retry 5 --retry-delay 5 --retry-all-errors "${CPA_URL}" -o /tmp/cpa.tar.gz \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://ghfast.top/${CPA_URL}" -o /tmp/cpa.tar.gz \
+        || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://mirror.ghproxy.com/${CPA_URL}" -o /tmp/cpa.tar.gz \
+    ) \
     && tar -xzf /tmp/cpa.tar.gz -C /CLIProxyAPI \
     && chmod +x /CLIProxyAPI/cli-proxy-api \
     && rm -rf /tmp/*
