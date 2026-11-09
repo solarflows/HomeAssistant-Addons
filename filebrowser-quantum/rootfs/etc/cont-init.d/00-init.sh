@@ -113,4 +113,5 @@ case "$AUTH_METHOD" in
         ;;
 esac
 
+touch /run/filebrowser-initialized
 bashio::log.info "FileBrowser Quantum initialization completed"

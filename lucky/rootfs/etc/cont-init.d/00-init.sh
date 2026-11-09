@@ -21,4 +21,5 @@ if [ ! -f /config/.migrated ]; then
     fi
 fi
 
+touch /run/lucky-initialized
 bashio::log.info "Lucky initialization completed"

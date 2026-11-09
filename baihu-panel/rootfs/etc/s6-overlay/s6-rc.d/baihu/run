@@ -5,6 +5,15 @@
 # ==============================================================================
 bashio::log.info "Starting Baihu Panel..."
 
+# 等待 cont-init 完成（legacy-cont-init 与 baihu 可能并行启动，避免数据库目录未就绪）
+for _ in $(seq 1 60); do
+    [ -f /run/baihu-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/baihu-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
+fi
+
 # 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
 if [ -f /run/migration_cleanup_pending ]; then
     (

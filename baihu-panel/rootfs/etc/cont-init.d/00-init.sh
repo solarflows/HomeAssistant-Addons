@@ -59,4 +59,5 @@ export BH_DB_PATH=/config/data/baihu.db
 
 bashio::log.info "Baihu Panel config: port=${BH_SERVER_PORT}, host=${BH_SERVER_HOST}"
 
+touch /run/baihu-initialized
 bashio::log.info "Baihu Panel initialization completed"

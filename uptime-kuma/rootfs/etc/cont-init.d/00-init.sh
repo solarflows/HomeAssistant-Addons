@@ -67,4 +67,5 @@ if [ -x /usr/sbin/nscd ]; then
     /usr/sbin/nscd -f /etc/nscd.conf || bashio::log.warning "Failed to start nscd"
 fi
 
+touch /run/kuma-initialized
 bashio::log.info "Uptime Kuma initialization completed"

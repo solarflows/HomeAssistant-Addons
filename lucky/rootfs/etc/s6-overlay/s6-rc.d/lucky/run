@@ -6,6 +6,15 @@
 # ==============================================================================
 bashio::log.info "Starting Lucky..."
 
+# 等待 cont-init 完成（legacy-cont-init 与 lucky 可能并行启动）
+for _ in $(seq 1 60); do
+    [ -f /run/lucky-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/lucky-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
+fi
+
 # 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
 if [ -f /run/migration_cleanup_pending ]; then
     (

@@ -42,4 +42,5 @@ if [ ! -L /usr/src/app/config ]; then
     ln -sf /config /usr/src/app/config
 fi
 
+touch /run/qdtoday-initialized
 bashio::log.info "QD-Today initialization completed"
