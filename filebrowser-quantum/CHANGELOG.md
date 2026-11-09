@@ -1,3 +1,10 @@
+### 2.0.2-stable-build.6 (2026-11-09)
+
+rootfs 维护
+- fix(s6): 为 baihu-panel 等 6 个插件补齐初始化等待锁消除启动竞态
+
+---
+
 ### 2.0.2-stable-build.5 (2026-11-09)
 
 rootfs 维护
