@@ -1,3 +1,10 @@
+### 1.6.3-build.6 (2026-11-09)
+
+rootfs 维护
+- fix(migration): 为 uptime-kuma、qinglong 及 baihu-panel 补充过渡期 data 子目录存量平铺自愈
+
+---
+
 ### 1.6.3-build.5 (2026-11-09)
 
 rootfs 维护
