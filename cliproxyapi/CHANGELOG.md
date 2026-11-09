@@ -1,3 +1,10 @@
+### 8.0.61-build.3 (2026-11-09)
+
+Dockerfile 维护
+- fix(build): 为 cliproxyapi 及 cpamp 的 Dockerfile 资产下载注入防 504 抖动重试与多源 fallback
+
+---
+
 ### 8.0.61-build.2 (2026-11-09)
 
 rootfs 维护
