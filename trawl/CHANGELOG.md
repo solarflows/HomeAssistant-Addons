@@ -1,3 +1,26 @@
+### 1.11.0 (2026-11-09)
+
+#### Highlights
+
+- **Native HTTP proof of work:** supported NCBI and Anubis GET challenges can complete before browser escalation. Hashing runs in a cancellable worker with one search thread and a one-second budget within the request deadline; unsupported or rejected attempts keep browser fallback.
+- **Opt-in POST clearance reuse:** set `httpReplay: true` to reuse browser-verified Cloudflare or Anubis clearance over HTTP. Accepted or ambiguous POST submissions are not resent during recovery.
+- **Prowlarr proxy pings fixed:** successful pings no longer require cookies when `FLARESOLVERR_COOKIE_FALLBACK=true`; protected indexers retain the cookie handoff checks.
+
+#### Major changes
+
+- 8080501: add bounded native NCBI/Anubis proof-of-work solving, cookie scoping and protocol checks (#272).
+- a3052c3: add safe, opt-in HTTP clearance replay for POST requests (#268, #274).
+- a921f12: preserve cookie-free Prowlarr ping checks (#273, #275).
+- cde7abc: refresh compatible workspace and cryptographic dependencies; build native PoW with Rust 1.99.1 and retain the validated browser/runtime combination.
+
+No configuration or data migration is required. Recreate the container with the updated image and keep existing data volumes. The client workspace remains at 0.1.0; this release does not publish it to npm.
+
+Thanks to @yuxi-liu-wired for the native PoW contribution, @TheBeastLT for POST clearance replay and @Feredzhanov for the Prowlarr ping report.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.10.1...v1.11.0
+
+---
+
 ### 1.10.1-build.2 (2026-11-09)
 
 CI 工作流维护
