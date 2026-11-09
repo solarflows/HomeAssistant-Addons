@@ -1,3 +1,10 @@
+### 2.0.2-stable-build.4 (2026-11-09)
+
+CI 工作流维护
+- chore(changelog): 全面规范全插件更新日志格式并为 Release 流水线注入语法自愈沙盒 [skip-rebuild]
+
+---
+
 ### 2.0.2-stable-build.3 (2026-11-08)
 
 CI 工作流维护
