@@ -1,2 +1,2 @@
 rootfs 维护
-- refactor: 全量升级 v3 map 对象化映射架构与零软链重构，修复 README 下载量徽章
+- fix(migration): 为 uptime-kuma、qinglong 及 baihu-panel 补充过渡期 data 子目录存量平铺自愈
