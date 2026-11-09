@@ -33,6 +33,13 @@ if [ ! -f /app/data/.migrated_from_legacy ]; then
     fi
 fi
 
+# ---- 兼容过渡期历史版本（当数据曾存放在子目录 data/ 时的平铺自愈） ----
+if [ -d /app/data/data ] && [ ! -f /app/data/baihu.db ]; then
+    bashio::log.info "检测到过渡期 data 子目录存量数据，自动平铺上移..."
+    cp -an /app/data/data/. /app/data/ 2>/dev/null || true
+    rm -rf /app/data/data 2>/dev/null || true
+fi
+
 # ---- mise 运行时环境 (存放于 /data/mise 私有卷，避开 HA 备份膨胀) ----
 if [ -d /opt/mise-base ] && [ -z "$(ls -A /data/mise 2>/dev/null)" ]; then
     bashio::log.info "同步内置 mise 运行时环境基座至 /data/mise..."

@@ -33,6 +33,13 @@ if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
     fi
 fi
 
+# ---- 兼容过渡期历史版本（当数据曾存放在子目录 data/ 时的平铺自愈） ----
+if [ -d "${DATA_DIR}/data" ] && [ ! -f "${DATA_DIR}/kuma.db" ]; then
+    bashio::log.info "检测到过渡期 data 子目录存量数据，自动平铺上移..."
+    cp -an "${DATA_DIR}/data/." "${DATA_DIR}/" 2>/dev/null || true
+    rm -rf "${DATA_DIR}/data" 2>/dev/null || true
+fi
+
 # ---- MariaDB 数据目录 (存放在 /data/mysql 私有卷，避开 HA 备份膨胀) ----
 MYSQL_DIR="/data/mysql"
 mkdir -p "$MYSQL_DIR"

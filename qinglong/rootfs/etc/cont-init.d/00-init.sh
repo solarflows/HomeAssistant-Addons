@@ -30,6 +30,14 @@ if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
     fi
 fi
 
+# ---- 兼容过渡期历史版本（当数据曾存放在子目录 data/ 时的平铺自愈） ----
+if [ -d "${DATA_DIR}/data" ] && [ ! -f "${DATA_DIR}/db/database.sqlite" ]; then
+    bashio::log.info "检测到过渡期 qinglong/data 子目录存量数据，平铺平移至原生数据目录..."
+    cp -an "${DATA_DIR}/data/." "${DATA_DIR}/" 2>/dev/null || true
+    rm -rf "${DATA_DIR}/data" 2>/dev/null || true
+    rm -f "${DATA_DIR}/run.py" "${DATA_DIR}/package.json" 2>/dev/null || true
+fi
+
 # 初始化 .env（上游要求，缺失会导致应用启动异常）
 if [ -f /ql/.env.example ] && [ ! -f /ql/.env ]; then
     bashio::log.info "Creating .env from .env.example..."
