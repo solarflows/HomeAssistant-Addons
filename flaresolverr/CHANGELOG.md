@@ -1,3 +1,11 @@
+### 3.5.2-build.8 (2026-11-09)
+
+Dockerfile 维护
+- feat(migration,healthcheck): 引入一次性迁移延迟清理状态机与双轨精准探活机制
+- refactor(storage): 适配 HA 新版 addon_config 存储隔离架构并重构 map 权限矩阵
+
+---
+
 ### 3.5.2-build.7 (2026-11-09)
 
 CI 工作流维护
