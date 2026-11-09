@@ -107,14 +107,15 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d "/config/cliproxyapi" ] && [ ! -L "/config/cliproxyapi" ] && [ ! -f "${CONFIG_FILE}" ]; then
-        bashio::log.info "检测到历史 cliproxyapi 子目录，自动平铺至 /config 根目录..."
-        cp -an /config/cliproxyapi/. /config/
-        echo "/config/cliproxyapi" > /run/migration_cleanup_pending
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 目录） ----
+if [ ! -f /config/.migrated_from_legacy ]; then
+    if [ -d "/legacy_ha/cliproxyapi" ] && [ ! -f "${CONFIG_FILE}" ]; then
+        bashio::log.info "检测到历史 Core 存量数据，自动平铺至 /config 根目录..."
+        cp -an /legacy_ha/cliproxyapi/. /config/ 2>/dev/null || true
+        touch /config/.migrated_from_legacy
+        echo "/legacy_ha/cliproxyapi" > /run/migration_cleanup_pending
     else
-        touch /config/.migrated
+        touch /config/.migrated_from_legacy
     fi
 fi
 
@@ -287,4 +288,5 @@ if [ ! -s "${DATA_DIR}/static/management.html" ]; then
     bashio::log.info "已从镜像种子恢复 CPAMP 管理面板（联网后将自动检查更新）"
 fi
 
+touch /run/cliproxyapi-initialized
 bashio::log.info "CLIProxyAPI initialization completed"

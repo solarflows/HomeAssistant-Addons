@@ -10,14 +10,14 @@ bashio::log.info "Initializing FileBrowser Quantum..."
 ################
 # DIRS         #
 ################
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d /config/filebrowser-quantum ] && [ ! -f /config/config.yaml ]; then
-        bashio::log.info "检测到历史 filebrowser-quantum 子目录，自动平铺至 /config 根目录..."
-        cp -an /config/filebrowser-quantum/. /config/
-        echo "/config/filebrowser-quantum" > /run/migration_cleanup_pending
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /homeassistant 目录） ----
+if [ ! -f /config/.migrated_from_legacy ]; then
+    if [ -d /homeassistant/filebrowser-quantum ] && [ ! -f /config/config.yaml ]; then
+        bashio::log.info "检测到历史 Core 存量数据，自动平铺至 /config 根目录..."
+        cp -an /homeassistant/filebrowser-quantum/. /config/ 2>/dev/null || true
+        echo "/homeassistant/filebrowser-quantum" > /run/migration_cleanup_pending
     else
-        touch /config/.migrated
+        touch /config/.migrated_from_legacy
     fi
 fi
 

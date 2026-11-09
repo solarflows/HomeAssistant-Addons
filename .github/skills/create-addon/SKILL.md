@@ -32,7 +32,7 @@ description: 新建 HA 加载项。从模板创建骨架目录，后续由 plan-
 ├── Dockerfile                 # 多架构下载与装配文件
 ├── version.yaml               # 版本与依赖追踪
 ├── rootfs/etc/cont-init.d/
-│   └── 00-init.sh             # 目录初始化与软链接建立
+│   └── 00-init.sh             # 原生直挂校验、自愈探测与启动屏障锁
 ├── rootfs/etc/s6-overlay/
 │   ├── scripts/
 │   │   └── stage2_hook.sh     # S6 stage2 启动钩子
@@ -58,16 +58,11 @@ cp -r .github/templates/binary/ <addon-slug>/
 mv <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/ADDON_SLUG \
    <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/<slug>/
 
-# 4. 完善 config.yaml（url, webui, ports, description）
-# 5. 完善 Dockerfile 与脚本
-# 6. 本地验证无误后登记至 AGENTS.md 列表
-```
-
-# 4. 完善 config.yaml（url, webui, ports, description）
+# 4. 完善 config.yaml（map 对象化声明、url、webui、ports、description）
 # 5. 实现 Dockerfile 构建逻辑
-# 6. 配置 00-init.sh 建立持久化软链接
-# 7. 配置 run 脚本前台 exec 主程序
-# 8. 登记至 AGENTS.md 列表
+# 6. 配置 00-init.sh 执行存量自愈探测与初始化屏障锁（严禁写 ln -s 软链接）
+# 7. 配置 run 脚本前台 exec 主程序（参数直指原生直挂路径）
+# 8. 本地验证无误后登记至 AGENTS.md 列表
 ```
 
 ## version.yaml 声明范例

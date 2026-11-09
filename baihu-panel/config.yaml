@@ -17,7 +17,14 @@ ports_description:
 options: {}
 schema: {}
 map:
-  - addon_config:rw
-  - share:rw
+  - type: app_config
+    path: /app/data
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+  - type: share
+    path: /share
+    read_only: false
 startup: application
 boot: manual

@@ -25,7 +25,7 @@ RUN chmod +x /ha-entrypoint.sh
 
 # 覆盖 ENTRYPOINT 接管初始化 (Docker 规则: 设置 ENTRYPOINT 会清空继承的 CMD，必须显式补全 CMD)
 ENTRYPOINT ["/ha-entrypoint.sh"]
-CMD ["app", "--config", "/config/ADDON_SLUG/config.yaml"]
+CMD ["app", "--config", "/app/data/config.yaml"]
 
 # 端口声明 (按需修改)
 EXPOSE 8080/tcp

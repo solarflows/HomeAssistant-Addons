@@ -41,7 +41,5 @@ cap_add:
   - SYS_ADMIN
   - IPC_LOCK
 tmpfs: true
-map:
-  - addon_config:rw
 startup: application
 boot: manual

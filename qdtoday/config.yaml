@@ -45,7 +45,14 @@ schema:
   TASK_WHILE_LOOP_TIMEOUT: int?
   NEW_TASK_DELAY: int?
 map:
-  - addon_config:rw
-  - ssl:ro
+  - type: app_config
+    path: /usr/src/app/config
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+  - type: ssl
+    path: /ssl
+    read_only: true
 startup: application
 boot: manual

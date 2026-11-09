@@ -28,6 +28,11 @@ schema:
   LOW_MEMORY: bool?
   ATV_DEBUG: bool?
 map:
-  - addon_config:rw
+  - type: app_config
+    path: /config
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
 startup: application
 boot: manual

@@ -16,4 +16,9 @@ ports:
 ports_description:
   8080/tcp: "Web UI port"
 map:
-  - config:rw
+  - type: app_config
+    path: /app/data
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false

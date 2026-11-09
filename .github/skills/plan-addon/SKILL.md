@@ -45,7 +45,7 @@ plan-addon: 探查上游架构 → 填充 analysis.yaml
 
 ### 4. 文件系统与持久化适配
 针对上游 VOLUME 与硬编码路径，建立 Home Assistant 映射规则：
-- 数据持久化：`/app/data` $	o$ `/config/<slug>/data`（于 `00-init.sh` 中创建软链接）。
+- 数据持久化：`/app/data` $\to$ 通过 `config.yaml` 的 `type: app_config, path: /app/data` 原生直挂，禁止软链接。
 - 工作目录敏感性：排查应用是否依赖特定 CWD 解析相对路径。
 - 构建期文件探测：排查应用是否依赖 `/app_version` 或 `/docker.version` 等镜像层硬编码标识。
 
@@ -90,12 +90,13 @@ network:
 filesystem:
   persistent_dirs:
     - container: /app/data
-      ha: /config/<slug>/data
-      type: symlink
+      ha: app_config
+      type: direct_mount
+      read_only: false
       reason: Upstream VOLUME /app/data
   hardcoded_paths:
     - path: /app_version
-      ha: /config/<slug>/app_version
+      ha: /config/app_version
       type: file
   cwd_matters: true
 

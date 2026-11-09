@@ -17,7 +17,12 @@ ports:
 ports_description:
   3000/tcp: "Web 面板 / MCP 端点"
 map:
-  - addon_config:rw
+  - type: app_config
+    path: /app/data
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
 options:
   ADMIN_PASSWORD: ""
   NPM_REGISTRY: "https://registry.npmjs.org/"

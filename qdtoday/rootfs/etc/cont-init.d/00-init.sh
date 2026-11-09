@@ -2,44 +2,32 @@
 # shellcheck shell=bash
 # ==============================================================================
 # QD-Today 初始化脚本
+# 零软链架构：app_config 直挂 /usr/src/app/config，双轨自愈探测 /legacy_ha
 # ==============================================================================
-# QD 不支持命令行/环境变量指定 config 目录，用 symlink 实现持久化
-# 映射至 /config（由 addon_config:rw 提供，随 HA 备份持久化）
 
 bashio::log.info "Initializing QD-Today..."
 
-mkdir -p /config
+DATA_DIR="/usr/src/app/config"
+mkdir -p "${DATA_DIR}"
 
-# ---- 一次性存量数据迁移（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    MIGRATION_ITEMS=""
-    if [ -d /data/qd ] && [ "$(ls -A /data/qd 2>/dev/null)" ] && [ ! "$(ls -A /config 2>/dev/null)" ]; then
-        bashio::log.info "检测到历史 /data/qd 数据，迁移至 /config..."
-        cp -an /data/qd/* /config/ 2>/dev/null || true
-        MIGRATION_ITEMS="${MIGRATION_ITEMS} /data/qd"
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 与 /data/qd） ----
+if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
+    MIGRATION_SRC=""
+    if [ -f /legacy_ha/qdtoday/database.db ] && [ ! -f "${DATA_DIR}/database.db" ]; then
+        MIGRATION_SRC="/legacy_ha/qdtoday"
+    elif [ -f /data/qd/database.db ] && [ ! -f "${DATA_DIR}/database.db" ]; then
+        MIGRATION_SRC="/data/qd"
     fi
 
-    # 首次启动迁移内置数据
-    if [ -d /usr/src/app/config ] && [ ! -L /usr/src/app/config ] && [ "$(ls -A /usr/src/app/config 2>/dev/null)" ]; then
-        if [ ! "$(ls -A /config 2>/dev/null)" ]; then
-            bashio::log.info "首次启动：迁移内置种子数据至 /config..."
-            cp -rn /usr/src/app/config/* /config/ 2>/dev/null || true
-        fi
-        rm -rf /usr/src/app/config
-    fi
-
-    if [ -n "${MIGRATION_ITEMS}" ]; then
-        echo "${MIGRATION_ITEMS}" > /run/migration_cleanup_pending
-        bashio::log.info "已暂存迁移数据，待服务启动成功并验证后清空旧目录"
+    if [ -n "${MIGRATION_SRC}" ]; then
+        bashio::log.info "检测到历史存量数据 (${MIGRATION_SRC})，执行一次性增量平移..."
+        cp -an "${MIGRATION_SRC}/." "${DATA_DIR}/" 2>/dev/null || true
+        touch "${DATA_DIR}/.migrated_from_legacy"
+        echo "${MIGRATION_SRC}" > /run/migration_cleanup_pending
+        bashio::log.info "存量数据平移完成，服务启动验证通过后将登记清理。"
     else
-        touch /config/.migrated
+        touch "${DATA_DIR}/.migrated_from_legacy"
     fi
-fi
-
-# 创建符号链接指向 /config
-if [ ! -L /usr/src/app/config ]; then
-    rm -rf /usr/src/app/config
-    ln -sf /config /usr/src/app/config
 fi
 
 touch /run/qdtoday-initialized

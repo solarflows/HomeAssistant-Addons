@@ -26,8 +26,8 @@ if [ -f /run/migration_cleanup_pending ]; then
                     rm -rf "${p}" 2>/dev/null || true
                 done
                 rm -f /run/migration_cleanup_pending
-                touch /config/.migrated
-                bashio::log.info "历史子目录已彻底清空，一次性迁移完成。"
+                touch /config/.migrated_from_legacy
+                bashio::log.info "存量迁移已彻底落定。"
                 break
             fi
             sleep 2

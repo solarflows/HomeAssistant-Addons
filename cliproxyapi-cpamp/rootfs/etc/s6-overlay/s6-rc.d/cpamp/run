@@ -18,13 +18,14 @@ export USAGE_DB_PATH="/config/cpamp/usage.sqlite"
 export CPA_MANAGER_DATA_KEY_PATH="/config/cpamp/data.key"
 export USAGE_COLLECTOR_MODE="auto"
 
-# 等待 cont-init 写出密钥文件（最多 30 秒；超时则以未连接/未设置状态继续）
-for _ in $(seq 1 30); do
-    [ -s /config/management_key.txt ] \
-        && [ -s /config/cpamp_admin_key.txt ] \
-        && break
+# 等待 cont-init 完成（最多 60 秒，消除启动竞态）
+for _ in $(seq 1 60); do
+    [ -f /run/cpamp-initialized ] && break
     sleep 1
 done
+if [ ! -f /run/cpamp-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
+fi
 
 # 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
 if [ -f /run/migration_cleanup_pending ]; then
@@ -38,10 +39,8 @@ if [ -f /run/migration_cleanup_pending ]; then
                     rm -rf "${p}" 2>/dev/null || true
                 done
                 rm -f /run/migration_cleanup_pending
-                touch /config/.migrated
-                mkdir -p /config/cliproxyapi-cpamp
-                ln -sfn /config/auths /config/cliproxyapi-cpamp/auths
-                bashio::log.info "历史子目录已彻底清空，一次性迁移完成。"
+                touch /config/.migrated_from_legacy
+                bashio::log.info "存量迁移已彻底落定。"
                 break
             fi
             sleep 2

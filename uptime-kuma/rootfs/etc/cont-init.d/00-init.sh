@@ -2,66 +2,46 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Uptime Kuma 初始化脚本
-# 参照: louislam/uptime-kuma docker/debian-base.dockerfile
+# 零软链架构：app_config 直挂 /opt/uptime-kuma/data，双轨自愈探测 /legacy_ha
 # ==============================================================================
 set -e
 
 bashio::log.info "Initializing Uptime Kuma..."
 
-mkdir -p /config
-
-################
-# DATA DIR     #
-################
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d /config/uptime-kuma ] && [ ! -d /config/data ]; then
-        bashio::log.info "检测到历史 uptime-kuma 子目录，平铺至 /config 根目录..."
-        cp -an /config/uptime-kuma/. /config/
-        echo "/config/uptime-kuma" > /run/migration_cleanup_pending
-    else
-        touch /config/.migrated
-    fi
-fi
-
-DATA_DIR="/config/data"
-
-if [ ! -d "$DATA_DIR" ]; then
-    if [ -d /opt/uptime-kuma/data ] && [ "$(ls -A /opt/uptime-kuma/data 2>/dev/null)" ]; then
-        bashio::log.info "Migrating existing data to ${DATA_DIR}"
-        mkdir -p /config/data
-        cp -rn /opt/uptime-kuma/data/* /config/data/
-    fi
-fi
+DATA_DIR="/opt/uptime-kuma/data"
 mkdir -p "$DATA_DIR"
 
-if [ ! -L /opt/uptime-kuma/data ]; then
-    rm -rf /opt/uptime-kuma/data
-    ln -s "$DATA_DIR" /opt/uptime-kuma/data
-    bashio::log.info "Linked data directory to ${DATA_DIR}"
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 目录） ----
+if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
+    MIGRATION_SRC=""
+    if [ -d /legacy_ha/uptime-kuma ] && [ ! -f "${DATA_DIR}/kuma.db" ]; then
+        MIGRATION_SRC="/legacy_ha/uptime-kuma"
+    fi
+
+    if [ -n "${MIGRATION_SRC}" ]; then
+        bashio::log.info "检测到历史 Core 存量数据 (${MIGRATION_SRC})，执行一次性增量平移..."
+        if [ -d "${MIGRATION_SRC}/data" ]; then
+            cp -an "${MIGRATION_SRC}/data/." "${DATA_DIR}/" 2>/dev/null || true
+        else
+            cp -an "${MIGRATION_SRC}/." "${DATA_DIR}/" 2>/dev/null || true
+        fi
+        touch "${DATA_DIR}/.migrated_from_legacy"
+        echo "${MIGRATION_SRC}" > /run/migration_cleanup_pending
+        bashio::log.info "存量数据平移完成，服务启动验证通过后将登记清理。"
+    else
+        touch "${DATA_DIR}/.migrated_from_legacy"
+    fi
 fi
 
-################
-# MARIADB      #
-################
-# 确保 MariaDB 数据目录可写 (UPTIME_KUMA_ENABLE_EMBEDDED_MARIADB=1 时可选使用)
-MYSQL_DIR="/config/mysql"
-if [ ! -d "$MYSQL_DIR" ]; then
-    mkdir -p "$MYSQL_DIR"
-    bashio::log.info "Created MariaDB data dir: ${MYSQL_DIR}"
-fi
-
-# 如果 /var/lib/mysql 不存在或为空，link 到持久化目录
+# ---- MariaDB 数据目录 (存放在 /data/mysql 私有卷，避开 HA 备份膨胀) ----
+MYSQL_DIR="/data/mysql"
+mkdir -p "$MYSQL_DIR"
 if [ ! -d /var/lib/mysql ] || [ -z "$(ls -A /var/lib/mysql 2>/dev/null)" ]; then
     rm -rf /var/lib/mysql
-    ln -s "$MYSQL_DIR" /var/lib/mysql
-    bashio::log.info "Linked MariaDB data to ${MYSQL_DIR}"
+    ln -sf "$MYSQL_DIR" /var/lib/mysql 2>/dev/null || true
 fi
 
-################
-# NSCD (DNS)   #
-################
-# 启动 nscd 缓存 DNS 查询，加速大量监控目标的域名解析
+# ---- NSCD (DNS 缓存加速) ----
 if [ -x /usr/sbin/nscd ]; then
     bashio::log.info "Starting nscd DNS cache..."
     /usr/sbin/nscd -f /etc/nscd.conf || bashio::log.warning "Failed to start nscd"

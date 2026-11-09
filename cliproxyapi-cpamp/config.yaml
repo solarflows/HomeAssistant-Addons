@@ -29,7 +29,12 @@ ports_description:
   51121/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
   11451/tcp: "OAuth 回调备用端口（默认关闭，按需启用）"
 map:
-  - addon_config:rw
+  - type: app_config
+    path: /config
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
 options:
   MANAGEMENT_KEY: ""
   CPAMP_ADMIN_KEY: ""

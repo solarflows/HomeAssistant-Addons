@@ -2,43 +2,35 @@
 # shellcheck shell=bash
 # ==============================================================================
 # Qinglong 初始化脚本
+# 零软链架构：app_config 直挂 /ql/data，镜像代码保存在 /ql，双轨自愈探测 /legacy_ha
 # ==============================================================================
-# 将镜像内的 /ql 源码迁移到 /config（HA 自动备份持久化）
-# 保留 /ql 作为 symlink 兜底所有硬编码路径（shell 脚本、docker-entrypoint 等）
 
 bashio::log.info "Initializing Qinglong..."
 
-mkdir -p /config
+DATA_DIR="/ql/data"
+mkdir -p "${DATA_DIR}"
 
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d /config/qinglong ] && [ ! -f /config/run.py ]; then
-        bashio::log.info "检测到历史 qinglong 子目录，平铺至 /config 根目录..."
-        cp -an /config/qinglong/. /config/
-        echo "/config/qinglong" > /run/migration_cleanup_pending
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 目录） ----
+if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
+    MIGRATION_SRC=""
+    if [ -d /legacy_ha/qinglong/data ] && [ ! -f "${DATA_DIR}/db/database.sqlite" ]; then
+        MIGRATION_SRC="/legacy_ha/qinglong/data"
+    elif [ -d /legacy_ha/qinglong ] && [ ! -f "${DATA_DIR}/db/database.sqlite" ]; then
+        MIGRATION_SRC="/legacy_ha/qinglong"
+    fi
+
+    if [ -n "${MIGRATION_SRC}" ]; then
+        bashio::log.info "检测到历史 Core 存量数据 (${MIGRATION_SRC})，执行一次性增量平移..."
+        cp -an "${MIGRATION_SRC}/." "${DATA_DIR}/" 2>/dev/null || true
+        touch "${DATA_DIR}/.migrated_from_legacy"
+        echo "${MIGRATION_SRC}" > /run/migration_cleanup_pending
+        bashio::log.info "存量数据平移完成，服务启动验证通过后将登记清理。"
     else
-        touch /config/.migrated
+        touch "${DATA_DIR}/.migrated_from_legacy"
     fi
 fi
 
-# 1. 首次启动：迁移源码到持久化目录（跳过 data 避免覆盖已有数据）
-if [ ! -f /config/run.py ]; then
-    bashio::log.info "First boot: migrating source to persistent storage..."
-    find /ql -mindepth 1 -maxdepth 1 -not -name data \
-        -exec cp -an {} /config/ \;
-fi
-
-# 2. 确保 data 目录存在
-mkdir -p /config/data
-
-# 3. 替换 /ql 为 symlink（兜底所有硬编码 /ql/xxx 路径）
-#    QL_DIR 默认 = /ql → symlink → /config
-if [ ! -L /ql ]; then
-    rm -rf /ql
-    ln -sf /config /ql
-fi
-
-# 4. 初始化 .env（上游 Dockerfile 同款操作，缺失会导致 app 崩溃）
+# 初始化 .env（上游要求，缺失会导致应用启动异常）
 if [ -f /ql/.env.example ] && [ ! -f /ql/.env ]; then
     bashio::log.info "Creating .env from .env.example..."
     cp /ql/.env.example /ql/.env

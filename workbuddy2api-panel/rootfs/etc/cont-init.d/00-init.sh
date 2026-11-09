@@ -59,14 +59,15 @@ ha_options_backfill() {
 ################
 # DIRS         #
 ################
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d "/config/workbuddy2api-panel" ] && [ ! -f "${CONFIG_FILE}" ]; then
-        bashio::log.info "检测到历史 workbuddy2api-panel 子目录，自动平铺至 /config 根目录..."
-        cp -an /config/workbuddy2api-panel/. /config/
-        echo "/config/workbuddy2api-panel" > /run/migration_cleanup_pending
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 目录） ----
+if [ ! -f /config/.migrated_from_legacy ]; then
+    if [ -d "/legacy_ha/workbuddy2api-panel" ] && [ ! -f "${CONFIG_FILE}" ]; then
+        bashio::log.info "检测到历史 Core 存量数据，自动平铺至 /config 根目录..."
+        cp -an /legacy_ha/workbuddy2api-panel/. /config/ 2>/dev/null || true
+        touch /config/.migrated_from_legacy
+        echo "/legacy_ha/workbuddy2api-panel" > /run/migration_cleanup_pending
     else
-        touch /config/.migrated
+        touch /config/.migrated_from_legacy
     fi
 fi
 
@@ -176,4 +177,5 @@ fi
 ln -sfn "${AUTH_DIR}" /app/auths
 ln -sfn "${APP_DATA_DIR}" /app/data
 
+touch /run/wb2api-initialized
 bashio::log.info "WorkBuddy2API Panel initialization completed"

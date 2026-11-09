@@ -53,3 +53,11 @@ applyTo: "**/config.yaml **/00-init.sh **/run **/Dockerfile"
 
 - 移除未使用的冗余配置字段，保持清单精简清晰。
 - 遇到未知字段时查阅官方规范：`https://developers.home-assistant.io/docs/apps/configuration`。
+
+## map 目录映射对象化规范
+
+- **禁止简写语法**：严禁使用 `addon_config:rw` 或 `config:rw` 等字符串简写，必须采用 Dict 对象格式。
+- **正规军类型**：使用官方最新 `type: app_config`（旧称 `addon_config` 已被 Supervisor 弃用告警）。
+- **显式可写声明**：Supervisor Schema 对 `read_only` 的默认值为 `true`；任何需要读写的挂载必须显式配置 `read_only: false`，严防容器只读故障。
+- **原生路径直挂**：通过 `path: <upstream_path>` 将数据直接挂载至应用原生工作路径，彻底消灭 `00-init.sh` 中的 `ln -s` 软链胶水，防止原子写 `rename()` 断链。
+- **双轨存量自愈**：统一声明 `type: homeassistant_config, path: /legacy_ha, read_only: false`，专供 `00-init.sh` 探测历史 Core 存量数据并执行一次性平滑迁移。

@@ -25,6 +25,12 @@ mkdir -p /config /config/alist /data/atv/config/ /data/log /data/index
 # ---- 一次性存量数据迁移（服务启动成功后清理旧源） ----
 if [ ! -f /config/.migrated ]; then
     MIGRATION_ITEMS=""
+    # 双轨探测：若存量数据位于旧版 HA 路径 /legacy_ha/alist-tvbox，自动自愈迁移至 /config
+    if [ -d /legacy_ha/alist-tvbox ] && [ ! -f /config/atv.mv.db ]; then
+        bashio::log.info "检测到旧版 HA 路径 /legacy_ha/alist-tvbox 存量数据，自动自愈迁移..."
+        cp -an /legacy_ha/alist-tvbox/* /config/ 2>/dev/null || true
+    fi
+
     if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
         bashio::log.info "检测到历史 atv.mv.db 数据库，迁移至 /config..."
         cp -an /data/atv.mv.db* /config/ 2>/dev/null || true

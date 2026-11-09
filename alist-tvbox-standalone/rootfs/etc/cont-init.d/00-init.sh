@@ -7,7 +7,7 @@
 
 bashio::log.info "Initializing alist-tvbox-standalone..."
 
-# 确保持久化目录存在（/config 映射自 addon_config:rw）
+# 确保持久化目录存在（/config 映射自 type: app_config）
 mkdir -p /config /data/log
 
 # 标记 H2 数据库版本，避免新装或已升级系统反复触发旧版本升级逻辑
@@ -16,6 +16,12 @@ mkdir -p /config /data/log
 # ---- 一次性存量数据迁移（服务启动成功后清理旧源） ----
 if [ ! -f /config/.migrated ]; then
     MIGRATION_ITEMS=""
+    # 双轨探测：若存量数据位于旧版 HA 路径 /legacy_ha/alist-tvbox-standalone，自动自愈迁移至 /config
+    if [ -d /legacy_ha/alist-tvbox-standalone ] && [ ! -f /config/atv.mv.db ]; then
+        bashio::log.info "检测到旧版 HA 路径 /legacy_ha/alist-tvbox-standalone 存量数据，自动自愈迁移..."
+        cp -an /legacy_ha/alist-tvbox-standalone/* /config/ 2>/dev/null || true
+    fi
+
     if [ -f /data/atv.mv.db ] && [ ! -f /config/atv.mv.db ]; then
         bashio::log.info "检测到历史 atv.mv.db 数据库，迁移至 /config..."
         cp -an /data/atv.mv.db* /config/ 2>/dev/null || true

@@ -15,5 +15,5 @@ if [ ! -f /run/ADDON_SLUG-initialized ]; then
     bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露潜在错误"
 fi
 
-# 前台阻塞执行主程序
-exec /usr/local/bin/app --config /config/ADDON_SLUG/config.yaml
+# 前台阻塞执行主程序 (参数直接指向原生直挂路径，零软链接)
+exec /usr/local/bin/app --config /app/data/config.yaml

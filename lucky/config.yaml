@@ -20,5 +20,12 @@ ingress_port: 16601
 icon: "mdi:server-network"
 host_network: true
 map:
-  - addon_config:rw
-  - ssl:ro
+  - type: app_config
+    path: /goodluck
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+  - type: ssl
+    path: /ssl
+    read_only: true

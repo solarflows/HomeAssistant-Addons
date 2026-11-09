@@ -56,12 +56,18 @@ arch: [aarch64, amd64]
 
 # --- Storage & Mounts ---
 # map:                                          # Volume mounts (default: none)
-#   - share:rw                                  # /share (cross-addon storage)
-#   - ssl:ro                                    # /ssl (certificates)
-#   - config:rw                                 # /config (HA config, use sparingly)
-#   - media:ro                                  # /media
-#   - backup:rw                                 # /backup
-#   - addon_config:rw                           # /config inside addon (for advanced configs)
+#   - type: app_config                          # App persistent config (default: /config; use path for upstream native)
+#     path: /app/data
+#     read_only: false                          # Explicit false required (schema defaults to true)
+#   - type: homeassistant_config                # HA Core storage (migration probe)
+#     path: /legacy_ha
+#     read_only: false
+#   - type: share                               # /share (cross-addon storage)
+#     path: /share
+#     read_only: false
+#   - type: ssl                                 # /ssl (certificates)
+#     path: /ssl
+#     read_only: true
 # tmpfs: true                                   # Use tmpfs for /tmp
 
 # --- Environment Variables ---

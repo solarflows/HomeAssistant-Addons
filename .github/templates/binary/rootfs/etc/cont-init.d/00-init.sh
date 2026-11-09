@@ -2,24 +2,29 @@
 # shellcheck shell=bash
 # ==============================================================================
 # ADDON_SLUG 初始化脚本
-# 创建持久化目录、symlink、调用上游 init 脚本（如有）
+# 原生直挂校验、存量自愈探测、执行权限检查与启动屏障锁
 # ==============================================================================
 
 bashio::log.info "Initializing ADDON_SLUG..."
 
-# ---- HA addon 配置 ----
-# TODO: read addon config options
+# ---- HA app 配置读取 ----
+# TODO: read app config options
 # EXAMPLE=$(bashio::config "EXAMPLE" "default")
 
-# ---- 持久化目录 ----
-# /config/ 是共享空间，必须用 slug 子目录隔离
-mkdir -p /config/ADDON_SLUG
-# /data/ 自动按 addon 隔离
-mkdir -p /data/ADDON_SLUG
+# ---- 持久化与双轨自愈探测 (零软链架构) ----
+# 数据目录由 config.yaml 中 type: app_config 直挂（如 /app/data）
+# 探测旧版 Core (/legacy_ha/ADDON_SLUG) 历史数据并一次性迁移平移
+DATA_DIR="/app/data"
+mkdir -p "${DATA_DIR}"
 
-# TODO: symlink upstream hardcoded paths → /config/ADDON_SLUG/ or /data/ADDON_SLUG/
-# Example: ln -sf /data/ADDON_SLUG /app/data
-# Example: ln -sf /config/ADDON_SLUG/config.yaml /app/config.yaml
+if [ -d "/legacy_ha/ADDON_SLUG" ] && [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
+    if [ -z "$(ls -A "${DATA_DIR}" 2>/dev/null)" ]; then
+        bashio::log.info "检测到历史 Core 目录存量数据，执行一次性增量平移..."
+        cp -a /legacy_ha/ADDON_SLUG/. "${DATA_DIR}/" || bashio::log.warning "存量数据迁移复制存在异常"
+        touch "${DATA_DIR}/.migrated_from_legacy"
+        bashio::log.info "存量数据已完成平移。"
+    fi
+fi
 
 # TODO: call upstream init scripts if applicable
 # Example:
@@ -29,6 +34,6 @@ mkdir -p /data/ADDON_SLUG
 #   set -e
 #   [ $init_rc -ne 0 ] && bashio::log.warning "upstream init script exited with code $init_rc"
 
-# 生成首启就绪标志（供 run 脚本有界等待，防止并发竞态）
+# 生成首启就绪标志（供 S6 run 脚本自旋等待，彻底消除启动竞态）
 touch /run/ADDON_SLUG-initialized
 bashio::log.info "ADDON_SLUG initialization completed"

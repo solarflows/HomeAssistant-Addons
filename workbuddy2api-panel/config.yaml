@@ -17,7 +17,12 @@ ports:
 ports_description:
   7863/tcp: "API / Web 管理面板"
 map:
-  - addon_config:rw
+  - type: app_config
+    path: /config
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
 options:
   API_KEY: ""
   TZ: "Asia/Shanghai"

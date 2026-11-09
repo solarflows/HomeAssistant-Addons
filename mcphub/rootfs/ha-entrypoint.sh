@@ -11,30 +11,25 @@
 #=============================================================================
 set -e
 
-echo "[mcphub] Preparing persistent directories..."
-# ---- 一次性兼容历史子目录平铺（服务启动成功后清理旧源） ----
-if [ ! -f /config/.migrated ]; then
-    if [ -d /config/mcphub ] && [ ! -f /config/config.json ]; then
-        echo "[mcphub] Migrating legacy /config/mcphub to /config root..."
-        cp -an /config/mcphub/. /config/
-        echo "/config/mcphub" > /run/migration_cleanup_pending
+echo "[mcphub] Checking persistent directories..."
+mkdir -p /app/data /data/mcphub/npm /data/mcphub/cache
+
+# ---- 双轨存量自愈平滑迁移（一次性探测老 Core /legacy_ha 目录） ----
+if [ ! -f /app/data/.migrated_from_legacy ]; then
+    MIGRATION_SRC=""
+    if [ -d /legacy_ha/mcphub ] && [ -z "$(ls -A /app/data 2>/dev/null)" ]; then
+        MIGRATION_SRC="/legacy_ha/mcphub"
+    fi
+
+    if [ -n "${MIGRATION_SRC}" ]; then
+        echo "[mcphub] Migrating legacy Core data from ${MIGRATION_SRC}..."
+        cp -an "${MIGRATION_SRC}/." /app/data/ 2>/dev/null || true
+        touch /app/data/.migrated_from_legacy
+        echo "${MIGRATION_SRC}" > /run/migration_cleanup_pending
+        echo "[mcphub] Legacy data migrated successfully."
     else
-        touch /config/.migrated
+        touch /app/data/.migrated_from_legacy
     fi
-fi
-
-mkdir -p /config /data/mcphub/npm /data/mcphub/cache
-
-# ---- /app/data → /config ----
-if [ ! -L /app/data ]; then
-    if [ -d /app/data ]; then
-        # 迁移同容器内可能产生的数据（正常路径下为空目录）
-        if ! cp -a /app/data/. /config/; then
-            echo "[mcphub] WARNING: failed to migrate /app/data into /config (continuing)"
-        fi
-        rm -rf /app/data
-    fi
-    ln -s /config /app/data
 fi
 
 # ---- npm / uv 缓存 → /data ----
@@ -98,8 +93,8 @@ if [ -f /run/migration_cleanup_pending ]; then
                     rm -rf "${p}" 2>/dev/null || true
                 done
                 rm -f /run/migration_cleanup_pending
-                touch /config/.migrated
-                echo "[mcphub] Legacy directory cleaned up, migration completed."
+                touch /app/data/.migrated_from_legacy
+                echo "[mcphub] Legacy migration completed."
                 break
             fi
             sleep 2
