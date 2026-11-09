@@ -1,3 +1,10 @@
+### 1.6.3-build.4 (2026-11-09)
+
+rootfs 维护
+- fix(s6): 为 baihu-panel 等 6 个插件补齐初始化等待锁消除启动竞态
+
+---
+
 ### 1.6.3-build.3 (2026-11-09)
 
 Dockerfile + rootfs 维护
