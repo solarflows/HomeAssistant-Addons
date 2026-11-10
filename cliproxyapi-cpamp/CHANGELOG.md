@@ -1,3 +1,31 @@
+### 8.0.63-1.14.10 (2026-11-10)
+
+#### Changelog
+
+- feat(cmd): add -login-proxy flag for CLI OAuth logins (bebd92c4)
+- fix(devin): count cache-write tokens in total input (eb6e25ab)
+- fix(watcher): update active auth directory and fsnotify watch on runtime auth-dir changes (628e54ab)
+- Merge pull request #7378 from ngvoicu/fix/devin-usage-cache-write (8de6e3fe)
+- Merge pull request #7370 from whale9820/feat/oauth-login-proxy (dae6007d)
+- feat(models): add claude-fable-5-2 and gemini-omni-1.2-flash to model registry (19a0a854)
+- fix(codex): allow hosted image_generation injection on standard Responses without reasoning (714f0526)
+- fix(claude): bump Claude Code CLI fingerprint baseline to 2.1.321 (b4e7dbd2)
+- Merge pull request #7392 from adamentwistle/fix/claude-cli-baseline-2.1.321 (1649a002)
+- fix(claude): extend preserved thinking and per-turn timing gates to Claude Fable 5.2 (6db7d4b8)
+
+
+#### What's Changed
+* fix(devin): count cache-write tokens in total input by @ngvoicu in https://github.com/router-for-me/CLIProxyAPI/pull/7378
+* feat(cmd): add -login-proxy flag for CLI OAuth logins by @whale9820 in https://github.com/router-for-me/CLIProxyAPI/pull/7370
+* fix(claude): bump Claude Code CLI fingerprint baseline to 2.1.321 by @adamentwistle in https://github.com/router-for-me/CLIProxyAPI/pull/7392
+
+#### New Contributors
+* @ngvoicu made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7378
+* @whale9820 made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7370
+* @adamentwistle made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7392
+
+---
+
 ### 8.0.61-1.14.10-build.3 (2026-11-09)
 
 rootfs 维护
