@@ -1,3 +1,12 @@
+### 8.0.66-1.14.10 (2026-11-11)
+
+#### Changelog
+
+- fix(auth): keep request retry rounds after scheduler plugin reject (ecebc713)
+- fix(claude): make server-side fallback opt-in and surface serving models (fa11a573)
+
+---
+
 ### 8.0.64-1.14.10 (2026-11-10)
 
 #### Changelog
