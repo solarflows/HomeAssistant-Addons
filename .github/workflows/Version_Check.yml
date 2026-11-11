@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 100
+          fetch-depth: 0
 
       - name: Detect version changes
         id: detect
@@ -113,67 +113,59 @@ jobs:
           echo "debian-base remote: $REMOTE_BASE_TAG"
 
           # ============================================================
-          # 2. 检测文件变更（push / cron / dispatch）
+          # 2. 捕获 push 事件的变更文件与跳过标记
           # ============================================================
           CHANGED_FILES=""
-          COMMIT_MSG=""
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+          RELEASE_CHANGED=false
 
           if [ "$EVENT_NAME" = "push" ]; then
+            echo "=== Push event: diff $EVENT_BEFORE..$EVENT_AFTER ==="
             if [ -n "$EVENT_BEFORE" ] && [ "$EVENT_BEFORE" != "0000000000000000000000000000000000000000" ]; then
               CHANGED_FILES=$(git diff --name-only "$EVENT_BEFORE" "$EVENT_AFTER" 2>/dev/null || echo "")
             fi
-            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
-            echo "=== Push event: diff $EVENT_BEFORE..$EVENT_AFTER ==="
-            # 兜底：fetch-depth 不足或 before SHA 无效时，扫描最近 10 个 commit
             if [ -z "$CHANGED_FILES" ]; then
-              echo "=== Diff returned empty, falling back to git log ==="
-              CHANGED_FILES=$(git log --name-only --format="" -10 2>/dev/null | sort -u | sed '/^$/d')
+              echo "=== Diff returned empty, falling back to latest commit tree ==="
+              CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || echo "")
+            fi
+
+            if [ -n "$CHANGED_FILES" ]; then
+              echo "=== Push changed files ==="
+              echo "$CHANGED_FILES"
+              for file in $CHANGED_FILES; do
+                if [ "$file" = ".github/workflows/Release.yml" ]; then
+                  RELEASE_CHANGED=true
+                  break
+                fi
+              done
+              if [ "$RELEASE_CHANGED" = "true" ] && echo "$COMMIT_MSG" | grep -qiE '\[skip[-_]?(full[-_]?)?rebuild\]'; then
+                echo "=== Release.yml changed, but [skip-rebuild] detected — skipping full rebuild ==="
+                RELEASE_CHANGED=false
+              fi
             fi
           else
-            # 从任意一个 addon 的 tracking.file_sha 取上次检查点
-            LAST_SHA=""
-            for vf in */version.yaml; do
-              [ -f "$vf" ] || continue
-              LAST_SHA=$(yq eval '.tracking.file_sha // ""' "$vf")
-              [ -n "$LAST_SHA" ] && break
-            done
-            if [ -n "$LAST_SHA" ]; then
-              CHANGED_FILES=$(git diff --name-only "$LAST_SHA" HEAD 2>/dev/null || echo "")
-              # 过滤掉仅由 CI bot 修改的文件（避免 CI 自触发的 config.yaml 循环重建）
-              if [ -n "$CHANGED_FILES" ] && [ -n "$LAST_SHA" ]; then
-                FILTERED=""
-                for f in $CHANGED_FILES; do
-                  BOT_ONLY=true
-                  for c in $(git log --pretty=format:"%H" "$LAST_SHA..HEAD" -- "$f" 2>/dev/null); do
-                    author=$(git log -1 --pretty=format:"%an" "$c" 2>/dev/null)
-                    if [ "$author" != "github-actions[bot]" ]; then
-                      BOT_ONLY=false; break
-                    fi
-                  done
-                  if [ "$BOT_ONLY" = "false" ]; then
-                    FILTERED="$FILTERED $f"
-                  else
-                    echo "  [bot filter] Skipping CI-only change: $f"
-                  fi
-                done
-                CHANGED_FILES="$FILTERED"
-              fi
-              echo "=== Cron/dispatch: diff $LAST_SHA..HEAD ==="
-            else
-              CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-              echo "=== First run: diff HEAD~1..HEAD ==="
-            fi
-            COMMIT_MSG=$(git log -1 --pretty=format:"%s" 2>/dev/null || echo "")
+            echo "=== Cron/dispatch event: per-addon tracking.file_sha check ==="
           fi
 
           # ============================================================
-          # ============================================================
-          # 3. 遍历 addon，检测上游版本和底包变更
+          # 3. 遍历 addon，逐一检测版本、底包与各自独立的文件变更
           # ============================================================
           declare -A ADDON_MATRIX
           declare -A ADDON_REASON
           declare -A ADDON_REMOTE_VERSION
           declare -A ADDON_UPDATED_DEPS
+
+          append_reason() {
+            local cur="$1"
+            local add="$2"
+            if [ -z "$cur" ]; then
+              echo "$add"
+            elif echo ",${cur}," | grep -q ",${add},"; then
+              echo "$cur"
+            else
+              echo "${cur},${add}"
+            fi
+          }
 
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
@@ -228,7 +220,7 @@ jobs:
               done
             fi
 
-            # --- 判断 reason ---
+            # --- 判断版本/底包 reason ---
             REASON=""
             FILE_SHA=$(yq eval '.tracking.file_sha // ""' "$version_file")
             if [ "$FORCE_REBUILD" = "true" ]; then
@@ -251,6 +243,45 @@ jobs:
               fi
             fi
 
+            # --- 检测该 addon 自身的构建文件/工作流变更 ---
+            if [ "$RELEASE_CHANGED" = "true" ]; then
+              if [ -z "$REASON" ]; then
+                echo "  Workflow Release.yml changed → addon $ADDON_DIR"
+                REASON="workflow"
+              fi
+            elif [ "$EVENT_NAME" = "push" ]; then
+              if [ -n "$CHANGED_FILES" ]; then
+                for file in $CHANGED_FILES; do
+                  case "$file" in
+                    "${ADDON_DIR}/Dockerfile")
+                      echo "  Push file change (dockerfile): $file → addon $ADDON_DIR"
+                      REASON=$(append_reason "$REASON" "dockerfile")
+                      ;;
+                    "${ADDON_DIR}/rootfs/"*)
+                      echo "  Push file change (rootfs): $file → addon $ADDON_DIR"
+                      REASON=$(append_reason "$REASON" "rootfs")
+                      ;;
+                  esac
+                done
+              fi
+            else
+              # Cron / dispatch 模式：严格基于该 addon 自己的 FILE_SHA 检查到 HEAD 的非 bot 修改
+              if [ -n "$FILE_SHA" ] && [ "$FILE_SHA" != "null" ] && git cat-file -e "${FILE_SHA}^{commit}" 2>/dev/null; then
+                DF_HUMAN=$(git log --format="%an" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/Dockerfile" 2>/dev/null \
+                  | grep -vxE 'github-actions\[bot\]|actions-user' || true)
+                if [ -n "$DF_HUMAN" ]; then
+                  echo "  Cron/dispatch file change since ${FILE_SHA:0:7} (dockerfile) → addon $ADDON_DIR"
+                  REASON=$(append_reason "$REASON" "dockerfile")
+                fi
+                RF_HUMAN=$(git log --format="%an" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/rootfs/" 2>/dev/null \
+                  | grep -vxE 'github-actions\[bot\]|actions-user' || true)
+                if [ -n "$RF_HUMAN" ]; then
+                  echo "  Cron/dispatch file change since ${FILE_SHA:0:7} (rootfs) → addon $ADDON_DIR"
+                  REASON=$(append_reason "$REASON" "rootfs")
+                fi
+              fi
+            fi
+
             if [ -n "$REASON" ]; then
               HAS_CHANGES="true"
               ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
@@ -258,67 +289,12 @@ jobs:
               ADDON_REMOTE_VERSION["$ADDON_DIR"]="$REMOTE_VERSION"
               ADDON_UPDATED_DEPS["$ADDON_DIR"]="$UPDATED_DEPS"
             else
-              echo "  Version unchanged"
+              echo "  Up to date (version & files unchanged)"
             fi
           done
-          # 4. 匹配文件变更到 addon
-          # ============================================================
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "=== File changes ==="
-            echo "$CHANGED_FILES"
-
-            # 检测是否有 Release.yml 变更（构建管道变更才需要全量重建）
-            RELEASE_CHANGED=false
-            for file in $CHANGED_FILES; do
-              if [ "$file" = ".github/workflows/Release.yml" ]; then
-                RELEASE_CHANGED=true
-                break
-              fi
-            done
-
-            # Release.yml 变更 → 全量重建（构建管道本身变了，支持在 commit 中标注 [skip-rebuild] 跳过）
-            if [ "$RELEASE_CHANGED" = "true" ] && ! echo "$COMMIT_MSG" | grep -qiE '\[skip[-_]?(full[-_]?)?rebuild\]'; then
-              echo "  Workflow changed, triggering rebuild for ALL addons"
-              for vf in */version.yaml; do
-                [ -f "$vf" ] || continue
-                ADDON_DIR=$(dirname "$vf")
-                if [ -z "${ADDON_MATRIX[$ADDON_DIR]}" ]; then
-                  HAS_CHANGES="true"
-                  ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
-                  ADDON_REASON["$ADDON_DIR"]="workflow"
-                fi
-              done
-            else
-              # 非工作流变更 → 按文件路径匹配到对应 addon，区分子原因
-              for file in $CHANGED_FILES; do
-                if echo "$file" | grep -qE '^[^/]+/(Dockerfile|rootfs/)'; then
-                  ADDON_DIR=$(echo "$file" | cut -d'/' -f1)
-                  [ -f "${ADDON_DIR}/version.yaml" ] || continue
-
-                  # 确定子原因（Dockerfile 或 rootfs）
-                  case "$file" in
-                    */Dockerfile)    TRIG="dockerfile" ;;
-                    */rootfs/*)      TRIG="rootfs" ;;
-                    *)               continue ;;
-                  esac
-
-                  echo "  File change ($TRIG): $file → addon $ADDON_DIR"
-                  HAS_CHANGES="true"
-                  ADDON_MATRIX["$ADDON_DIR"]="$ADDON_DIR"
-                  # 累积不重复的触发原因（如 dockerfile,rootfs）
-                  EXISTING="${ADDON_REASON[$ADDON_DIR]:-}"
-                  if [ -z "$EXISTING" ]; then
-                    ADDON_REASON["$ADDON_DIR"]="$TRIG"
-                  elif ! echo "$EXISTING" | grep -q "$TRIG"; then
-                    ADDON_REASON["$ADDON_DIR"]="${EXISTING},${TRIG}"
-                  fi
-                fi
-              done
-            fi
-          fi
 
           # ============================================================
-          # 5. 构建 matrix（精简字段，Release 自行计算其余参数）
+          # 4. 构建 matrix（精简字段，Release 自行计算其余参数）
           # ============================================================
           # addon        = 目录名
           # reason       = version_changed | base_updated | dockerfile | rootfs | config | workflow | force_rebuild
@@ -326,7 +302,7 @@ jobs:
           # updated_deps = JSON 对象，包含本次检测到更新的依赖副仓库 {KEY: {version, old_version, repo}}
           for ADDON_DIR in "${!ADDON_MATRIX[@]}"; do
             REASON="${ADDON_REASON[$ADDON_DIR]}"
-            NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]}"
+            NEW_VER="${ADDON_REMOTE_VERSION[$ADDON_DIR]:-}"
             UPD_DEPS="${ADDON_UPDATED_DEPS[$ADDON_DIR]:-}"
             [ -z "$UPD_DEPS" ] && UPD_DEPS="{}"
 
