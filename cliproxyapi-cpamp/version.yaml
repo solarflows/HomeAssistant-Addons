@@ -2,7 +2,7 @@
 # 主版本跟踪: router-for-me/CLIProxyAPI releases (tag_prefix "v")
 # version_suffix: HA 版本号 = <上游版本>-<PANEL_VERSION>（混合两上游版本，如 8.0.23-1.14.5）
 # dependencies: 支持监控任意 N 个副仓库组件，自动更新 build_args
-version: "8.0.66"
+version: "8.0.67"
 source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
@@ -18,5 +18,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "a32f1fb74971cce18e23698dc5cbd066c291d351"
+  file_sha: "004842a09a2cdbca254cafaa64228e9b9805d696"
   build_num: 0

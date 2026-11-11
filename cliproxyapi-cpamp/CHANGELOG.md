@@ -1,3 +1,12 @@
+### 8.0.67-1.14.10 (2026-11-11)
+
+#### Changelog
+
+- fix(auth): preserve large weighted pool fairness and force cooldowns (9d7d012b)
+- docs(README): add AICodeMirror sponsor banner to EN, CN, and JA readmes (8bba7a77)
+
+---
+
 ### 8.0.66-1.14.10 (2026-11-11)
 
 #### Changelog
