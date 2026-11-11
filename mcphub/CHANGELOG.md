@@ -1,3 +1,47 @@
+### 1.2.3 (2026-11-11)
+
+#### Summary
+
+This release adds group-scoped personal API keys for tighter agent access control and improves upstream compatibility and recovery. It enables resource reads through upstream resource templates, reports missing personal OAuth authorization during tool discovery, and restores personal runtimes on the next request after an upstream session is lost.
+
+#### Features
+
+- Restrict personal API keys to selected groups, with scope controls in the dashboard. Existing unrestricted keys retain their behavior. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1470
+
+#### Fixes
+
+- Route `resources/read` requests through matching upstream resource templates when the URI is absent from the static resource list, while respecting group resource selections. by @pauldev20 in https://github.com/samanhappy/mcphub/pull/1472
+- Return an actionable authorization error when missing personal OAuth leaves no tools available during discovery. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1469
+- Recover personal runtimes on the next request after an upstream reports a missing session, without automatically replaying the failed operation. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1467
+
+#### 摘要
+
+本版本新增个人 API Key 的分组范围控制，便于精细限制 Agent 的访问权限，并改进上游兼容性和故障恢复。支持通过上游资源模板读取资源，在工具发现阶段明确提示缺失的个人 OAuth 授权，并在上游会话丢失后的下一次请求中恢复个人运行时。
+
+#### 功能
+
+- 支持将个人 API Key 限制为仅访问选定分组，并在控制台提供范围设置；现有不受限密钥保持原有行为。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1470
+
+#### 修复
+
+- 当 URI 未列入静态资源列表时，通过匹配的上游资源模板路由 `resources/read` 请求，并遵守分组资源选择限制。by @pauldev20 in https://github.com/samanhappy/mcphub/pull/1472
+- 当缺失个人 OAuth 授权导致工具发现无可用工具时，返回包含明确处理提示的授权错误。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1469
+- 上游报告会话不存在后，在下一次请求中恢复个人运行时，且不自动重放失败的操作。by @samanhappy in https://github.com/samanhappy/mcphub/pull/1467
+
+#### New Contributors
+
+- @pauldev20 made their first contribution in #1472
+
+#### References
+
+- fix: route resources/read through upstream resource templates by @pauldev20 in https://github.com/samanhappy/mcphub/pull/1472
+- feat: restrict personal API keys to allowed groups by @samanhappy in https://github.com/samanhappy/mcphub/pull/1470
+- fix: report missing personal OAuth during tool discovery by @samanhappy in https://github.com/samanhappy/mcphub/pull/1469
+- fix: recover personal runtimes after upstream session loss by @samanhappy in https://github.com/samanhappy/mcphub/pull/1467
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.2...v1.2.3
+
+---
+
 ### 1.2.2-build.4 (2026-11-09)
 
 rootfs 维护
