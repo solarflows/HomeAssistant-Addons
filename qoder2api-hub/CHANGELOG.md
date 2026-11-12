@@ -1,3 +1,11 @@
+### 1.9.8-build.1 (2026-11-12)
+
+rootfs 维护
+- docs: unify README layout and align real configs across all addons
+- refactor(hubs): enforce unset-by-default env policy and document presets
+
+---
+
 ### 1.9.8 (2026-11-12)
 
 #### v1.9.8 — Kimi 工具协议与升级可靠性
