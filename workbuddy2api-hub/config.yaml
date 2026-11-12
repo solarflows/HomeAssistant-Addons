@@ -1,5 +1,5 @@
 name: "WorkBuddy2API Hub"
-version: "2.1.1-build.1"
+version: "2.1.2"
 slug: "workbuddy2api-hub"
 image: "ghcr.io/solarflows/workbuddy2api-hub"
 description: "WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板（OpenAI & Anthropic 兼容，支持 CN/Intl 双区与 uTLS 指纹模拟）"
