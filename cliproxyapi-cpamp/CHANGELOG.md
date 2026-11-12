@@ -1,3 +1,12 @@
+### 8.0.69-1.14.10 (2026-11-12)
+
+#### Changelog
+
+- feat(api): add opt-in server.shutdown-timeout for graceful request draining (73b86c7f)
+- docs(readme): add OriginCoder provider listing to English and Japanese READMEs (f7ae8fee)
+
+---
+
 ### 8.0.67-1.14.10 (2026-11-11)
 
 #### Changelog
