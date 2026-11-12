@@ -1,3 +1,11 @@
+### 2.5.11 (2026-11-12)
+
+### ⬆️ Security Fixes
+- #8094 chore: Update dependencies 
+- GHSA-437w-j82f-9vjh fix: [Admin Only] RCE via an upstream package (Details will be revealed after 7 days) (Thanks @Tomer-PL)
+
+---
+
 ### 2.5.10 (2026-11-12)
 
 ### 🐞 Bug Fixes
