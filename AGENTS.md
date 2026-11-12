@@ -35,7 +35,6 @@ The repository has no single project-wide test command. The normal local verific
 | cliproxyapi-cpamp | same | binary download (+CPAMP manager server) | 8317, 18317 | yes |
 | mcphub | samanhappy/mcphub | upstream image | 3000 | no |
 | trawl | germondai/trawl | upstream image | 8191, 8192 | no |
-| workbuddy2api-panel | linguo2625469/workbuddy2api-panel | binary download | 7863 | yes |
 | workbuddy2api-hub | ardeyouxipianyi/workbuddy2api-hub | Python + Go src build | 8788 | yes |
 | qoder2api-hub | shuishuipingan/qoder2api-hub | Python + UMID src build | 8790 | yes |
 
@@ -55,7 +54,6 @@ The repository has no single project-wide test command. The normal local verific
 | cliproxyapi-cpamp | "v" | v8.0.23 | 8.0.23-1.14.5 (suffix) |
 | mcphub | "v" | v1.1.2 | 1.1.2 |
 | trawl | "v" | v1.8.0 | 1.8.0 |
-| workbuddy2api-panel | "v" | v1.13.0 | 1.13.0 |
 | workbuddy2api-hub | "v" | v2.1.1 | 2.1.1 |
 | qoder2api-hub | "v" | v1.9.8 | 1.9.8 |
 
@@ -159,7 +157,6 @@ map:
 | **cliproxyapi** | `/config` | `app_config -> /config` | Go 二进制。存储 `config.yaml`、OAuth 凭据及代理路由配置 |
 | **cliproxyapi-cpamp** | `/config` | `app_config -> /config` | Go + Node.js。存储 CLIProxy 规则与 CPAMP 管理器数据库 `cpamp.db` |
 | **mcphub** | `/app/data` | `app_config -> /app/data` | 上游镜像。存储 MCP 服务器清单与服务配置，直通原生路径 |
-| **workbuddy2api-panel** | `/config` | `app_config -> /config` | Go 二进制。存储 `config.json`、凭据及 API 密钥；运行日志及状态保留在 `/data/workbuddy2api-panel` |
 | **workbuddy2api-hub** | `/app/accounts` | `app_config -> /app/accounts` | 多阶段源码构建（Python + Go `wb-tls-bridge`）。账号与 `settings.json` 直挂；用量/目录/订阅桥通过 env 落于 `/data/`；`/app/updates` 软链 `/data/updates` 协同 `wb_update_external.py` |
 | **qoder2api-hub** | `/app/accounts` | `app_config -> /app/accounts` | 多阶段源码构建（Python + UMID glibc + Pillow）。账号/`machine_identity.json`/`scheduler/` 直挂；日志与用量通过 env 落于 `/data/{logs,usage}` |
 | **alist-tvbox** | `/config` | `app_config -> /config`<br>`/data -> /data` (私有卷) | Java + AList。`-Datv.data.dir=/config` 存储核心数据库；`/index` 挂载私有卷 `/data/index` 避开备份 |

@@ -51,7 +51,6 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 | cliproxyapi | `/config` | `app_config -> /config` 原生直挂，存放 `config.yaml` 与 OAuth 凭据 |
 | cliproxyapi-cpamp | `/config` | `app_config -> /config` 原生直挂，存放代理配置与 `cpamp.db` |
 | mcphub | `/app/data` | `app_config -> /app/data` 原生直挂，存放 MCP 注册表与服务清单 |
-| workbuddy2api-panel | `/app/data` | `app_config -> /app/data` 原生直挂，直通 `app.db` |
 | alist-tvbox | `/config` | `app_config -> /config` 原生 `-Datv.data.dir` 直挂；`/index` 挂载私有卷 `/data/index` 避开备份 |
 | alist-tvbox-standalone | `/config` | `app_config -> /config` 纯 Java 原生 `-Datv.data.dir` 直挂，纯物理路径零软链 |
 | trawl | `/app/data` | `app_config -> /app/data` 原生直挂，存放抓取规则 |
