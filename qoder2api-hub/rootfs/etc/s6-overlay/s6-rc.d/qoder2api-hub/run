@@ -1,0 +1,58 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# qoder2api-hub 主服务启动脚本 (S6 longrun)
+# - 默认直接调用仓库自带 /app/start-qoder-proxy-lan.sh（内部严格使用 exec，兼容 S6 PID 托管）
+# - 若配置了 PANEL_PASSWORD，则通过 python3 直接追加 --panel-password 参数
+# ==============================================================================
+
+for _ in $(seq 1 30); do
+    [ -f /run/qoder2api-hub-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/qoder2api-hub-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续尝试启动"
+fi
+
+_export_str() {
+    local key="$1"
+    local val
+    val="$(bashio::config "${key}" '' 2>/dev/null || true)"
+    if [ -n "${val}" ] && [ "${val}" != "null" ]; then
+        export "${key}=${val}"
+    fi
+}
+
+export HOST="0.0.0.0"
+export PORT="8790"
+export QD_LOG_DIR="/data/logs"
+export QD_PROXY_USAGE_DIR="/data/usage"
+[ -x /usr/bin/python3 ] && export QD_PROXY_PYTHON="/usr/bin/python3"
+
+# API_KEY 已在 00-init.sh 中通过 settings.json + options_applied.json 双向同步管理，
+# 此处不无条件导出 API_KEY 环境变量，避免覆盖用户在 Web 面板中修改的新密钥。
+_export_str "TZ"
+_export_str "QD_PROXY_DEFAULT_REALM"
+_export_str "QD_SESSION_CACHE"
+_export_str "QD_ANTHROPIC_THINKING"
+_export_str "QD_CN_VPC_ENDPOINT"
+_export_str "HTTPS_PROXY"
+
+if [ -n "${HTTPS_PROXY:-}" ] && [ -z "${NO_PROXY:-}" ]; then
+    export NO_PROXY="127.0.0.1,localhost,::1"
+fi
+
+cd /app || exit 1
+
+PW_FLAG_FILE="/run/qoder2api-hub-panel-pw"
+if [ -f "${PW_FLAG_FILE}" ]; then
+    PANEL_PW="$(cat "${PW_FLAG_FILE}")"
+    rm -f "${PW_FLAG_FILE}"
+    if [ -n "${PANEL_PW}" ]; then
+        bashio::log.info "Starting Qoder2API Hub on port ${PORT} (with panel password sync)..."
+        exec python3 /app/qoder_proxy.py --port 8790 --lan --panel-password "${PANEL_PW}"
+    fi
+fi
+
+bashio::log.info "Starting Qoder2API Hub via upstream start-qoder-proxy-lan.sh on port ${PORT}..."
+exec /app/start-qoder-proxy-lan.sh 8790

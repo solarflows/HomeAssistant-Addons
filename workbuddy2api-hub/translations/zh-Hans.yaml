@@ -1,0 +1,35 @@
+---
+configuration:
+  API_KEY:
+    name: API 密钥
+    description: >-
+      OpenAI / Anthropic 客户端接入所需的 Bearer Key。首次留空启动将优先提取面板
+      已有可用密钥（api_keys 中的 ha-option 或首个启用密钥 / api_key / launcher_key），
+      无存量时自动生成 wb-... 并回填到本选项；多 Key 模式下修改本值仅新增或更新
+      id="ha-option" 条目，不会覆盖面板内自建的其它分域/限模型 Key。
+  PANEL_PASSWORD:
+    name: 管理面板密码
+    description: >-
+      Web 控制台登录密码（上游默认 admin）。仅在本选项值变更时同步覆盖面板密码，
+      面板内自行修改后的密码可稳定跨重启保留。
+  TZ:
+    name: 时区
+    description: 容器运行与日志时区（例如 Asia/Shanghai、UTC）。
+  WB_PROXY_DEFAULT_REALM:
+    name: 默认服务区
+    description: >-
+      启动时默认激活的账号池区域：intl（国际版 WorkBuddy）或 cn（国内版 CodeBuddy）。
+  WB_TLS_FINGERPRINT:
+    name: TLS 指纹引擎
+    description: >-
+      出站 TLS ClientHello 指纹策略：auto（优先内置 Go uTLS 桥接，异常时自动回退）、
+      python（Python 原生 TLS）或 node。
+  WB_ENABLE_ANTHROPIC_MESSAGES:
+    name: 启用 Anthropic /v1/messages 接口
+    description: 开启 Anthropic Messages 兼容端点，便于 Claude Code 等客户端直接接入。
+  HTTPS_PROXY:
+    name: 出站 HTTPS 代理
+    description: >-
+      可选上游出站代理地址（例如 http://192.168.1.2:7890）；直连请留空。
+network:
+  8788/tcp: OpenAI / Anthropic 兼容网关与 Web 管理面板端口

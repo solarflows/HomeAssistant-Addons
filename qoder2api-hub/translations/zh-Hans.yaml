@@ -1,0 +1,38 @@
+---
+configuration:
+  API_KEY:
+    name: API 密钥
+    description: >-
+      OpenAI / Anthropic 客户端接入所需的 Bearer Key。首次留空启动将优先提取面板
+      已有可用密钥（api_keys 中的 ha-option 或首个启用密钥 / api_key / launcher_key），
+      无存量时自动生成 qd-... 并回填到本选项；多 Key 模式下修改本值仅新增或更新
+      id="ha-option" 条目，不会覆盖面板内自建的其它分域/限账号 Key。
+  PANEL_PASSWORD:
+    name: 管理面板密码
+    description: >-
+      Web 控制台登录密码（上游默认 admin）。仅在本选项值变更时同步覆盖面板密码，
+      面板内自行修改后的密码可稳定跨重启保留。
+  TZ:
+    name: 时区
+    description: 容器运行与日志时区（例如 Asia/Shanghai、UTC）。
+  QD_PROXY_DEFAULT_REALM:
+    name: 默认服务区
+    description: 启动时默认激活的账号池区域：cn（国内版）或 intl（国际版）。
+  QD_SESSION_CACHE:
+    name: 会话前缀缓存模式
+    description: 会话上下文缓存策略：off（关闭）、memory（内存）或 redis。
+  QD_ANTHROPIC_THINKING:
+    name: Anthropic Thinking 输出策略
+    description: >-
+      Anthropic /v1/messages 接口的 thinking block 输出策略：off 或 empty
+      （面板全局设置与单 Key 配置优先级高于本环境变量）。
+  QD_CN_VPC_ENDPOINT:
+    name: 国内版企业 VPC 专线端点
+    description: >-
+      可选企业 VPC 内网专用端点 URL，配置后仅对该地址放行内网 SSRF 拦截；普通场景留空。
+  HTTPS_PROXY:
+    name: 出站 HTTPS 代理
+    description: >-
+      可选上游出站代理地址（例如 http://192.168.1.2:7890）；直连请留空。
+network:
+  8790/tcp: OpenAI / Anthropic 兼容网关与 Web 管理面板端口

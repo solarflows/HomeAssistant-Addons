@@ -1,0 +1,45 @@
+---
+configuration:
+  API_KEY:
+    name: API Key
+    description: >-
+      Bearer API key for OpenAI / Anthropic client access. When empty on first
+      start, extracts the existing active key (ha-option or first enabled entry
+      in api_keys, or api_key / launcher_key) or generates a random qd-... key
+      and backfills this option. In multi-key mode, changing this value only
+      upserts the "ha-option" entry without overwriting other dashboard keys.
+  PANEL_PASSWORD:
+    name: Panel Password
+    description: >-
+      Web dashboard login password (upstream default is "admin"). Applied to
+      settings.json only when changed so in-panel password updates survive
+      restarts.
+  TZ:
+    name: Timezone
+    description: Container timezone (e.g. Asia/Shanghai, UTC).
+  QD_PROXY_DEFAULT_REALM:
+    name: Default Realm
+    description: >-
+      Default upstream realm selected on startup: cn or intl.
+  QD_SESSION_CACHE:
+    name: Session Cache Mode
+    description: >-
+      Prompt/prefix session cache mode: off, memory, or redis (for external
+      Redis configure QD_SESSION_REDIS_URL if needed).
+  QD_ANTHROPIC_THINKING:
+    name: Anthropic Thinking Output Policy
+    description: >-
+      Thinking block strategy for Anthropic /v1/messages endpoint: off or
+      empty. Per-key and dashboard settings take precedence over this env.
+  QD_CN_VPC_ENDPOINT:
+    name: CN VPC Dedicated Endpoint
+    description: >-
+      Optional enterprise VPC endpoint URL allowed to bypass private-network
+      SSRF filtering on the CN realm. Leave empty for standard public endpoints.
+  HTTPS_PROXY:
+    name: Outbound HTTPS Proxy
+    description: >-
+      Optional outbound proxy URL for upstream requests (e.g.
+      http://192.168.1.2:7890). Leave empty for direct connection.
+network:
+  8790/tcp: OpenAI / Anthropic compatible API gateway and management panel

@@ -1,0 +1,86 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# workbuddy2api-hub 主服务启动脚本 (S6 longrun)
+# - 若外部更新器正在写入新代码（status=backing_up/stopping/applying/restoring），
+#   先短暂等待文件落盘完成后再拉起，消除 S6 快速重启竞态。
+# - 以 exec 前台运行主程序，保证 S6 精确持有 PID（支持 /shutdown 后自动重拉起
+#   以及 wb_update_external.py 一键更新后平滑重启）。
+# ==============================================================================
+
+for _ in $(seq 1 30); do
+    [ -f /run/workbuddy2api-hub-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/workbuddy2api-hub-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续尝试启动"
+fi
+
+STATUS_FILE="/run/workbuddy2api-hub-updater/status.json"
+for _ in $(seq 1 30); do
+    [ -f "${STATUS_FILE}" ] || break
+    UPD_STATE="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("state",""))' "${STATUS_FILE}" 2>/dev/null || true)"
+    case "${UPD_STATE}" in
+        backing_up|stopping|applying|restoring)
+            bashio::log.info "更新器正在应用代码变更 (${UPD_STATE})，等待落盘完成..."
+            sleep 0.5
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+_export_str() {
+    local key="$1"
+    local val
+    val="$(bashio::config "${key}" '' 2>/dev/null || true)"
+    if [ -n "${val}" ] && [ "${val}" != "null" ]; then
+        export "${key}=${val}"
+    fi
+}
+
+export HOST="0.0.0.0"
+export PORT="8788"
+export WB_PROXY_USAGE_DIR="/data/usage"
+export WB_PROXY_CATALOG_DIR="/data/catalog"
+export WB_SUBBRIDGE_DATA_DIR="/data/subbridge-data"
+
+# 启用上游自带的外部更新/回退闭环（由同容器 S6 旁路服务 workbuddy2api-hub-updater 执行）
+export WB_UPDATE_INSTALL_ENABLED="1"
+export WB_UPDATE_EXECUTOR="external"
+export WB_UPDATE_REQUEST_DIR="/run/workbuddy2api-hub-updater"
+export WB_UPDATE_PROFILE="app"
+
+# API_KEY 已在 00-init.sh 中通过 settings.json + options_applied.json 双向同步管理，
+# 此处不无条件导出 API_KEY 环境变量，避免覆盖用户在 Web 面板中修改的新密钥。
+_export_str "TZ"
+_export_str "WB_PROXY_DEFAULT_REALM"
+_export_str "WB_TLS_FINGERPRINT"
+_export_str "HTTPS_PROXY"
+
+if bashio::config.true 'WB_ENABLE_ANTHROPIC_MESSAGES'; then
+    export WB_ENABLE_ANTHROPIC_MESSAGES="1"
+else
+    export WB_ENABLE_ANTHROPIC_MESSAGES="0"
+fi
+
+if [ -n "${HTTPS_PROXY:-}" ] && [ -z "${NO_PROXY:-}" ]; then
+    export NO_PROXY="127.0.0.1,localhost,::1"
+fi
+
+cd /app || exit 1
+
+set -- python3 -m wb_proxy --host 0.0.0.0 --port 8788 --lan
+
+PW_FLAG_FILE="/run/workbuddy2api-hub-panel-pw"
+if [ -f "${PW_FLAG_FILE}" ]; then
+    PANEL_PW="$(cat "${PW_FLAG_FILE}")"
+    rm -f "${PW_FLAG_FILE}"
+    if [ -n "${PANEL_PW}" ]; then
+        set -- "$@" --panel-password "${PANEL_PW}"
+    fi
+fi
+
+bashio::log.info "Starting WorkBuddy2API Hub on port ${PORT}..."
+exec "$@"

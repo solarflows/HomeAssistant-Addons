@@ -1,0 +1,81 @@
+# analysis.yaml — workbuddy2api-hub addon upstream analysis
+# https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+# 证据: 上游源码 Dockerfile / start-wb-proxy-lan.sh / restart-wb-proxy.sh /
+#       wb_update_external.py / wb_update_portable.py / wb_update_request.py 实测
+---
+upstream:
+  repo: ardeyouxipianyi/workbuddy2api-hub
+  description: >-
+    WorkBuddy / CodeBuddy 多账号反代网关与管理面板（OpenAI + 可选 Anthropic /v1/messages
+    兼容、CN/Intl 双区池化、Go uTLS ClientHello 桥接、可选订阅桥与面板内更新器）。
+  license: MIT
+
+build:
+  strategy: source
+  base_image: ghcr.io/hassio-addons/debian-base:9.3.0
+  source_tag: "v${version}"       # GitHub Release tag 带 v 前缀（如 v2.1.1）
+  builder: "golang:1.24"          # 按 TARGETOS/TARGETARCH 编译 tools/wb-tls-bridge
+  image_archs: [amd64, arm64]
+  runtime_apt:
+    - python3
+    - python3-yaml                # PyYAML（仅 subbridge 使用）
+    - curl
+    - tzdata
+    - ca-certificates
+    - procps                      # pkill/pgrep/ps（适配上游 restart-wb-proxy.sh）
+
+runtime:
+  language: python+go
+  supervisor: s6-overlay
+  services:
+    - name: workbuddy2api-hub
+      type: longrun
+      command: "exec python3 -m wb_proxy --host 0.0.0.0 --port 8788 --lan"
+      notes: >-
+        保留 /app/start-wb-proxy-lan.sh 与 /app/restart-wb-proxy.sh 完整在镜像内；
+        S6 服务以 exec 前台托管主进程以确保 SIGTERM 传递、面板 /shutdown 后自动拉起、
+        以及与外部更新器无竞态重拉起。
+    - name: workbuddy2api-hub-updater
+      type: longrun
+      command: "轮询 /run/workbuddy2api-hub-updater/request.json -> wb_update_external.py --profile app"
+      notes: >-
+        原生对接上游 wb_update_external.py（WB_UPDATE_INSTALL_ENABLED=1 +
+        WB_UPDATE_EXECUTOR=external）：面板触发更新/回退时，下载 release zip 验签、
+        备份并 SIGTERM 主进程 -> S6 等待应用写盘完成后自动拉起新版 -> 探活 /health 验收。
+  working_dir: /app
+
+network:
+  port: 8788
+  protocol: tcp
+  health: "http://127.0.0.1:8788/health"
+  ingress: false   # dashboard.html 大量使用根目录绝对路径 fetch('/health' / '/panel/*' / '/accounts/*')
+
+filesystem:
+  persistent_dirs:
+    - container: /app/accounts
+      ha: /addon_configs/workbuddy2api-hub
+      type: app_config_mount
+      reason: 账号凭据（*.json）及 settings.json（launcher_key/面板密码），随 HA 备份。
+    - container: /legacy_ha
+      ha: /homeassistant
+      type: homeassistant_config_mount
+      reason: 仅用于迁移检查（若存在 /legacy_ha/workbuddy2api-hub 且 /app/accounts 为空则迁入）。
+    - container: /data/usage
+      ha: /data/usage
+      type: data_dir
+      reason: 调用统计、限流事件与 SQLite 日志索引，不撑大 HA 备份。
+    - container: /data/catalog
+      ha: /data/catalog
+      type: data_dir
+      reason: 动态拉取的产品与模型目录缓存，可重建。
+    - container: /data/subbridge-data
+      ha: /data/subbridge-data
+      type: data_dir
+      reason: 可选 Mihomo 订阅桥运行状态。
+    - container: /app/updates
+      ha: /data/updates
+      type: symlink
+      reason: 面板一键更新下载与备份目录，落于 /data/updates。
+
+assets:
+  icon: "官方 WorkBuddy logo.svg（download.codebuddy.ai）渲染为 256x256 PNG"

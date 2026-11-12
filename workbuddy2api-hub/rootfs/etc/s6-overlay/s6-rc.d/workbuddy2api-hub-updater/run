@@ -1,0 +1,31 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# workbuddy2api-hub-updater 伴生更新服务 (S6 longrun)
+# 对接上游 wb_update_external.py：面板触发更新/回退时消费 request.json，
+# 校验 SHA256SUMS、备份、停旧进程（S6 自动重拉起）并验证 /health。
+# ==============================================================================
+
+for _ in $(seq 1 30); do
+    [ -f /run/workbuddy2api-hub-initialized ] && break
+    sleep 1
+done
+
+REQ_DIR="/run/workbuddy2api-hub-updater"
+REQ_FILE="${REQ_DIR}/request.json"
+
+trap 'exit 0' TERM INT
+bashio::log.info "WorkBuddy2API Hub external updater watcher started."
+
+while true; do
+    if [ -f "${REQ_FILE}" ]; then
+        bashio::log.info "检测到面板更新/回退请求，调用 wb_update_external.py 执行..."
+        if python3 /app/wb_update_external.py --root /app --request-dir "${REQ_DIR}" --profile app; then
+            bashio::log.info "wb_update_external.py 执行完成。"
+        else
+            bashio::log.warning "wb_update_external.py 返回非零退出码，详情见面板更新状态或 backups。"
+        fi
+    fi
+    sleep 1 &
+    wait $! || true
+done

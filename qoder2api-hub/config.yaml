@@ -1,0 +1,42 @@
+name: "Qoder2API Hub"
+version: "0.0.0-build.0"
+slug: "qoder2api-hub"
+image: "ghcr.io/solarflows/qoder2api-hub"
+description: "Qoder 多账号池化反代网关与管理面板（OpenAI & Anthropic 兼容，支持 CN/Intl 双区、会话缓存与 UMID 指纹）"
+url: "https://github.com/solarflows/HomeAssistant-Addons/tree/main/qoder2api-hub"
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: manual
+init: false
+ports:
+  8790/tcp: 8790
+ports_description:
+  8790/tcp: "OpenAI / Anthropic 兼容 API 与管理面板端口"
+webui: "[PROTO:http]://[HOST]:[PORT:8790]"
+map:
+  - type: app_config
+    path: /app/accounts
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+options:
+  API_KEY: ""
+  PANEL_PASSWORD: ""
+  TZ: "Asia/Shanghai"
+  QD_PROXY_DEFAULT_REALM: "cn"
+  QD_SESSION_CACHE: "off"
+  QD_ANTHROPIC_THINKING: "off"
+  QD_CN_VPC_ENDPOINT: ""
+  HTTPS_PROXY: ""
+schema:
+  API_KEY: "password?"
+  PANEL_PASSWORD: "password?"
+  TZ: "str?"
+  QD_PROXY_DEFAULT_REALM: "list(cn|intl)"
+  QD_SESSION_CACHE: "list(off|memory|redis)"
+  QD_ANTHROPIC_THINKING: "list(off|empty)"
+  QD_CN_VPC_ENDPOINT: "str?"
+  HTTPS_PROXY: "str?"

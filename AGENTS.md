@@ -18,7 +18,7 @@ Each addon normally contains `analysis.yaml`, `config.yaml`, `Dockerfile`, `vers
 
 The repository has no single project-wide test command. The normal local verification is targeted YAML parsing, shell syntax checks, a single-platform Docker build, and a cold-start smoke test against the image health endpoint. See [Validation](#validation).
 
-## Addons (14)
+## Addons (16)
 
 | slug | upstream | strategy | port | S6 |
 |---|---|---|---|---|
@@ -36,6 +36,8 @@ The repository has no single project-wide test command. The normal local verific
 | mcphub | samanhappy/mcphub | upstream image | 3000 | no |
 | trawl | germondai/trawl | upstream image | 8191, 8192 | no |
 | workbuddy2api-panel | linguo2625469/workbuddy2api-panel | binary download | 7863 | yes |
+| workbuddy2api-hub | ardeyouxipianyi/workbuddy2api-hub | Python + Go src build | 8788 | yes |
+| qoder2api-hub | shuishuipingan/qoder2api-hub | Python + UMID src build | 8790 | yes |
 
 ### Version prefixes
 
@@ -54,6 +56,8 @@ The repository has no single project-wide test command. The normal local verific
 | mcphub | "v" | v1.1.2 | 1.1.2 |
 | trawl | "v" | v1.8.0 | 1.8.0 |
 | workbuddy2api-panel | "v" | v1.13.0 | 1.13.0 |
+| workbuddy2api-hub | "v" | v2.1.1 | 2.1.1 |
+| qoder2api-hub | "v" | v1.9.8 | 1.9.8 |
 
 ## Quick Reference
 - **Base**: `debian-base:9.3.0` (S6 built-in) | **Storage**: 对象化自定义路径挂载 (`type: app_config -> upstream native path`)，严格禁止软链中转
@@ -142,7 +146,7 @@ map:
    - `COPY rootfs /` 之后，必须赋予 shell 脚本可执行权限（特别注意 Windows 检出环境）。
    - 严禁用 `|| true` 静默吞掉异常；非致命操作必须捕获退出码并显式输出原因。
 
-### 3. 全量 14 个加载项上游原生持久化规范矩阵 (Upstream Path & Mount Matrix)
+### 3. 全量 16 个加载项上游原生持久化规范矩阵 (Upstream Path & Mount Matrix)
 
 | 加载项 (slug) | 上游官方原生路径 | 映射类型 (map) | 核心存储特性与分级说明 |
 |---|---|---|---|
@@ -156,6 +160,8 @@ map:
 | **cliproxyapi-cpamp** | `/config` | `app_config -> /config` | Go + Node.js。存储 CLIProxy 规则与 CPAMP 管理器数据库 `cpamp.db` |
 | **mcphub** | `/app/data` | `app_config -> /app/data` | 上游镜像。存储 MCP 服务器清单与服务配置，直通原生路径 |
 | **workbuddy2api-panel** | `/config` | `app_config -> /config` | Go 二进制。存储 `config.json`、凭据及 API 密钥；运行日志及状态保留在 `/data/workbuddy2api-panel` |
+| **workbuddy2api-hub** | `/app/accounts` | `app_config -> /app/accounts` | 多阶段源码构建（Python + Go `wb-tls-bridge`）。账号与 `settings.json` 直挂；用量/目录/订阅桥通过 env 落于 `/data/`；`/app/updates` 软链 `/data/updates` 协同 `wb_update_external.py` |
+| **qoder2api-hub** | `/app/accounts` | `app_config -> /app/accounts` | 多阶段源码构建（Python + UMID glibc + Pillow）。账号/`machine_identity.json`/`scheduler/` 直挂；日志与用量通过 env 落于 `/data/{logs,usage}` |
 | **alist-tvbox** | `/config` | `app_config -> /config`<br>`/data -> /data` (私有卷) | Java + AList。`-Datv.data.dir=/config` 存储核心数据库；`/index` 挂载私有卷 `/data/index` 避开备份 |
 | **alist-tvbox-standalone**| `/config` | `app_config -> /config` | 纯 Java。原生 `-Datv.data.dir=/config`，纯物理路径零软链 |
 | **trawl** | *(私有卷)* | *(无外部 map，私有卷 `/data/trawl`)* | 上游镜像。持久化存储抓取统计及 MITM CA 证书至 `/data/trawl`，不污染 HA 备份 |
@@ -179,7 +185,7 @@ map:
 - Every `version.yaml.build_args` key must match a Dockerfile `ARG`. Check tag prefixes and transformations per addon before changing version logic.
 - `Version_Check.yml` runs every six hours (`schedule`), on `push`, and on `workflow_dispatch`; `Release.yml` builds the matrix for the configured architectures and pushes `ghcr.io/solarflows/<addon-slug>`.
 - **Per-Addon `tracking.file_sha` Isolation**: Under `schedule` / `workflow_dispatch`, each addon compares ONLY its own `tracking.file_sha..HEAD` against non-bot (`github-actions[bot]`) commits touching its own `Dockerfile` or `rootfs/`. **Never share a single global `LAST_SHA` across addons** (doing so causes perpetual rolling `-build.N` loops whenever one addon lags behind another). Both workflows must use `fetch-depth: 0` so low-frequency addons never lose their `file_sha` outside shallow windows.
-- **Edit `Release.yml` triggers a full rebuild of every addon** on `push` (assuming pipeline changes affect build outputs). When editing `Release.yml` without intending to rebuild all 14 images (e.g. workflow checkout or summary fixes), include `[skip-rebuild]` in the commit message.
+- **Edit `Release.yml` triggers a full rebuild of every addon** on `push` (assuming pipeline changes affect build outputs). When editing `Release.yml` without intending to rebuild all 16 images (e.g. workflow checkout or summary fixes), include `[skip-rebuild]` in the commit message.
 - The current push path filter watches `**/Dockerfile`, `**/rootfs/**`, `**/config.yaml`, `**/version.yaml`, `.github/workflows/Release.yml`, and `.github/workflows/Version_Check.yml`. Note that `config.yaml`-only edits trigger `Version_Check` checks (upstream version/base checks), not an image rebuild unless `Dockerfile` or `rootfs/` also changed.
 - Build args and GitHub Actions outputs are structured data. Preserve the existing `yq -> JSON -> jq` flow and heredoc format for multiline `GITHUB_OUTPUT` values.
 - `reason` values can be **composite** (comma-joined, e.g. `version_changed,dockerfile,rootfs` for a new addon's first build). Always split on commas before matching — never prefix-match (`case "$REASON" in dockerfile*`).

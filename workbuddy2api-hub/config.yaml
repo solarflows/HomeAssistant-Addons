@@ -1,0 +1,40 @@
+name: "WorkBuddy2API Hub"
+version: "0.0.0-build.0"
+slug: "workbuddy2api-hub"
+image: "ghcr.io/solarflows/workbuddy2api-hub"
+description: "WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板（OpenAI & Anthropic 兼容，支持 CN/Intl 双区与 uTLS 指纹模拟）"
+url: "https://github.com/solarflows/HomeAssistant-Addons/tree/main/workbuddy2api-hub"
+arch:
+  - aarch64
+  - amd64
+startup: application
+boot: manual
+init: false
+ports:
+  8788/tcp: 8788
+ports_description:
+  8788/tcp: "OpenAI / Anthropic 兼容 API 与管理面板端口"
+webui: "[PROTO:http]://[HOST]:[PORT:8788]"
+map:
+  - type: app_config
+    path: /app/accounts
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+options:
+  API_KEY: ""
+  PANEL_PASSWORD: ""
+  TZ: "Asia/Shanghai"
+  WB_PROXY_DEFAULT_REALM: "intl"
+  WB_TLS_FINGERPRINT: "auto"
+  WB_ENABLE_ANTHROPIC_MESSAGES: true
+  HTTPS_PROXY: ""
+schema:
+  API_KEY: "password?"
+  PANEL_PASSWORD: "password?"
+  TZ: "str?"
+  WB_PROXY_DEFAULT_REALM: "list(intl|cn)"
+  WB_TLS_FINGERPRINT: "list(auto|python|node)"
+  WB_ENABLE_ANTHROPIC_MESSAGES: "bool"
+  HTTPS_PROXY: "str?"
