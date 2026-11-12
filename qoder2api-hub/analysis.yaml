@@ -66,3 +66,21 @@ filesystem:
 
 assets:
   icon: "官方 Qoder 图标 PNG (412x412 alicdn / favIcon.svg) 缩放为 256x256 PNG"
+
+env_policy:
+  rule: "默认 unset（_export_str 留空不导出）；仅容器固定契约或必要通用默认值在 options 预置"
+  preset_container_fixed:
+    HOST: "0.0.0.0"
+    PORT: "8790"
+    QD_LOG_DIR: "/data/logs"
+    QD_PROXY_USAGE_DIR: "/data/usage"
+    QD_PROXY_PYTHON: "/usr/bin/python3（跳过启动脚本桌面运行环境探测）"
+  preset_addon_options:
+    TZ: "Asia/Shanghai"
+  default_unset:
+    - "API_KEY / PANEL_PASSWORD（不作为 env 导出，由 00-init.sh 写入 settings.json 与回填同步）"
+    - "QD_PROXY_DEFAULT_REALM（unset → 上游默认 cn）"
+    - "QD_SESSION_CACHE（unset → 上游默认 off，有 REDIS_URL 时回落 redis）"
+    - "QD_ANTHROPIC_THINKING（unset → 跟随面板设置，否则 off）"
+    - "QD_CN_VPC_ENDPOINT（unset → 不放行额外私网 VPC）"
+    - "HTTPS_PROXY（unset → 直连）"

@@ -18,19 +18,20 @@ configuration:
     name: Timezone
     description: Container timezone (e.g. Asia/Shanghai, UTC).
   QD_PROXY_DEFAULT_REALM:
-    name: Default Realm
+    name: Default Realm (Optional Override)
     description: >-
-      Default upstream realm selected on startup: cn or intl.
+      Default unset (upstream defaults to cn). Optionally override initial
+      upstream realm on startup: cn or intl.
   QD_SESSION_CACHE:
-    name: Session Cache Mode
+    name: Session Cache Mode (Optional Override)
     description: >-
-      Prompt/prefix session cache mode: off, memory, or redis (for external
-      Redis configure QD_SESSION_REDIS_URL if needed).
+      Default unset (upstream defaults to off). Optionally select off, memory,
+      or redis (configure QD_SESSION_REDIS_URL if needed).
   QD_ANTHROPIC_THINKING:
-    name: Anthropic Thinking Output Policy
+    name: Anthropic Thinking Output Policy (Optional Override)
     description: >-
-      Thinking block strategy for Anthropic /v1/messages endpoint: off or
-      empty. Per-key and dashboard settings take precedence over this env.
+      Default unset (defers to per-key and dashboard settings, then off).
+      Optionally set off or empty as fallback env override.
   QD_CN_VPC_ENDPOINT:
     name: CN VPC Dedicated Endpoint
     description: >-

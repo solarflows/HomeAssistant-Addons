@@ -14,7 +14,6 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
   - 主服务 `workbuddy2api-hub` 以 `exec python3 -m wb_proxy --host 0.0.0.0 --port 8788 --lan` 前台运行；若在面板顶栏触发关闭服务（`/shutdown`），S6 会自动拉起重启。
   - 伴生服务 `workbuddy2api-hub-updater` 启用官方 `wb_update_external.py`（`WB_UPDATE_EXECUTOR=external`, `profile=app`）：面板触发一键更新/回退后，由更新器完成 SHA256 校验、备份（落于 `/data/updates`）与优雅停机，主服务等落盘结束再由 S6 拉起并完成 `/health` 验收。
   - **注意**：面板热更新仅作用于当前运行容器层；当涉及 Go `wb-tls-bridge` 升级或加载项重构/重装时，仍以 HA 商店推送的新镜像为准。
-- **独立双并行**：使用独立 slug `workbuddy2api-hub` 与独立端口 `8788`，不与 `workbuddy2api-panel`（`7863`）冲突。
 
 ## 2. 首次启动与密钥安全
 
@@ -25,7 +24,15 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
 
 > ⚠️ 合规提示：请勿将公网或未受信任局域网直接暴露至 `8788` 端口，并遵守上游服务条款使用自有合规账号。
 
-## 3. 常用客户端端点
+## 3. 环境变量与默认策略（unset vs 预置）
+
+S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出环境变量：
+
+- **容器固定预置（非用户选项）**：`HOST=0.0.0.0`、`PORT=8788`、`WB_PROXY_USAGE_DIR=/data/usage`、`WB_PROXY_CATALOG_DIR=/data/catalog`、`WB_SUBBRIDGE_DATA_DIR=/data/subbridge-data`、`WB_UPDATE_INSTALL_ENABLED=1`、`WB_UPDATE_EXECUTOR=external`、`WB_UPDATE_REQUEST_DIR=/run/workbuddy2api-hub-updater`、`WB_UPDATE_PROFILE=app`。
+- **加载项预置默认值（2 项）**：`TZ=Asia/Shanghai`；`WB_ENABLE_ANTHROPIC_MESSAGES=true`（上游默认关闭 `/v1/messages`，加载项刻意默认开启以开箱适配 Claude Code）。
+- **保持默认 `unset` 的项**：`WB_PROXY_DEFAULT_REALM`（未设由上游默认 `intl`）、`WB_TLS_FINGERPRINT`（未设由上游默认 `auto`）、`HTTPS_PROXY`（未设直连），以及其余上游高级环境变量均不预填或导出空串；`API_KEY` / `PANEL_PASSWORD` 刻意不以环境变量方式导出，统一由 `00-init.sh` 写入 `settings.json` 并按需回填。
+
+## 4. 常用客户端端点
 
 | 端点 | 用途 |
 |---|---|
@@ -34,7 +41,7 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
 | `http://<你的HA>:8788/v1/messages` | Anthropic Messages 兼容端点（需开启 `WB_ENABLE_ANTHROPIC_MESSAGES`） |
 | `http://<你的HA>:8788/health` | 健康探针（固定返回 200） |
 
-## 4. 持久化存储规划
+## 5. 持久化存储规划
 
 | 容器路径 | HA 映射来源 | 内容 | 是否随 HA 备份 |
 |---|---|---|---|
@@ -46,7 +53,7 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
 
 如曾手动在 `/config/workbuddy2api-hub` 放置旧版账号文件且 `/app/accounts` 为空，首次启动时会自动完成单向迁入。
 
-## 5. 故障排查
+## 6. 故障排查
 
 1. **升级或重装后界面无法打开 / 端口被占用**
    - 确认宿主机 `8788` 端口未被其它容器占用，或已在加载项「网络」设置中映射到自定义端口。

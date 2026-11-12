@@ -23,7 +23,15 @@ Qoder 多账号池化反代网关与管理面板，基于上游源码在 Home As
 
 > ⚠️ 合规提示：请仅在受信任内网或反向代理鉴权保护下使用，勿将 `8790` 端口直接暴露于公网，并遵守上游服务条款。
 
-## 3. 常用客户端端点
+## 3. 环境变量与默认策略（unset vs 预置）
+
+S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出环境变量：
+
+- **容器固定预置（非用户选项）**：`HOST=0.0.0.0`、`PORT=8790`、`QD_LOG_DIR=/data/logs`、`QD_PROXY_USAGE_DIR=/data/usage`、`QD_PROXY_PYTHON=/usr/bin/python3`。
+- **加载项预置默认值（1 项）**：`TZ=Asia/Shanghai`。
+- **保持默认 `unset` 的项**：`QD_PROXY_DEFAULT_REALM`（未设由上游默认 `cn`）、`QD_SESSION_CACHE`（未设由上游默认 `off`）、`QD_ANTHROPIC_THINKING`（未设时跟随面板全局与单 Key 配置，避免被环境变量覆盖）、`QD_CN_VPC_ENDPOINT`、`HTTPS_PROXY`，以及其余上游高级环境变量均不预填或导出空串；`API_KEY` / `PANEL_PASSWORD` 刻意不以环境变量方式导出，统一由 `00-init.sh` 写入 `settings.json` 并按需回填。
+
+## 4. 常用客户端端点
 
 | 端点 | 用途 |
 |---|---|
@@ -32,7 +40,7 @@ Qoder 多账号池化反代网关与管理面板，基于上游源码在 Home As
 | `http://<你的HA>:8790/v1/messages` | Anthropic Messages 兼容端点 |
 | `http://<你的HA>:8790/ping` | 健康探针（固定返回 200） |
 
-## 4. 持久化存储规划
+## 5. 持久化存储规划
 
 | 容器路径 | HA 映射来源 | 内容 | 是否随 HA 备份 |
 |---|---|---|---|
@@ -42,7 +50,7 @@ Qoder 多账号池化反代网关与管理面板，基于上游源码在 Home As
 
 如曾手动在 `/config/qoder2api-hub` 放置旧版账号文件且 `/app/accounts` 为空，首次启动时会自动完成单向迁入。
 
-## 5. 故障排查
+## 6. 故障排查
 
 1. **国际区无法连接或超时**
    - 检查网络连通性；需要走代理时请在配置项填入 `HTTPS_PROXY`（如 `http://192.168.1.2:7890`）。

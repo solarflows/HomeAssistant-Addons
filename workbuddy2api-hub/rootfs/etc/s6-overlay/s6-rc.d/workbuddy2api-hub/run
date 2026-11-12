@@ -52,13 +52,14 @@ export WB_UPDATE_EXECUTOR="external"
 export WB_UPDATE_REQUEST_DIR="/run/workbuddy2api-hub-updater"
 export WB_UPDATE_PROFILE="app"
 
-# API_KEY 已在 00-init.sh 中通过 settings.json + options_applied.json 双向同步管理，
-# 此处不无条件导出 API_KEY 环境变量，避免覆盖用户在 Web 面板中修改的新密钥。
-_export_str "TZ"
-_export_str "WB_PROXY_DEFAULT_REALM"
-_export_str "WB_TLS_FINGERPRINT"
-_export_str "HTTPS_PROXY"
+# 环境变量导出策略：默认 unset（留空或不定义时不导出）；仅容器契约路径与必要/覆写默认项显式填充
+# API_KEY / PANEL_PASSWORD 在 00-init.sh 通过 settings.json + options_applied.json 双向同步管理，此处不导出。
+_export_str "TZ"                      # 预置默认值 Asia/Shanghai（与 Dockerfile 一致）
+_export_str "WB_PROXY_DEFAULT_REALM"  # 默认 unset（未填由上游默认为 intl）
+_export_str "WB_TLS_FINGERPRINT"      # 默认 unset（未填由上游默认为 auto）
+_export_str "HTTPS_PROXY"             # 默认 unset（留空直连）
 
+# 预置默认值 true：上游默认关闭 /v1/messages，加载项刻意默认开启以开箱兼容 Claude Code
 if bashio::config.true 'WB_ENABLE_ANTHROPIC_MESSAGES'; then
     export WB_ENABLE_ANTHROPIC_MESSAGES="1"
 else

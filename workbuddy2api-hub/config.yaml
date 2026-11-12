@@ -22,19 +22,19 @@ map:
   - type: homeassistant_config
     path: /legacy_ha
     read_only: false
+# 环境变量策略：未设置或留空保持 unset（由上游默认/Web 面板接管）；仅必要或覆写默认行为的项在 options 预置默认值
 options:
   API_KEY: ""
   PANEL_PASSWORD: ""
-  TZ: "Asia/Shanghai"
-  WB_PROXY_DEFAULT_REALM: "intl"
-  WB_TLS_FINGERPRINT: "auto"
-  WB_ENABLE_ANTHROPIC_MESSAGES: true
+  TZ: "Asia/Shanghai"                  # 预置默认值：容器运行与日志时区
+  WB_ENABLE_ANTHROPIC_MESSAGES: true   # 预置默认值：上游默认关闭，加载项默认开启以兼容 Claude Code
   HTTPS_PROXY: ""
 schema:
   API_KEY: "password?"
   PANEL_PASSWORD: "password?"
   TZ: "str?"
-  WB_PROXY_DEFAULT_REALM: "list(intl|cn)"
-  WB_TLS_FINGERPRINT: "list(auto|python|node)"
   WB_ENABLE_ANTHROPIC_MESSAGES: "bool"
   HTTPS_PROXY: "str?"
+  # 可选高级覆盖项（默认 unset，交由上游内置默认值；需要时在 HA UI「显示未使用的可选配置项」或 YAML 中填写）
+  WB_PROXY_DEFAULT_REALM: "list(intl|cn)?"
+  WB_TLS_FINGERPRINT: "list(auto|python|node)?"

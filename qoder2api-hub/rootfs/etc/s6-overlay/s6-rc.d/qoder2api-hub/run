@@ -29,14 +29,14 @@ export QD_LOG_DIR="/data/logs"
 export QD_PROXY_USAGE_DIR="/data/usage"
 [ -x /usr/bin/python3 ] && export QD_PROXY_PYTHON="/usr/bin/python3"
 
-# API_KEY 已在 00-init.sh 中通过 settings.json + options_applied.json 双向同步管理，
-# 此处不无条件导出 API_KEY 环境变量，避免覆盖用户在 Web 面板中修改的新密钥。
-_export_str "TZ"
-_export_str "QD_PROXY_DEFAULT_REALM"
-_export_str "QD_SESSION_CACHE"
-_export_str "QD_ANTHROPIC_THINKING"
-_export_str "QD_CN_VPC_ENDPOINT"
-_export_str "HTTPS_PROXY"
+# 环境变量导出策略：默认 unset（留空或不定义时不导出）；仅容器契约路径与必要默认项显式填充
+# API_KEY / PANEL_PASSWORD 在 00-init.sh 通过 settings.json + options_applied.json 双向同步管理，此处不导出。
+_export_str "TZ"                      # 预置默认值 Asia/Shanghai（与 Dockerfile 一致）
+_export_str "QD_PROXY_DEFAULT_REALM"  # 默认 unset（未填由上游默认为 cn）
+_export_str "QD_SESSION_CACHE"        # 默认 unset（未填由上游默认为 off）
+_export_str "QD_ANTHROPIC_THINKING"   # 默认 unset（未填时跟随面板全局设置，否则 off）
+_export_str "QD_CN_VPC_ENDPOINT"      # 默认 unset（未填不额外放行内网 VPC）
+_export_str "HTTPS_PROXY"             # 默认 unset（留空直连）
 
 if [ -n "${HTTPS_PROXY:-}" ] && [ -z "${NO_PROXY:-}" ]; then
     export NO_PROXY="127.0.0.1,localhost,::1"

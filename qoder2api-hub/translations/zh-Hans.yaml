@@ -16,16 +16,17 @@ configuration:
     name: 时区
     description: 容器运行与日志时区（例如 Asia/Shanghai、UTC）。
   QD_PROXY_DEFAULT_REALM:
-    name: 默认服务区
-    description: 启动时默认激活的账号池区域：cn（国内版）或 intl（国际版）。
-  QD_SESSION_CACHE:
-    name: 会话前缀缓存模式
-    description: 会话上下文缓存策略：off（关闭）、memory（内存）或 redis。
-  QD_ANTHROPIC_THINKING:
-    name: Anthropic Thinking 输出策略
+    name: 默认服务区（可选覆盖）
     description: >-
-      Anthropic /v1/messages 接口的 thinking block 输出策略：off 或 empty
-      （面板全局设置与单 Key 配置优先级高于本环境变量）。
+      默认不设置（unset，上游默认 cn）。如需覆盖启动初始区域可选 cn（国内版）或 intl（国际版）。
+  QD_SESSION_CACHE:
+    name: 会话前缀缓存模式（可选覆盖）
+    description: >-
+      默认不设置（unset，上游默认 off）。可选 off（关闭）、memory（内存）或 redis。
+  QD_ANTHROPIC_THINKING:
+    name: Anthropic Thinking 输出策略（可选覆盖）
+    description: >-
+      默认不设置（unset，优先跟随面板全局与单 Key 配置，否则为 off）。如需兜底覆盖可选 off 或 empty。
   QD_CN_VPC_ENDPOINT:
     name: 国内版企业 VPC 专线端点
     description: >-

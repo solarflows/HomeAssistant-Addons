@@ -16,13 +16,14 @@ configuration:
     name: 时区
     description: 容器运行与日志时区（例如 Asia/Shanghai、UTC）。
   WB_PROXY_DEFAULT_REALM:
-    name: 默认服务区
+    name: 默认服务区（可选覆盖）
     description: >-
-      启动时默认激活的账号池区域：intl（国际版 WorkBuddy）或 cn（国内版 CodeBuddy）。
+      默认不设置（unset，上游默认 intl）。如需覆盖启动初始区域可选 intl（国际版 WorkBuddy）
+      或 cn（国内版 CodeBuddy）。
   WB_TLS_FINGERPRINT:
-    name: TLS 指纹引擎
+    name: TLS 指纹引擎（可选覆盖）
     description: >-
-      出站 TLS ClientHello 指纹策略：auto（优先内置 Go uTLS 桥接，异常时自动回退）、
+      默认不设置（unset，上游默认 auto）。可选 auto（优先内置 Go uTLS 桥接，异常时自动回退）、
       python（Python 原生 TLS）或 node。
   WB_ENABLE_ANTHROPIC_MESSAGES:
     name: 启用 Anthropic /v1/messages 接口

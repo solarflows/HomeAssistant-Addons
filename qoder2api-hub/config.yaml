@@ -22,21 +22,20 @@ map:
   - type: homeassistant_config
     path: /legacy_ha
     read_only: false
+# 环境变量策略：未设置或留空保持 unset（由上游默认/Web 面板接管）；仅必要项在 options 预置默认值
 options:
   API_KEY: ""
   PANEL_PASSWORD: ""
-  TZ: "Asia/Shanghai"
-  QD_PROXY_DEFAULT_REALM: "cn"
-  QD_SESSION_CACHE: "off"
-  QD_ANTHROPIC_THINKING: "off"
+  TZ: "Asia/Shanghai"                  # 预置默认值：容器运行与日志时区
   QD_CN_VPC_ENDPOINT: ""
   HTTPS_PROXY: ""
 schema:
   API_KEY: "password?"
   PANEL_PASSWORD: "password?"
   TZ: "str?"
-  QD_PROXY_DEFAULT_REALM: "list(cn|intl)"
-  QD_SESSION_CACHE: "list(off|memory|redis)"
-  QD_ANTHROPIC_THINKING: "list(off|empty)"
   QD_CN_VPC_ENDPOINT: "str?"
   HTTPS_PROXY: "str?"
+  # 可选高级覆盖项（默认 unset，交由上游内置默认值/面板配置；需要时在 HA UI「显示未使用的可选配置项」或 YAML 中填写）
+  QD_PROXY_DEFAULT_REALM: "list(cn|intl)?"
+  QD_SESSION_CACHE: "list(off|memory|redis)?"
+  QD_ANTHROPIC_THINKING: "list(off|empty)?"

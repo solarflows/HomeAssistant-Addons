@@ -18,15 +18,15 @@ configuration:
     name: Timezone
     description: Container timezone (e.g. Asia/Shanghai, UTC).
   WB_PROXY_DEFAULT_REALM:
-    name: Default Realm
+    name: Default Realm (Optional Override)
     description: >-
-      Default upstream realm selected on startup: intl (workbuddy.ai) or cn
-      (copilot.tencent.com / codebuddy.cn).
+      Default unset (upstream defaults to intl). Optionally override the initial
+      startup realm: intl (workbuddy.ai) or cn (copilot.tencent.com / codebuddy.cn).
   WB_TLS_FINGERPRINT:
-    name: TLS Fingerprint Mode
+    name: TLS Fingerprint Mode (Optional Override)
     description: >-
-      Outbound TLS fingerprint engine: auto (prefer bundled Go uTLS bridge,
-      fallback on unsupported env), python (stdlib SSL), or node.
+      Default unset (upstream defaults to auto). Optionally choose auto (prefer
+      bundled Go uTLS bridge with fallback), python (stdlib SSL), or node.
   WB_ENABLE_ANTHROPIC_MESSAGES:
     name: Enable Anthropic /v1/messages Endpoint
     description: >-
