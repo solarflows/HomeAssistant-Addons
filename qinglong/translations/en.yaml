@@ -1,8 +1,3 @@
 ---
-configuration:
-  TZ:
-    name: Timezone
-    description: >-
-      Timezone for the Qinglong panel, affects scheduled task execution times.
 network:
   5700/tcp: Qinglong Web management panel
