@@ -1,3 +1,28 @@
+### 1.11.1 (2026-11-12)
+
+#### Highlights
+
+- **More supported challenges:** supported ALTCHA and Friendly Captcha v1 access forms can complete over HTTP. Supported smallest-color Shumei puzzles are solved through the existing browser widget and verified through its accepted state.
+- **More accurate detection:** ordinary page text and inert examples no longer trigger false Cloudflare/Turnstile detections. WAF metadata includes matched rules, incomplete evaluations and diagnostic codes.
+- **More reliable proxy and sessions:** prevent unsafe request replay after ambiguous failures, preserve HTTP credentials, fix CONNECT/HEAD handling and close upstream work on disconnect. Implicit `/v1` session creation now counts toward the request deadline.
+
+#### Major changes
+
+- 32daf1b: add bounded HTTP PoW handling for supported ALTCHA and Friendly Captcha v1 access forms (#279).
+- 3446c99: solve supported Shumei spatial puzzles in the active browser widget (#280).
+- 9e71e88: expose detailed WAF detection metadata (#258, #277).
+- f8a88de: avoid false Cloudflare/Turnstile detections (#278).
+- acf7956: fix proxy lifecycle, response handling, session deadlines, metrics, MHTML accounting and web headers (#281).
+- ee916aa: refresh compatible patch dependencies and prepare release metadata.
+
+No configuration or data migration is required. Recreate the container and retain existing data volumes. Proxy `Authorization` is supported by HTTP tiers; use cookies for authenticated requests requiring browser solving. The client remains at 0.1.0 and is not published to npm by this release.
+
+Thanks to @opastorello for the ALTCHA/Friendly Captcha and Shumei contributions.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.11.0...v1.11.1
+
+---
+
 ### 1.11.0 (2026-11-09)
 
 #### Highlights
