@@ -40,7 +40,7 @@ http://<HA-IP>:4567/sub/0
 
 ## 数据持久化
 
-采用 Home Assistant 新版 `addon_config` 隔离存储规范：
+采用 Home Assistant 新版 `app_config` 对象化隔离存储规范：
 
 | 路径 | 说明 |
 |------|------|

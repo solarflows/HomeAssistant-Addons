@@ -35,7 +35,7 @@ http://<HA-IP>:4567/sub/0
 
 ## 数据持久化
 
-采用 Home Assistant 新版 `addon_config` 隔离存储规范：
+采用 Home Assistant 新版 `app_config` 对象化隔离存储规范：
 
 - `/config/atv.mv.db` — H2 核心数据库（随 HA 备份持久化，直接读写零软链接）
 - `/config/store` — TvBox 站点与订阅数据

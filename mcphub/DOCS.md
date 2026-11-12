@@ -19,7 +19,7 @@ MCPHub 是 AI 客户端与 MCP 服务器之间的统一控制面：连接本地�
 2. 使用 `admin` 登录：
    - 设置了 `ADMIN_PASSWORD` 选项 → 用该密码；
    - 未设置 → 随机密码**仅在首次启动日志打印一次**，请及时在面板中修改。
-3. 添加 MCP 服务器（面板 → Servers），或编辑 `/config/mcp_settings.json` 后重启加载项。
+3. 添加 MCP 服务器（面板 → Servers），或编辑 `/app/data/mcp_settings.json` 后重启加载项。
 
 ## 3. 客户端接入端点
 
@@ -43,12 +43,12 @@ MCPHub 是 AI 客户端与 MCP 服务器之间的统一控制面：连接本地�
 
 | 容器路径 | 内容 | 是否随 HA 备份 |
 |---|---|---|
-| `/config/` | 设置、用户、凭据绑定、`mcp_settings.json`、`uploads/`（MCPB 上传包） | ✅ |
+| `/app/data/` | 设置、用户、凭据绑定、`mcp_settings.json`、`uploads/`（MCPB 上传包） | ✅ |
 | `/data/mcphub/npm` | npm 包缓存（npx 拉取的 server 包） | ❌ |
 | `/data/mcphub/cache` | uv/uvx 等其他缓存 | ❌ |
 | `/data/mcphub/cli-*` | mcphub CLI 的配置与凭据（仅交互式 CLI 使用） | ❌ |
 
-- 数据目录通过 `/app/data` 软链到 `/config/mcphub`，卸载/升级加载项不丢失。
+- 通过 `app_config` 直接原生挂载至上游标准路径 `/app/data`（零软链接），卸载/升级加载项不丢失。
 - 缓存持久化后，加载项更新不会导致 npx/uvx 包全部重新下载。
 
 ## 6. Python / Node 工具链
@@ -62,7 +62,7 @@ MCPHub 是 AI 客户端与 MCP 服务器之间的统一控制面：连接本地�
 - **看不到随机密码** → 加载项日志页从启动处查看，或先在配置中显式设置 `ADMIN_PASSWORD` 后重启。
 - **stdio server 启动失败** → 检查服务器命令是否可执行（加载项日志会打印）；国内网络可切换 `NPM_REGISTRY` 镜像源。
 - **数据库模式（PostgreSQL）** → 本加载项未启用；如需生产级 DB 模式，请参考官方文档自行扩展。
-- **更新加载项后设置丢失？** → 不会。设置位于 `/config/mcphub`（HA 快照亦覆盖）。
+- **更新加载项后设置丢失？** → 不会。设置位于 `app_config` 原生直挂的 `/app/data`（HA 快照亦覆盖）。
 
 ## 8. 安全提示
 

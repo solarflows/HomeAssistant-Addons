@@ -39,11 +39,14 @@
 
 | 容器路径 | 说明 |
 |---------|------|
-| `/share` | HA 共享目录（读写），可跨 addon 访问 |
-| `/ssl` | SSL 证书（只读） |
-| `/config` | 数据库与配置（持久化 + 备份） |
+| `/config` | FileBrowser Quantum 数据库与核心配置（`app_config`，读写 + 随 HA 备份） |
+| `/homeassistant` | Home Assistant 主配置目录（`homeassistant_config`，读写） |
+| `/app_configs` | 宿主机全部 Add-on 独立配置目录汇总（`all_app_configs`，读写） |
+| `/share` | HA 共享目录（`share`，读写），可跨 addon 访问 |
+| `/media` | HA 媒体目录（`media`，读写） |
+| `/ssl` | SSL 证书目录（`ssl`，只读） |
 
-> 需要访问其他 addon 或 HA 的文件，可通过 `/share` 目录实现。
+> 默认配置已直挂上述全部核心挂载点，可直接通过 Web 界面统一浏览与管理 Home Assistant 及各加载项的持久化文件。
 
 ## 上游文档
 

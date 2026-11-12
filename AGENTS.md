@@ -155,11 +155,11 @@ map:
 | **cliproxyapi** | `/config` | `app_config -> /config` | Go 二进制。存储 `config.yaml`、OAuth 凭据及代理路由配置 |
 | **cliproxyapi-cpamp** | `/config` | `app_config -> /config` | Go + Node.js。存储 CLIProxy 规则与 CPAMP 管理器数据库 `cpamp.db` |
 | **mcphub** | `/app/data` | `app_config -> /app/data` | 上游镜像。存储 MCP 服务器清单与服务配置，直通原生路径 |
-| **workbuddy2api-panel** | `/app/data` | `app_config -> /app/data` | Go 二进制。存储 `app.db` 与 API 配置 |
+| **workbuddy2api-panel** | `/config` | `app_config -> /config` | Go 二进制。存储 `config.json`、凭据及 API 密钥；运行日志及状态保留在 `/data/workbuddy2api-panel` |
 | **alist-tvbox** | `/config` | `app_config -> /config`<br>`/data -> /data` (私有卷) | Java + AList。`-Datv.data.dir=/config` 存储核心数据库；`/index` 挂载私有卷 `/data/index` 避开备份 |
 | **alist-tvbox-standalone**| `/config` | `app_config -> /config` | 纯 Java。原生 `-Datv.data.dir=/config`，纯物理路径零软链 |
-| **trawl** | `/app/data` | `app_config -> /app/data` | 上游镜像。持久化存储抓取规则与状态，按需开启 |
-| **flaresolverr** | *(无状态)* | *(可选内存/tmp)* | Python + Chromium。会话内存维持，无需配置持久化，零膨胀 |
+| **trawl** | *(私有卷)* | *(无外部 map，私有卷 `/data/trawl`)* | 上游镜像。持久化存储抓取统计及 MITM CA 证书至 `/data/trawl`，不污染 HA 备份 |
+| **flaresolverr** | *(无状态)* | *(无外部 map，纯内存会话)* | Python + Chromium。无状态反爬代理，零配置卷膨胀 |
 
 ## Version and CI Contract
 
@@ -177,11 +177,13 @@ map:
   - `asset`: updated timestamp `YYYYMMDD` of release asset
 - `version.yaml.dependencies` supports monitoring arbitrary N secondary/upstream repositories (e.g. `KEY: { repo: owner/repo, strategy: release }`). When any dependency has a new release, `Version_Check` triggers release with `updated_deps`, and `Release.yml` updates `build_args` and `version.yaml`.
 - Every `version.yaml.build_args` key must match a Dockerfile `ARG`. Check tag prefixes and transformations per addon before changing version logic.
-- `Version_Check.yml` runs every six hours and on manual dispatch; `Release.yml` builds the matrix for the configured architectures and pushes `ghcr.io/solarflows/<addon-slug>`.
-- **Edit `Release.yml` triggers a full rebuild of every addon** (the path filter treats a pipeline change as invalidating all cached metadata). Expect unrelated addons to get a `-build.N` bump.
-- The current push path filter watches addon `Dockerfile`, addon `rootfs/**`, `Release.yml`, `.github/actions/**`, and `.github/scripts/**`. Do not assume a config-only or version-only change will trigger a build; inspect [Version_Check.yml](.github/workflows/Version_Check.yml) when the trigger matters.
+- `Version_Check.yml` runs every six hours (`schedule`), on `push`, and on `workflow_dispatch`; `Release.yml` builds the matrix for the configured architectures and pushes `ghcr.io/solarflows/<addon-slug>`.
+- **Per-Addon `tracking.file_sha` Isolation**: Under `schedule` / `workflow_dispatch`, each addon compares ONLY its own `tracking.file_sha..HEAD` against non-bot (`github-actions[bot]`) commits touching its own `Dockerfile` or `rootfs/`. **Never share a single global `LAST_SHA` across addons** (doing so causes perpetual rolling `-build.N` loops whenever one addon lags behind another). Both workflows must use `fetch-depth: 0` so low-frequency addons never lose their `file_sha` outside shallow windows.
+- **Edit `Release.yml` triggers a full rebuild of every addon** on `push` (assuming pipeline changes affect build outputs). When editing `Release.yml` without intending to rebuild all 14 images (e.g. workflow checkout or summary fixes), include `[skip-rebuild]` in the commit message.
+- The current push path filter watches `**/Dockerfile`, `**/rootfs/**`, `**/config.yaml`, `**/version.yaml`, `.github/workflows/Release.yml`, and `.github/workflows/Version_Check.yml`. Note that `config.yaml`-only edits trigger `Version_Check` checks (upstream version/base checks), not an image rebuild unless `Dockerfile` or `rootfs/` also changed.
 - Build args and GitHub Actions outputs are structured data. Preserve the existing `yq -> JSON -> jq` flow and heredoc format for multiline `GITHUB_OUTPUT` values.
 - `reason` values can be **composite** (comma-joined, e.g. `version_changed,dockerfile,rootfs` for a new addon's first build). Always split on commas before matching — never prefix-match (`case "$REASON" in dockerfile*`).
+- **Never downgrade published versions**: Never manually reset or decrement `config.yaml.version` or `version.yaml.tracking.build_num` after images are pushed to GHCR, as Home Assistant Supervisor rejects downgrades.
 
 ## Validation
 

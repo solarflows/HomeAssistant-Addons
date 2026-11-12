@@ -27,9 +27,12 @@
 
 | 路径 | 说明 |
 |---|---|
-| `/config` | 持久化配置（数据库、配置文件） |
-| `/ssl` | SSL 证书（只读） |
+| `/config` | 持久化配置（数据库、配置文件，随 HA 备份） |
+| `/homeassistant` | Home Assistant 主配置目录（读写） |
+| `/app_configs` | 全部 Add-on 配置总目录（读写） |
 | `/share` | Home Assistant 共享目录（读写） |
+| `/media` | Home Assistant 媒体目录（读写） |
+| `/ssl` | SSL 证书（只读） |
 
 ## 特色功能
 

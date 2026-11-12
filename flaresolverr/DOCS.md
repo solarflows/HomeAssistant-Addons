@@ -34,7 +34,7 @@ curl -L -X POST 'http://localhost:8191/v1' \
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
-| `LOG_FILE` | (空) | 日志输出文件路径（如 `/config/flaresolverr.log`） |
+| `LOG_FILE` | (空) | 日志输出文件路径（默认留空输出至容器日志；如需写入文件建议指定 `/tmp/flaresolverr.log`） |
 | `HEADLESS` | `true` | Chrome 无头模式 |
 | `DISABLE_MEDIA` | `false` | 禁用媒体资源请求 |
 | `PROMETHEUS_ENABLED` | `false` | 启用 Prometheus 指标 |
@@ -42,9 +42,10 @@ curl -L -X POST 'http://localhost:8191/v1' \
 | `PROXY_USERNAME` | (空) | 上游代理用户名 |
 | `PROXY_PASSWORD` | (空) | 上游代理密码 |
 
-## 数据持久化
+## 运行与无状态特性
 
-- `/config` — 由 `addon_config:rw` 映射，可通过选项 `LOG_FILE: /config/flaresolverr.log` 将排查日志持久化至此供下载分析。
+- 无状态内存代理设计：已移除外部持久化目录映射，不在宿主机产生空配置目录或备份膨胀。
+- 诊断日志建议直接留空 `LOG_FILE`，通过 Home Assistant 加载项「日志」页面实时查看。
 
 ## 资源要求
 

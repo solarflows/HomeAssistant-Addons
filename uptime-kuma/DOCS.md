@@ -37,10 +37,10 @@
 
 ## 数据持久化
 
-- `/config/data` — SQLite 数据库 + 配置（由 `addon_config:rw` 映射，随 HA 备份持久化）
-- `/config/mysql` — 可选的 MariaDB 数据（`UPTIME_KUMA_ENABLE_EMBEDDED_MARIADB=1` 时使用）
-- `/share` — 数据库备份与报表导出（由 `share:rw` 映射）
-- `/ssl` — 本地 SSL 证书监控（由 `ssl:ro` 只读映射）
+- `/opt/uptime-kuma/data` — SQLite 数据库 + 配置与上传文件（由 `app_config` 原生直挂，零软链，随 HA 备份持久化）
+- `/data/mysql` — 可选的内置 MariaDB 数据（私有存储卷，不占用 HA 备份，`UPTIME_KUMA_ENABLE_EMBEDDED_MARIADB=1` 时使用）
+- `/share` — 数据库备份与报表导出（由 `share` 映射）
+- `/ssl` — 本地 SSL 证书监控（由 `ssl` 只读映射）
 
 ## 上游文档
 
