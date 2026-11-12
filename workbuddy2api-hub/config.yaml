@@ -1,5 +1,5 @@
 name: "WorkBuddy2API Hub"
-version: "2.1.1"
+version: "2.1.1-build.1"
 slug: "workbuddy2api-hub"
 image: "ghcr.io/solarflows/workbuddy2api-hub"
 description: "WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板（OpenAI & Anthropic 兼容，支持 CN/Intl 双区与 uTLS 指纹模拟）"
@@ -26,8 +26,8 @@ map:
 options:
   API_KEY: ""
   PANEL_PASSWORD: ""
-  TZ: "Asia/Shanghai"                  # 预置默认值：容器运行与日志时区
-  WB_ENABLE_ANTHROPIC_MESSAGES: true   # 预置默认值：上游默认关闭，加载项默认开启以兼容 Claude Code
+  TZ: "Asia/Shanghai" # 预置默认值：容器运行与日志时区
+  WB_ENABLE_ANTHROPIC_MESSAGES: true # 预置默认值：上游默认关闭，加载项默认开启以兼容 Claude Code
   HTTPS_PROXY: ""
 schema:
   API_KEY: "password?"

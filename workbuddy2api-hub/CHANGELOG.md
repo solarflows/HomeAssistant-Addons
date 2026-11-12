@@ -1,3 +1,11 @@
+### 2.1.1-build.1 (2026-11-12)
+
+rootfs 维护
+- docs: unify README layout and align real configs across all addons
+- refactor(hubs): enforce unset-by-default env policy and document presets
+
+---
+
 ### 2.1.1 (2026-11-12)
 
 - **每日活跃自动模型回退**：国际版每日活跃在「自动化 → 国际版每日签到」新增「优先 DeepSeek Flash，失败切免费模型」开关，默认开启并即时保存。自动模式先试 `deepseek-v4.1-flash`，额度 / 限流 / 模型不可用时按当前渠道实时目录顺序切换免费模型；关闭后直接从免费模型开始。手工指定的候选序列仍严格按面板顺序执行。
