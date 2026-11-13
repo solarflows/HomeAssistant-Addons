@@ -1,3 +1,10 @@
+### 1.11.1-build.1 (2026-11-13)
+
+CI 工作流维护
+- docs: unify README layout and align real configs across all addons
+
+---
+
 ### 1.11.1 (2026-11-12)
 
 #### Highlights
