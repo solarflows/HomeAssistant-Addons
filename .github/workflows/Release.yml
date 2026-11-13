@@ -13,6 +13,11 @@ on:
         type: boolean
         default: false
 
+# 编译发布全局并发互斥锁：同一时刻只允许一个 Release 实例运行，后续调用自动排队
+concurrency:
+  group: release-addon-images-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: write

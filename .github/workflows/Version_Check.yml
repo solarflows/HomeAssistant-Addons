@@ -26,6 +26,12 @@ on:
       - '.github/workflows/Release.yml'
       - '.github/workflows/Version_Check.yml'
 
+# 全局并发互斥锁：同一时刻全仓库只允许一个 Version Check 流程执行，后续触发自动排队等待
+# 彻底杜绝定时巡检 (schedule)、代码推送 (push) 或手动触发并发运行，避免多个编译任务抢占 runner 及镜像推送冲突
+concurrency:
+  group: version-check-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   actions: write
