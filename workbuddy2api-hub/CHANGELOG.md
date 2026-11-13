@@ -1,3 +1,38 @@
+### 2.1.3 (2026-11-13)
+
+- **CodeArts 并发占满改为有界排队**（#886 / #887）：单账号并发槽被占满时最多等待 `busy_wait_seconds`（默认 10 秒，范围 0–120），名额释放通过 `Condition` 立即唤醒；超时返回可重试的 429 `rate_limit_error` 并带 `reset_at`，不再误报 502「没有可用的账号」。真正空池 / 全停用 / 全冷却仍提示添加账号；多账号仍优先选空闲账号。
+- **工具 Schema 关键字类型纠偏**（#885）：数字、布尔、字符串约束字段统一纠偏，`enum` / `examples` 形状校验，并拒绝 `NaN / Infinity`，修复上游 code 11129。
+- **清理合并遗留的重复顶层定义**（#888）：删除 `wb_proxy.py` 中不生效的旧 `credits_remain_of` 与 per-key 并发实现，避免后续维护误改。
+- **运营活动任务自动化**：新增星巴克协作与记者节福利活动，接入 `/portal/activity/tasks` 的任务读取、`viewed`、事件上报、`claim` 与 `claimed_at` 回读确认。星巴克自动完成 3 次小程序对话和专家对话；记者节自动完成指定专家、`interview-material-organizer` 技能体验及桌面 `playbook_prompt_send` 灵感任务。手机端 App 对话任务只提示、不伪造，完成后再运行会自动补领。
+- **活动与成长任务解耦**：运营活动走独立的 portal 契约，不再依赖成长任务清单是否下发；成长任务暂时为空或读取失败时，一次性 / 活动入口仍会继续执行活动任务并分别记录原因。
+- **真实技能分享**：`skill_share` 先从市场技能目录取可分享技能，调用 Open Platform `asset-shares/c2c/channels` 创建真实分享渠道；只有同时拿到 `share_code` 与 `link` 才上报 `skill_share_channel_action` 的 `click` / `success` 事件，服务端进度确认后才领奖。渠道创建失败、缺少链接或事件上报失败均不伪造、不领奖。
+- **模板任务真实场景**：`template_5` 从 `/console/as/support/scenes` 读取真实场景 ID，按缺口逐组上报 `agent_task_created`、`agent_task_created_with_template`、`template_used`、`playbook_prompt_send` 四事件；服务端不可用时才回落到内置场景表，进度未确认不提前领奖。
+- **测试**：新增活动任务读取、viewed、进度补发、专家 / 技能 / 桌面事件、App 边界、领奖回读，以及技能分享渠道 / 链接校验和模板真实场景 / 四事件组 / 进度确认测试。
+- 全量测试：**306 个套件：229 个 Python + 77 个 JS，`306 passed, 0 failed, 0 skipped`**。
+
+<!-- release-download-block -->
+#### 下载说明
+
+- `workbuddy2api-hub-v2.1.3.zip`
+  - 通用便携版（Python 源码 + 看板 + 启动脚本）
+  - Windows / macOS / Linux
+  - 需要 Python 3.9+
+  - 内置 Windows amd64、macOS 与 Linux amd64 / arm64 的 Go/uTLS bridge
+  - 未设置 TLS 模式时默认 auto；桥不可用时自动回退 Python，无需安装 Go
+  - 解压后使用对应平台的启动脚本
+
+- `workbuddy2api_2.1.3-1_all.ipk`
+  - OpenWrt 的 opkg 系安装包
+  - 适用于对应受支持的旧版 OpenWrt 路线
+
+- `workbuddy2api-2.1.3-r1.apk`
+  - OpenWrt 25.x+ 的 apk-tools 安装包
+
+- `SHA256SUMS`
+  - Release 资产的 SHA-256 校验值
+
+---
+
 ### 2.1.2 (2026-11-12)
 
 - **请求列表支持失败详情与筛选**（#883）：最近请求现在可按账号、模型、API Key 和结果筛选；失败状态可直接展开完整错误，不再只能看到截断的一行。筛选与分页在后端完成，跨区域扫描有上限，不会为了筛一页把全部日志读进内存。
