@@ -33,6 +33,16 @@ http://<HA-IP>:4567/sub/0
 | 需外部 AList | ❌ | ✅ |
 | 网盘管理 | 内置 | 外部 AList 管理 |
 
+## 配置选项
+
+可在加载项「配置」页面中自定义以下项（保存后重启生效）：
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `LOW_MEMORY` | `true` | **低内存优化模式**（默认推荐）：启用单线程 SerialGC、分层编译截止至 C1 (`TieredStopAtLevel=1`)、元空间限制 160M、堆限制 64M-512M 及 OOM 快速故障退出。大幅缩减 G1GC 记忆集 (RSet) 与 C2 编译器 CodeCache 开销，压降 100MB+ 物理常驻内存 (RSS) 并显著加快启动速度。适合树莓派、各类电视盒子及低配小主机。设为 `false` 则使用标准模式 (128M-1024M 堆)。 |
+| `ATV_DEBUG` | `false` | 开启 Spring Boot 调试日志输出。 |
+| `JVM_OPTS` | `""` | 附加的自定义 JVM 参数，供高级用户定制（如 `-Dcustom.prop=value`）。 |
+
 ## 数据持久化
 
 采用 Home Assistant 新版 `app_config` 对象化隔离存储规范：

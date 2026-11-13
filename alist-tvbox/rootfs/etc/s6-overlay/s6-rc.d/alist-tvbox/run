@@ -59,11 +59,21 @@ fi
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
 LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
 if [ "${LOW_MEMORY}" = "true" ]; then
-    MEM_OPT="-Xmx512M"
+    # 低内存模式：SerialGC 杜绝多线程 GC 与 RSet 堆外开销，C1 JIT (TieredStopAtLevel=1) 规避 C2 编译器与大量 CodeCache 膨胀
+    JVM_OPTS="-Xms64M -Xmx512M -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=160M -XX:+ExitOnOutOfMemoryError"
+    bashio::log.info "AList-TvBox JVM 运行于低内存优化模式 (SerialGC, C1 JIT, Heap: 64M-512M)"
 else
-    MEM_OPT="-Xmx1024M"
+    # 标准模式：允许更高堆上限与完整分层编译
+    JVM_OPTS="-Xms128M -Xmx1024M -XX:+ExitOnOutOfMemoryError"
+    bashio::log.info "AList-TvBox JVM 运行于标准模式 (Heap: 128M-1024M)"
 fi
-bashio::log.info "AList-TvBox JVM memory: ${MEM_OPT}"
+
+USER_JVM_OPTS=$(bashio::config 'JVM_OPTS' '')
+if [ -n "${USER_JVM_OPTS}" ]; then
+    bashio::log.info "AList-TvBox 追加用户自定义 JVM 参数: ${USER_JVM_OPTS}"
+    JVM_OPTS="${JVM_OPTS} ${USER_JVM_OPTS}"
+fi
+
 ATV_DEBUG=$(bashio::config 'ATV_DEBUG' 'false')
 DEBUG_FLAG=""
 if [ "${ATV_DEBUG}" = "true" ]; then
@@ -71,7 +81,7 @@ if [ "${ATV_DEBUG}" = "true" ]; then
     bashio::log.info "Debug mode enabled"
 fi
 cd /opt/atv
-exec java ${MEM_OPT} \
+exec java ${JVM_OPTS} \
     -Duser.timezone=Asia/Shanghai \
     -Datv.data.dir=/config \
     -Dspring.config.additional-location=file:/config/,file:/data/atv/config/ \
