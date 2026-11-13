@@ -1,5 +1,5 @@
 name: "Qoder2API Hub"
-version: "1.9.8-build.1"
+version: "1.9.8-build.2"
 slug: "qoder2api-hub"
 image: "ghcr.io/solarflows/qoder2api-hub"
 description: "Qoder 多账号池化反代网关与管理面板（OpenAI & Anthropic 兼容，支持 CN/Intl 双区、会话缓存与 UMID 指纹）"

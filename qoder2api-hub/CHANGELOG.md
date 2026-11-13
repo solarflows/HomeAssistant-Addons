@@ -1,3 +1,10 @@
+### 1.9.8-build.2 (2026-11-13)
+
+Dockerfile + rootfs 维护
+- feat(s6): 全量引入 S6 原生 finish 退出钩子与熔断机制，修复 cliproxyapi 启动死循环
+
+---
+
 ### 1.9.8-build.1 (2026-11-12)
 
 rootfs 维护
