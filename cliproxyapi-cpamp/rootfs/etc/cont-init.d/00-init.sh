@@ -75,6 +75,32 @@ yaml_quote() {
     printf '"%s"' "${s}"
 }
 
+# validate_cpa_config <file>
+#   校验 CLIProxyAPI 配置文件有效性:
+#   1. 文件存在且非空 (-s)
+#   2. 根级必须符合 YAML Mapping 规范 (无裸冒号、无非法缩进、无顶层未缩进列表项)
+#   3. 包含至少一个已知核心键 (config-version, server, management, access, oauth, observability, requests, port)
+validate_cpa_config() {
+    local file="$1"
+    [ ! -s "${file}" ] && return 1
+    awk '
+        BEGIN { valid = 1; has_known_key = 0 }
+        {
+            if ($0 ~ /^[ \t]*#/ || $0 ~ /^[ \t]*$/ || $0 ~ /^---/ || $0 ~ /^\.\.\./) { next }
+            if ($0 ~ /^\t/) { valid = 0; exit 1 }
+            if ($0 ~ /^[ \t]+/) { next }
+            if ($0 !~ /^[a-zA-Z0-9_-]+:/) { valid = 0; exit 1 }
+            if ($0 ~ /^(config-version|server|management|access|oauth|observability|requests|port):/) {
+                has_known_key = 1
+            }
+        }
+        END {
+            if (!valid || !has_known_key) { exit 1 }
+            exit 0
+        }
+    ' "${file}"
+}
+
 # ha_options_backfill <key> <value> [<key> <value> ...]
 #   把首启生成的密钥回填到 HA 加载项选项（POST /addons/self/options）。
 #   读取 /data/options.json 合并键值后整体提交（该接口为整体替换语义）。
@@ -137,12 +163,28 @@ ln -sfn "${AUTH_DIR}" /config/cliproxyapi-cpamp/auths
 FIRST_START=0
 if [ ! -f "${CONFIG_FILE}" ]; then
     FIRST_START=1
+elif ! validate_cpa_config "${CONFIG_FILE}"; then
+    CORRUPT_BACKUP="${CONFIG_FILE}.corrupted.$(date +%Y%m%d%H%M%S 2>/dev/null || echo "bak")"
+    cp -f "${CONFIG_FILE}" "${CORRUPT_BACKUP}"
+    bashio::log.error "主配置 ${CONFIG_FILE} 语法损坏或非有效 YAML Mapping 结构！"
+    bashio::log.warning "已将损坏文件备份至: ${CORRUPT_BACKUP}"
+    bashio::log.info "正在自动重建默认有效配置以自愈恢复服务..."
+    rm -f "${CONFIG_FILE}"
+    FIRST_START=1
+fi
+
+if [ "${FIRST_START}" = "1" ]; then
     MANAGEMENT_KEY=$(bashio::config 'MANAGEMENT_KEY' '')
     GENERATED_KEY=0
     if [ -z "${MANAGEMENT_KEY}" ]; then
-        MANAGEMENT_KEY="$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-        GENERATED_KEY=1
-        bashio::log.warning "MANAGEMENT_KEY 未配置，已生成随机管理密钥（面板登录 / API 管理 / CPAMP 连接均使用）"
+        if [ -s "${CONFIG_DIR}/management_key.txt" ]; then
+            MANAGEMENT_KEY=$(cat "${CONFIG_DIR}/management_key.txt")
+            bashio::log.info "复用现有管理密钥副本: ${CONFIG_DIR}/management_key.txt"
+        else
+            MANAGEMENT_KEY="$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+            GENERATED_KEY=1
+            bashio::log.warning "MANAGEMENT_KEY 未配置，已生成随机管理密钥（面板登录 / API 管理 / CPAMP 连接均使用）"
+        fi
     fi
     printf '%s' "${MANAGEMENT_KEY}" > "${CONFIG_DIR}/management_key.txt"
     chmod 600 "${CONFIG_DIR}/management_key.txt"

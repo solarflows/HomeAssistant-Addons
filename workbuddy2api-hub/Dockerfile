@@ -55,7 +55,7 @@ RUN mkdir -p /app/accounts /app/usage /app/subbridge-data \
     && chmod +x /app/*.sh /app/bin/wb-tls-bridge
 
 COPY rootfs /
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh \
     PYTHONUNBUFFERED=1 \

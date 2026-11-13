@@ -60,7 +60,8 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - **严禁新增不支持的服务文件**：`debian-base:9.3.0` 内置老版本 S6；严禁添加 `notification-fd` 或 `timeout-up`，否则服务被静默跳过。
 - **Stage 2 Hook 必需**：依赖 `S6_STAGE2_HOOK` 环境变量与对应 hook 脚本清理 `down` 标记文件；严禁在 cont-init 中执行 `rm -f down`。
 - **消除 hook 与 cont-init 竞态**：S6 longrun `run` 脚本在 `exec` 真实进程前，必须加入有界等待（≤30s），等待 cont-init 生成必要配置文件。
-- **容器层执行权限固化**：在 Dockerfile 执行 `COPY rootfs /` 后，必须紧跟 `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh`。
+- **S6 原生退出钩子与熔断阻断**：所有 S6 longrun 服务必须配套提供 `./finish` 脚本；捕获非零退出码并以滑动时间窗口（60s）维护内存态崩溃计数；连续失败达到阈值（5次）时触发 `s6-svc -d .` 原生指令将服务置为 down 状态，彻底阻断无限重启死循环。
+- **容器层执行权限固化**：在 Dockerfile 执行 `COPY rootfs /` 后，必须紧跟 `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh`。
 
 ## Chromium 容器约束
 - 仅在文档明确要求 Chromium 运行依赖时才授予 `SYS_ADMIN` 或 `IPC_LOCK` 特权。

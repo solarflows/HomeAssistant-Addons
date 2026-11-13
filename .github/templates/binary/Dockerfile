@@ -28,7 +28,7 @@ RUN ARCH=$(case "${TARGETARCH}" in         amd64) echo "amd64" ;;         arm64)
 COPY rootfs /
 
 # 修复 Windows 检出时丢失的 Unix 执行权限
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 

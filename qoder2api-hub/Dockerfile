@@ -57,7 +57,7 @@ RUN mkdir -p /app/accounts /app/logs/usage /app/usage \
     && { [ ! -f /app/umid/runtime-info ] || chmod +x /app/umid/runtime-info; }
 
 COPY rootfs /
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/scripts/stage2_hook.sh
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh
 
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh \
     PYTHONUNBUFFERED=1 \
