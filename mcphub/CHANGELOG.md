@@ -1,3 +1,44 @@
+### 1.2.4 (2026-11-14)
+
+#### Summary
+
+This release improves upstream MCP discovery, database recovery, and imported OpenAPI tool compatibility. It discovers all pages of upstream capabilities, bounds database reconnection initialization, and normalizes nullable input schemas. It also updates Hono and improves Windows test compatibility.
+
+#### Fixes
+
+- Discover all pages of upstream tools, prompts, resources, and resource templates so later-page capabilities remain available. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1487
+- Bound database reconnection initialization and cleanup, isolate late completions, and keep health probes responsive during recovery. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1485
+- Normalize imported OpenAPI nullable input schemas while preserving required fields and validation constraints. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1482
+- Update Hono from 4.13.11 to 4.13.16. by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1488
+- Adjust POSIX-specific test assertions and skips for Windows hosts. by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1479
+
+#### 摘要
+
+本版本改进了上游 MCP 能力发现、数据库恢复及导入 OpenAPI 工具的兼容性。现在会发现上游能力的所有分页，为数据库重连初始化设置超时，并规范化允许空值的输入 schema。同时更新了 Hono，并改善了 Windows 测试兼容性。
+
+#### 修复
+
+- 发现上游工具、提示词、资源及资源模板的所有分页，确保后续页面中的能力可用。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1487
+- 为数据库重连初始化和清理设置超时，隔离延迟完成的操作，并保持恢复期间的健康探针可响应。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1485
+- 规范化导入 OpenAPI 中允许空值的输入 schema，同时保留必填字段和校验约束。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1482
+- 将 Hono 从 4.13.11 更新至 4.13.16。 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1488
+- 调整 Windows 主机上的 POSIX 专属测试断言和跳过规则。 by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1479
+
+#### New Contributors
+
+- @santal-fuego made their first contribution in #1479
+
+#### References
+
+- chore(deps): bump hono from 4.13.11 to 4.13.16 by @app/dependabot in https://github.com/samanhappy/mcphub/pull/1488
+- fix: discover all upstream MCP list pages by @samanhappy in https://github.com/samanhappy/mcphub/pull/1487
+- fix: bound database reconnection initialization by @samanhappy in https://github.com/samanhappy/mcphub/pull/1485
+- fix: normalize imported OpenAPI nullable schemas by @samanhappy in https://github.com/samanhappy/mcphub/pull/1482
+- test: let POSIX-only assertions pass or skip on Windows hosts by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1479
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.3...v1.2.4
+
+---
+
 ### 1.2.3 (2026-11-11)
 
 #### Summary
