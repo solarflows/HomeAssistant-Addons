@@ -32,7 +32,7 @@ COPY --from=source /src/internal/i18n/messages/ /src/internal/i18n/messages/
 RUN pnpm run build
 
 # ---- Stage 3: Cross-compile Go with BoringCrypto (CGO_ENABLED=1) ----
-FROM --platform=$BUILDPLATFORM golang:1.24-bookworm AS app-builder
+FROM --platform=$BUILDPLATFORM golang:1.27-bookworm AS app-builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -47,10 +47,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /src
 COPY --from=source /src/go.mod /src/go.sum ./
-RUN sed -i 's/^go 1\.[0-9]*/go 1.24/' go.mod \
-    && go mod download
+RUN go mod download
 COPY --from=source /src/ ./
-RUN sed -i 's/^go 1\.[0-9]*/go 1.24/' go.mod
 COPY --from=web-builder /src/internal/webui/dist ./internal/webui/dist
 
 RUN set -e; \
