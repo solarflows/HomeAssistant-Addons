@@ -1,0 +1,18 @@
+---
+configuration:
+  API_KEYS:
+    name: API 密钥
+    description: >-
+      用于客户端接入 OpenAI / Claude / Gemini API 时的 Bearer 密钥（可逗号分隔多个）。
+      留空首启将自动随机生成并在日志打印且回填到本选项。
+  ADMIN_PASSWORD:
+    name: 管理端密码
+    description: >-
+      网页管理控制台（http://<IP>:8017/）登录密码（默认用户名 admin）。
+      留空则允许回环与内网免密访问；设置后远程访问必须输入密码。
+  PROXY:
+    name: 上游代理
+    description: >-
+      出站全局代理（支持 HTTP/HTTPS/SOCKS5，如 http://192.168.1.2:7890）；直连请留空。
+network:
+  8017/tcp: Web 管理面板与 API 服务端口

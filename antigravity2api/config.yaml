@@ -1,0 +1,37 @@
+name: Antigravity2API
+slug: antigravity2api
+version: "0.1.7"
+image: ghcr.io/solarflows/antigravity2api
+description: "Google Antigravity Agent 模型转 OpenAI/Claude/Gemini API 网关（支持 BoringCrypto 原生 TLS 模拟）"
+url: https://github.com/Mag1cFall/Antigravity2API
+init: false
+arch:
+  - aarch64
+  - amd64
+icon: mdi:google
+webui: "[PROTO:http]://[HOST]:[PORT:8017]"
+ports:
+  8017/tcp: 8017
+ports_description:
+  8017/tcp: "Web 管理面板与 API 服务端口"
+environment:
+  LISTEN: "0.0.0.0:8017"
+  AUTH_DIR: "/config/auth"
+  RUNTIME_DIR: "/data/runtime"
+options:
+  API_KEYS: ""
+  ADMIN_PASSWORD: ""
+  PROXY: ""
+schema:
+  API_KEYS: str?
+  ADMIN_PASSWORD: password?
+  PROXY: str?
+map:
+  - type: app_config
+    path: /config
+    read_only: false
+  - type: homeassistant_config
+    path: /legacy_ha
+    read_only: false
+startup: application
+boot: auto

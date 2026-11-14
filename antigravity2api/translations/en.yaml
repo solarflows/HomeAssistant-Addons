@@ -1,0 +1,18 @@
+---
+configuration:
+  API_KEYS:
+    name: API Keys
+    description: >-
+      Bearer API keys for clients to access OpenAI / Claude / Gemini compatible endpoints.
+      Leave empty on first boot to auto-generate a secure key.
+  ADMIN_PASSWORD:
+    name: Admin Password
+    description: >-
+      Password for Web Admin Dashboard (username is admin).
+      Leave empty for local access without authentication; set to require login for remote access.
+  PROXY:
+    name: Upstream Proxy
+    description: >-
+      Global outbound proxy (HTTP/HTTPS/SOCKS5, e.g. http://192.168.1.2:7890). Leave blank for direct connection.
+network:
+  8017/tcp: Web Admin Dashboard and API port

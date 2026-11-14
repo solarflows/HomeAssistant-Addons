@@ -1,0 +1,19 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Antigravity2API 主服务启动脚本 (S6 longrun)
+# ==============================================================================
+
+# 等待 cont-init 完成（最多 30s）
+for _ in $(seq 1 30); do
+    [ -f /run/antigravity2api-initialized ] && break
+    sleep 1
+done
+if [ ! -f /run/antigravity2api-initialized ]; then
+    bashio::log.warning "00-init.sh 仍未完成或超时，继续尝试启动"
+fi
+
+cd /config || exit 1
+
+bashio::log.info "Starting Antigravity2API on port 8017 (with BoringCrypto)..."
+exec /usr/local/bin/antigravity2api serve --open-ui=false
