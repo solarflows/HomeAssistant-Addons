@@ -1,3 +1,26 @@
+### 8.0.70 (2026-11-14)
+
+#### Changelog
+
+- docs(readme): add VisionCoder provider listing to English, Chinese, and Japanese READMEs (1aaf56bc)
+- feat(api): expose standalone in-flight request count on management API (b285660f)
+- feat(sdk): keep caller-provided interceptor host and executor wrappers across config apply (6acfb76b)
+- docs(readme): remove Modelflare sponsor listing from all READMEs (d6785c8d)
+- fix(wstunnel): deflake close ordering, topology visibility, and backpressure tests (7cfa267b)
+- feat(meta): relay Muse Code client endpoints under /muse-code (7fd90c7a)
+- fix(pluginhost): keep OAuth plugin models credential-bound and catalog-safe (5b63e29a)
+- fix(gemini/antigravity): fail zero-output abnormal terminations before HTTP 200 commit (cf07c78a)
+- perf(management): cache verified management secret hashes for one hour (51b98e74)
+- feat(management): expose registered plugin runtime priority on v8 plugin listing (7904efd7)
+- fix(handlers): forward caller identity metadata to model-directory response interceptors (100f2de1)
+- fix(auth): carry the pool cooldown reset on the terminal 429 (4da9f685)
+- feat(antigravity): deactivate credentials on TOS_VIOLATION and add optional pool-wide protective pause (5a351d95)
+- fix(management): honor target account proxy during SIWC bind (3b480776)
+- fix(antigravity): fail signature-only zero-output streams without finishReason before HTTP 200 commit (f2efe2c4)
+- feat(executor): add Go RE2 sensitive-patterns-replace support for Antigravity, Devin, and Claude (905e70c4)
+
+---
+
 ### 8.0.69-build.1 (2026-11-13)
 
 Dockerfile + rootfs 维护
