@@ -47,8 +47,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /src
 COPY --from=source /src/go.mod /src/go.sum ./
-RUN go mod download
+RUN sed -i 's/^go 1\.[0-9]*/go 1.24/' go.mod \
+    && go mod download
 COPY --from=source /src/ ./
+RUN sed -i 's/^go 1\.[0-9]*/go 1.24/' go.mod
 COPY --from=web-builder /src/internal/webui/dist ./internal/webui/dist
 
 RUN set -e; \
