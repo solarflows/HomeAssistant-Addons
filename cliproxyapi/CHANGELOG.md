@@ -1,3 +1,11 @@
+### 8.0.72 (2026-11-14)
+
+#### Changelog
+
+- fix(antigravity): disable pool-wide TOS pause by default (e96d4c48)
+
+---
+
 ### 8.0.70 (2026-11-14)
 
 #### Changelog
