@@ -1,6 +1,6 @@
 name: Antigravity2API
 slug: antigravity2api
-version: "0.1.7"
+version: "0.1.7-build.1"
 image: ghcr.io/solarflows/antigravity2api
 description: "Google Antigravity Agent 模型转 OpenAI/Claude/Gemini API 网关（支持 BoringCrypto 原生 TLS 模拟）"
 url: https://github.com/Mag1cFall/Antigravity2API
