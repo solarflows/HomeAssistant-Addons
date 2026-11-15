@@ -1,3 +1,10 @@
+### 1.9.9-build.1 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): streamline runtime configuration, adopt zero-option TZ, and migrate to supervisor socket
+
+---
+
 ### 1.9.9 (2026-11-13)
 
 #### v1.9.9 — 容器退出与工具调用身份修复
