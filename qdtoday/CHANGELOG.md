@@ -1,3 +1,11 @@
+### 20261108-build.9 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+- chore(icons): 等价重构 7 个插件图标至 256x256 视网膜高清透明规范
+
+---
+
 ### 20261108-build.8 (2026-11-13)
 
 CI 工作流维护
