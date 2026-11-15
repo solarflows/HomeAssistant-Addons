@@ -1,3 +1,11 @@
+### 1.2.4-build.1 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+- refactor(addons): streamline runtime configuration, adopt zero-option TZ, and migrate to supervisor socket
+
+---
+
 ### 1.2.4 (2026-11-14)
 
 #### Summary
