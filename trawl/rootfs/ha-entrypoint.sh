@@ -10,6 +10,12 @@
 #=============================================================================
 set -e
 
+# 自动同步宿主机时区（由 Supervisor 环境变量原生注入）
+if [ -n "${TZ:-}" ] && [ -f "/usr/share/zoneinfo/${TZ}" ]; then
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+    echo "${TZ}" > /etc/timezone
+fi
+
 echo "[trawl] Preparing persistent directories..."
 mkdir -p /data/trawl/proxy-ca /data/trawl/metrics
 

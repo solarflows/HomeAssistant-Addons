@@ -6,10 +6,16 @@
 #   2) 软件包缓存接管: /root/.npm、/root/.cache → /data/mcphub
 #      （npx/uvx 拉取的 MCP server 包在 addon 更新后不丢失，冷启动更快）
 #   3) CLI profile 接管: /root/.config/mcphub、/root/.local/share/mcphub → /data/mcphub
-#   4) HA addon options → 环境变量（ADMIN_PASSWORD / NPM_REGISTRY）
+#   4) HA addon options → 环境变量（NPM_REGISTRY 等冷启动基础设施项）
 #   5) 链到上游 entrypoint（保留其 npm registry / 代理配置逻辑）
 #=============================================================================
 set -e
+
+# 自动同步宿主机时区（由 Supervisor 环境变量原生注入）
+if [ -n "${TZ:-}" ] && [ -f "/usr/share/zoneinfo/${TZ}" ]; then
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+    echo "${TZ}" > /etc/timezone
+fi
 
 echo "[mcphub] Checking persistent directories..."
 mkdir -p /app/data /data/mcphub/npm /data/mcphub/cache

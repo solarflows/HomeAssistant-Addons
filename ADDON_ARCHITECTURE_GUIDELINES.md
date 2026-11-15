@@ -143,12 +143,12 @@ ha_backfill_option() {
 | **`qoder2api-hub`** | `/app/accounts/settings.json` | `API_KEY`, `HTTPS_PROXY` | `QD_CN_VPC_ENDPOINT`, `QD_SESSION_CACHE`, `QD_PROXY_DEFAULT_REALM`, `QD_ANTHROPIC_THINKING` | `PANEL_PASSWORD`, `TZ` |
 | **`workbuddy2api-hub`** | `/app/accounts/settings.json` | `API_KEY`, `HTTPS_PROXY` | `WB_ENABLE_ANTHROPIC_MESSAGES`, `WB_TLS_FINGERPRINT`, `WB_PROXY_DEFAULT_REALM` | `PANEL_PASSWORD`, `TZ` |
 | **`mcphub`** | `/app/data/` | `NPM_REGISTRY` | 无 | `ADMIN_PASSWORD` *(首启日志打印随机密码，面板改密)* |
-| **`qdtoday`** | `/usr/src/app/config/database.db` | `QD_DEBUG`, `USE_PYCURL`, `AES_KEY`, `COOKIE_SECRET`, `DOMAIN`, `MAIL_*` | `DNS_SERVER`, `PROXIES`, `TASK_*`, `NEW_TASK_DELAY` | **全量保留** *(上游无系统设置页，均为冷启动参数)* |
+| **`qdtoday`** | `/usr/src/app/config/database.db` | `QD_DEBUG`, `USE_PYCURL` | `AES_KEY`, `COOKIE_SECRET`, `DOMAIN`, `MAIL_*`, `DNS_SERVER`, `PROXIES`, `TASK_*`, `NEW_TASK_DELAY` | **全量保留** *(无系统设置页，冷启动参数折叠进 Schema)* |
 | **`filebrowser-quantum`** | `/config/database.db` | `auth_method`, `default_user_scope` | 无 | 用户密码已在 DB，不暴露 |
-| **`alist-tvbox`** | `/config/` | `LOW_MEMORY`, `ATV_DEBUG`, `JVM_OPTS` | 无 | 保持现状 *(底层 JVM 堆内存约束)* |
-| **`alist-tvbox-standalone`** | `/config/` | `LOW_MEMORY`, `ATV_DEBUG`, `JVM_OPTS` | 无 | 保持现状 *(纯 Java 进程堆约束)* |
-| **`flaresolverr`** | *(无状态)* | `LOG_LEVEL`, `HEADLESS`, `DISABLE_MEDIA`, `PROXY_*` | 无 | 保持现状 *(纯无状态 Headless 引擎)* |
-| **`trawl`** | *(无状态)* | `LOG_LEVEL`, `BROWSER_POOL_SIZE`, `MITM_ENABLED`, `CAPTCHA_*`, `PROXY_*` | 无 | 保持现状 *(无 Web 面板反爬微服务)* |
+| **`alist-tvbox`** | `/config/` | `LOW_MEMORY`, `ATV_DEBUG` | `JVM_OPTS` | 保持现状 *(底层 JVM 堆内存约束)* |
+| **`alist-tvbox-standalone`** | `/config/` | `LOW_MEMORY`, `ATV_DEBUG` | `JVM_OPTS` | 保持现状 *(纯 Java 进程堆约束)* |
+| **`flaresolverr`** | *(无状态)* | `LOG_LEVEL`, `HEADLESS`, `DISABLE_MEDIA`, `PROMETHEUS_ENABLED` | `LOG_FILE`, `LANG`, `PROXY_*` | 保持现状 *(无状态 Headless 引擎，高级项折叠)* |
+| **`trawl`** | *(无状态)* | `LOG_LEVEL`, `BROWSER_POOL_SIZE`, `METRICS_DASHBOARD_ENABLED`, `MITM_ENABLED`, `CAPTCHA_SOLVER` | `METRICS_DASHBOARD_TOKEN`, `TWOCAPTCHA_API_KEY`, `PROXY_URL`, `RESIDENTIAL_PROXY_URL` | 保持现状 *(无状态抓取微服务，令牌与代理折叠)* |
 | **`lucky`** | `/goodluck/lucky.conf` | **无** (`options: null`) | 无 | 纯自治典范 |
 | **`uptime-kuma`** | `/opt/uptime-kuma/data/kuma.db` | **无** (`options: null`) | 无 | 纯自治典范 |
 | **`qinglong`** | `/ql/data/` | **无** (`options: null`) | 无 | 纯自治典范 |

@@ -62,8 +62,7 @@ RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overla
 ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh \
     PYTHONUNBUFFERED=1 \
     HOST=0.0.0.0 \
-    PORT=8790 \
-    TZ=Asia/Shanghai
+    PORT=8790
 
 WORKDIR /app
 EXPOSE 8790/tcp

@@ -5,6 +5,12 @@
 #=============================================================================
 set -e
 
+# 自动同步宿主机时区（由 Supervisor 环境变量原生注入）
+if [ -n "${TZ:-}" ] && [ -f "/usr/share/zoneinfo/${TZ}" ]; then
+    ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+    echo "${TZ}" > /etc/timezone
+fi
+
 # ---- Chromium /dev/shm 修复（避免大量共享内存导致算术溢出） ----
 FIX_FILE="/etc/chromium.d/dev-shm"
 if [ -f "$FIX_FILE" ]; then

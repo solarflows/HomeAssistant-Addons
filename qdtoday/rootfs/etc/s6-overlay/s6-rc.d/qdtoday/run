@@ -58,7 +58,7 @@ _export_val() {
   bashio::log.debug "Configured: ${key}=${val}"
 }
 
-_export_val "QD_DEBUG"
+_export_val "QD_DEBUG" "false"
 _export_str "AES_KEY"
 _export_str "COOKIE_SECRET"
 _export_str "DOMAIN"
@@ -68,7 +68,7 @@ _export_val "TRACEBACK_PRINT" "false"
 _export_val "PUSH_BATCH_SW" "true"
 _export_str "PROXIES"
 _export_str "MAIL_SMTP"
-_export_val "MAIL_PORT"
+_export_val "MAIL_PORT" "465"
 _export_val "MAIL_SSL" "true"
 _export_str "MAIL_USER"
 _export_str "MAIL_PASSWORD"

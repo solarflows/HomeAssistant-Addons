@@ -18,13 +18,6 @@ ports_description:
 options:
   QD_DEBUG: false
   USE_PYCURL: true
-  AES_KEY: ""
-  COOKIE_SECRET: ""
-  DOMAIN: ""
-  MAIL_SMTP: ""
-  MAIL_PORT: 465
-  MAIL_USER: ""
-  MAIL_PASSWORD: ""
 schema:
   QD_DEBUG: bool?
   USE_PYCURL: bool?

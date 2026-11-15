@@ -24,7 +24,6 @@ environment:
 options:
   LOW_MEMORY: true
   ATV_DEBUG: false
-  JVM_OPTS: ""
 schema:
   LOW_MEMORY: bool?
   ATV_DEBUG: bool?

@@ -26,12 +26,8 @@ options:
   LOG_LEVEL: info
   BROWSER_POOL_SIZE: 1
   METRICS_DASHBOARD_ENABLED: false
-  METRICS_DASHBOARD_TOKEN: ""
   MITM_ENABLED: false
   CAPTCHA_SOLVER: none
-  TWOCAPTCHA_API_KEY: ""
-  PROXY_URL: ""
-  RESIDENTIAL_PROXY_URL: ""
 schema:
   LOG_LEVEL: list(error|warn|info|debug|silent)
   BROWSER_POOL_SIZE: int(1,8)

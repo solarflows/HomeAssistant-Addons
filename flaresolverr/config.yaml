@@ -19,14 +19,9 @@ ports_description:
 # 常用配置在 UI 中可见；高级配置可手动写入 YAML（见下方 schema）。
 options:
   LOG_LEVEL: info
-  LOG_FILE: ""
   HEADLESS: true
   DISABLE_MEDIA: false
-  LANG: ""
   PROMETHEUS_ENABLED: false
-  PROXY_URL: ""
-  PROXY_USERNAME: ""
-  PROXY_PASSWORD: ""
 schema:
   LOG_LEVEL: list(info|debug|warn|error)?
   LOG_FILE: str?
