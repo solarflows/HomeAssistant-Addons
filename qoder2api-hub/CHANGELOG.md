@@ -1,3 +1,10 @@
+### 1.9.9-build.3 (2026-11-15)
+
+Dockerfile 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+
+---
+
 ### 1.9.9-build.2 (2026-11-15)
 
 rootfs 维护
