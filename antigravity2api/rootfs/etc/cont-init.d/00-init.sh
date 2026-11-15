@@ -5,8 +5,8 @@
 # - app_config 直挂 /config，auth/ 存放账号 OAuth 与设备档案
 # - /data/runtime 与 /data/logs 隔离非关键持久数据与日志
 # - 存量 /legacy_ha/antigravity2api 自愈迁入
-# - 仅固化拉起服务所需的基础运行参数（LISTEN / 路径），非必要不填充默认值
-# - 权鉴与业务配置由 Web 控制台或直接在 .env 中自治管理
+# - 无头容器环境硬约束：出厂固化 LISTEN 与 ADMIN_AUTH_ENABLED=true，预置默认 admin/admin
+# - 权鉴与业务配置由 Web 控制台自治管理，不通过 process ENV 锁死
 # ==============================================================================
 set -e
 
@@ -33,6 +33,27 @@ fi
 
 # 2. .env 键值安全读写函数（使用 awk ENVIRON 避免转义字符碰撞）
 touch "${ENV_FILE}"
+
+get_env_val() {
+    local k="$1"
+    if [ -f "${ENV_FILE}" ]; then
+        awk -v k="${k}" '
+            BEGIN { found = 0 }
+            {
+                if (index($0, k "=") == 1 && found == 0) {
+                    val = substr($0, length(k) + 2)
+                    gsub(/^[ \t]+|[ \t]+$/, "", val)
+                    if ((substr(val, 1, 1) == "\"" && substr(val, length(val), 1) == "\"") || \
+                        (substr(val, 1, 1) == "\x27" && substr(val, length(val), 1) == "\x27")) {
+                        val = substr(val, 2, length(val) - 2)
+                    }
+                    print val
+                    found = 1
+                }
+            }
+        ' "${ENV_FILE}"
+    fi
+}
 
 set_env_val() {
     local k="$1"
@@ -68,10 +89,22 @@ set_env_val() {
     fi
 }
 
-# 3. 基础运行参数设置（仅固化拉起服务所必须的容器网络与数据路径）
+# 3. 基础运行参数与无头环境远程访问设置
+# Antigravity2API 运行于无头容器环境，外部浏览器均通过非回环 (非 loopback) 远程访问；
+# 上游明确要求：未开启 ADMIN_AUTH_ENABLED 时远程请求无法访问管理 API；
+# 且开启 ADMIN_AUTH_ENABLED 时，Go 校验逻辑强制要求 ADMIN_USERNAME 与 ADMIN_PASSWORD 均非空。
 set_env_val "LISTEN" "0.0.0.0:8017"
 set_env_val "AUTH_DIR" "${AUTH_DIR}"
 set_env_val "RUNTIME_DIR" "${RUNTIME_DIR}"
+set_env_val "ADMIN_AUTH_ENABLED" "true"
+
+# 若尚未配置管理员账号密码，出厂预置默认凭据 admin/admin（仅落盘 .env，不作为 process env 导出，支持在 Web 端修改）
+CURRENT_ENV_PW="$(get_env_val 'ADMIN_PASSWORD')"
+if [ -z "${CURRENT_ENV_PW}" ]; then
+    set_env_val "ADMIN_USERNAME" "admin"
+    set_env_val "ADMIN_PASSWORD" "admin"
+    bashio::log.info "无头环境初始化：已设置管理端访问凭据（默认 admin / admin，可在 Web 控制台自行修改）"
+fi
 
 # 4. 可选配置项同步（仅当用户在 HA 选项显式配置时写入，留空保持 unset，不填充默认值）
 OPT_API_KEYS="$(bashio::config 'API_KEYS' '')"
@@ -88,4 +121,4 @@ fi
 
 # 5. 写入就绪标记，放行 S6 longrun 服务
 touch /run/antigravity2api-initialized
-bashio::log.info "Antigravity2API initialized successfully."
+bashio::log.info "Antigravity2API initialized successfully (Remote Web Access Enabled)."

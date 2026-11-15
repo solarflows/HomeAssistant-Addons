@@ -29,14 +29,13 @@
 ```
 
 ### 2. 负向红线与服务拉起原则 (Zero-Synthetic-Defaults & Service Bring-up)
-1. **服务拉起为唯一底线职责**：
-   - 容器与初始化脚本（`cont-init.d`）的核心职责是将服务拉起来（网络监听绑定至 `0.0.0.0`、建立数据持久化软链与目录），**严禁在启动脚本中凭空虚假创建凭据**；
-   - **非必要不填充默认值**：若上游原生无默认密码（如 Antigravity2API 默认未启用远程鉴权直通），则保持原生行为；若上游自带固定默认密码（如 Qoder2API / WorkBuddy2API 的 `admin`），则在 `DOCS.md` 与界面描述中如实标注；
-   - 留空的配置项严禁在初始化时通过伪随机算法（如 `secrets.token_urlsafe`）自动生成假 Key 并反向回填到 HA Options。
-2. **业务密码与凭据坚决不暴露于 HA Options**：
+1. **服务拉起为唯一底线职责与无头环境硬约束**：
+   - 容器与初始化脚本（`cont-init.d`）的核心职责是将服务拉起来（网络监听绑定至 `0.0.0.0`、建立数据持久化软链与目录、固化无头环境必需的前置约束）；
+   - **无头环境硬约束（Headless Invariants）**：在无桌面、无回环直连的容器中运行时，若上游架构对远程访问存在硬性前置依赖（如 `antigravity2api` 要求非 loopback 访问必须开启 `ADMIN_AUTH_ENABLED=true` 且 Go 启动校验强制要求用户名密码非空；`cliproxyapi` 要求 `allow-remote: true`；`flaresolverr` 强制要求 `HEADLESS: true`；Qoder/WorkBuddy 要求 `--lan` 绑定），此类硬约束属于容器运行必需的基础设施参数，初始化脚本必须出厂固化；
+   - **出厂默认凭据与自治改密**：涉及登录凭据的硬约束（如 `admin / admin`），统一在 `DOCS.md` 与多语言界面中如实标注。凭据仅落盘于应用私有配置文件（如 `.env`、`config.yaml`、SQLite），严禁通过 Docker 进程 `ENV` 导出锁死，由用户在 Web 控制台自主修改自治接管；
+2. **纯业务凭据与假默认值禁令 (Zero Synthetic User Credentials)**：
    - 严禁在 `config.yaml` 的 `options` 或 `schema` 中暴露 `ADMIN_PASSWORD`、`MANAGEMENT_KEY`、`PANEL_PASSWORD` 等字段；
-   - 上游原生权鉴在 `DOCS.md` 与多语言描述中如实明示，后续由用户在 Web 控制台内自主设置与修改，由应用私有存储（`.env`、`config.yaml`、SQLite）全权自治；
-   - **解除环境变量锁死**：禁止将业务凭据通过 Docker `ENV` 导出，避免触发 Go/Node 上游将参数标记为只读（如 Antigravity2API 的 `cfg.Environment`）。
+   - 留空的业务密钥（如 Bearer Token `API_KEYS`、`API_KEY`）严禁在初始化时通过伪随机算法（如 `secrets.token_urlsafe`、`urandom`）凭空生成假 Key 并反向回填到 HA Options；留空完全由应用控制台内部自治管理，用户显式配置时则单向同步注入。
 3. **杜绝脆弱的双向胶水层与虚假回填**：
    - 从源头上不暴露业务密码与假默认值，彻底消除“外部选项 vs 内部修改”的二元真理源冲突，严禁多头回填踩踏。
 
@@ -138,7 +137,7 @@ ha_backfill_option() {
 
 | 加载项 (Add-on) | 当前持久化真理源 | 准入 HA Options 暴露项 | 准入高级 Schema (折叠) | 坚决剔除项 (由 Web 或底层自治) |
 |---|---|---|---|---|
-| **`antigravity2api`** | `/config/.env` | `PROXY`, `API_KEYS` | 无 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` *(上游原生无密码直通，可在 Web 设置自主开启认证)* |
+| **`antigravity2api`** | `/config/.env` | `PROXY`, `API_KEYS` | 无 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` *(无头远程硬约束预置 admin/admin 并在 Web 改密)* |
 | **`cliproxyapi`** | `/config/config.yaml` | `PROXY_URL` | 无 | `MANAGEMENT_KEY` *(首启生成至 txt，面板接管)* |
 | **`cliproxyapi-cpamp`** | `/config/config.yaml` | `PROXY_URL` | 无 | `MANAGEMENT_KEY`, `CPAMP_ADMIN_KEY` |
 | **`qoder2api-hub`** | `/app/accounts/settings.json` | `API_KEY`, `HTTPS_PROXY` | `QD_CN_VPC_ENDPOINT`, `QD_SESSION_CACHE`, `QD_PROXY_DEFAULT_REALM`, `QD_ANTHROPIC_THINKING` | `PANEL_PASSWORD`, `TZ` |
