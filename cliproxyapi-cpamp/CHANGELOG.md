@@ -1,3 +1,20 @@
+### 8.0.73-1.14.10 (2026-11-15)
+
+#### Changelog
+
+- feat(gemini): add Gemini 4 models to registry (a16da834)
+- fix(thinking,registry): preserve native Gemini thinkingLevel and isolate provider lookups (3d1a0e0d)
+- fix(management): preserve plugin credential identities in v8 upload and delete (95ebe39c)
+- chore(examples): update moego dependencies to alpha.3 (6d8f872f)
+- fix(gemini): honor 429 Retry-After and RetryInfo hints in cooldown (ed1c23f9)
+- fix(translator): skip Gemini thinking draft images in OpenAI chat completions (6684f3b5)
+- feat(sdk): wrap built-in executors via builder hook on every registration path (05a353cf)
+- fix(gemini): surface inlineData images as image_generation_call in Responses translator (0f8c40e1)
+- fix(executor): skip credential cooldown on Gemini zero-output 502 errors (7e82d0d1)
+- fix(translator): map Claude json_schema format to output_config.format (43806c86)
+
+---
+
 ### 8.0.72-1.14.10-build.1 (2026-11-15)
 
 rootfs 维护
