@@ -216,6 +216,7 @@ For a changed addon, use the smallest useful check first:
 | Edit addon manifests, Ingress, init, or Dockerfiles | [addon-editing.instructions.md](.github/instructions/addon-editing.instructions.md) |
 | Review known build/runtime pitfalls | [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) |
 | Understand an addon’s user-facing behavior | `<addon>/DOCS.md` and `<addon>/README.md` |
+| Configuration governance, timezone sync & Supervisor socket guidelines | [ADDON_ARCHITECTURE_GUIDELINES.md](ADDON_ARCHITECTURE_GUIDELINES.md) |
 | Check repository metadata and workflows | [repository.yaml](repository.yaml), [Version_Check.yml](.github/workflows/Version_Check.yml), [Release.yml](.github/workflows/Release.yml) |
 
 ## Skills
