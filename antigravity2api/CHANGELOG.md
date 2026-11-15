@@ -1,3 +1,10 @@
+### 0.1.7-build.4 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): streamline runtime configuration, adopt zero-option TZ, and migrate to supervisor socket
+
+---
+
 ### 0.1.7-build.3 (2026-11-15)
 
 rootfs 维护
