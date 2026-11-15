@@ -5,7 +5,11 @@
 # - app_config 直挂 /config，auth/ 存放账号 OAuth 与设备档案
 # - /data/runtime 与 /data/logs 隔离非关键持久数据与日志
 # - 存量 /legacy_ha/antigravity2api 自愈迁入
-# - API_KEYS 与 ADMIN_PASSWORD 与 .env / HA 选项双向同步及 Supervisor 回填
+# - 启用远程登录预置：ADMIN_AUTH_ENABLED=true，默认 admin/admin（或自动生成）
+# - 基于 /config/options_applied.json 的双向参数同步与差分状态机：
+#     * HA 选项变更 -> 灾备覆盖更新至 .env
+#     * 面板 UI 改密 -> 保留并自动反向回填至 HA 选项
+#     * 非进程 ENV 导出 -> 解除 upstream 环境变量锁死，确保 Web 端可改
 # ==============================================================================
 set -e
 
@@ -17,8 +21,10 @@ RUNTIME_DIR="/data/runtime"
 LOG_DIR="/data/logs"
 LEGACY_DIR="/legacy_ha/antigravity2api"
 ENV_FILE="${CONFIG_DIR}/.env"
+SIDECAR_FILE="${CONFIG_DIR}/options_applied.json"
+PW_TXT_FILE="${CONFIG_DIR}/admin_password.txt"
 
-mkdir -p "${AUTH_DIR}" "${RUNTIME_DIR}" "${LOG_DIR}"
+mkdir -p "${CONFIG_DIR}" "${AUTH_DIR}" "${RUNTIME_DIR}" "${LOG_DIR}"
 
 # 1. 存量数据自愈迁入（若目标为空且历史存量存在）
 if [ -d "${LEGACY_DIR}" ] && [ ! -f "${CONFIG_DIR}/.migrated_from_legacy" ]; then
@@ -52,65 +58,243 @@ ha_options_backfill() {
         http://supervisor/addons/self/options || true
 }
 
-# 3. 读取用户在 HA 界面配置的选项
+# 3. .env 键值安全读写函数（使用 awk ENVIRON 避免转义字符碰撞）
+touch "${ENV_FILE}"
+
+get_env_val() {
+    local k="$1"
+    if [ -f "${ENV_FILE}" ]; then
+        awk -v k="${k}" '
+            BEGIN { found = 0 }
+            {
+                if (index($0, k "=") == 1 && found == 0) {
+                    val = substr($0, length(k) + 2)
+                    gsub(/^[ \t]+|[ \t]+$/, "", val)
+                    if ((substr(val, 1, 1) == "\"" && substr(val, length(val), 1) == "\"") || \
+                        (substr(val, 1, 1) == "\x27" && substr(val, length(val), 1) == "\x27")) {
+                        val = substr(val, 2, length(val) - 2)
+                    }
+                    print val
+                    found = 1
+                }
+            }
+        ' "${ENV_FILE}"
+    fi
+}
+
+set_env_val() {
+    local k="$1"
+    local raw_v="$2"
+    local formatted="${raw_v}"
+    if [[ "${raw_v}" =~ [[:space:]\#\"\'] ]]; then
+        local escaped="${raw_v//\\/\\\\}"
+        escaped="${escaped//\"/\\\"}"
+        formatted="\"${escaped}\""
+    fi
+    local tmp="${ENV_FILE}.tmp"
+    if ENV_VAL="${formatted}" awk -v k="${k}" '
+        BEGIN { done = 0 }
+        {
+            if (index($0, k "=") == 1 && done == 0) {
+                print k "=" ENVIRON["ENV_VAL"]
+                done = 1
+            } else {
+                print $0
+            }
+        }
+        END {
+            if (done == 0) {
+                print k "=" ENVIRON["ENV_VAL"]
+            }
+        }
+    ' "${ENV_FILE}" > "${tmp}"; then
+        mv -f "${tmp}" "${ENV_FILE}"
+    else
+        rm -f "${tmp}"
+        bashio::log.error "写入 .env 失败: ${k}"
+        return 1
+    fi
+}
+
+# 4. 基础运行参数设置（写入 .env 但严禁 process export，以保持 Web 面板 editable）
+set_env_val "LISTEN" "0.0.0.0:8017"
+set_env_val "AUTH_DIR" "${AUTH_DIR}"
+set_env_val "RUNTIME_DIR" "${RUNTIME_DIR}"
+set_env_val "ADMIN_AUTH_ENABLED" "true"
+
+# 5. 读取当前 HA 选项
 OPT_API_KEYS="$(bashio::config 'API_KEYS' '')"
 [ "${OPT_API_KEYS}" = "null" ] && OPT_API_KEYS=""
+OPT_ADMIN_USERNAME="$(bashio::config 'ADMIN_USERNAME' '')"
+[ "${OPT_ADMIN_USERNAME}" = "null" ] && OPT_ADMIN_USERNAME=""
 OPT_ADMIN_PASSWORD="$(bashio::config 'ADMIN_PASSWORD' '')"
 [ "${OPT_ADMIN_PASSWORD}" = "null" ] && OPT_ADMIN_PASSWORD=""
 OPT_PROXY="$(bashio::config 'PROXY' '')"
 [ "${OPT_PROXY}" = "null" ] && OPT_PROXY=""
 
-# 4. 生成或同步 API_KEYS
+# 6. 读取当前 .env 中已有值
+CURRENT_ENV_KEY="$(get_env_val 'API_KEYS')"
+CURRENT_ENV_USER="$(get_env_val 'ADMIN_USERNAME')"
+CURRENT_ENV_PW="$(get_env_val 'ADMIN_PASSWORD')"
+CURRENT_ENV_PROXY="$(get_env_val 'PROXY')"
+
+# 7. 差分调谐与双向同步逻辑
 NEED_BACKFILL=false
-if [ -z "${OPT_API_KEYS}" ]; then
-    # 若 .env 中已存在 API_KEYS，优先提取
-    if [ -f "${ENV_FILE}" ] && grep -q '^API_KEYS=' "${ENV_FILE}"; then
-        OPT_API_KEYS=$(grep '^API_KEYS=' "${ENV_FILE}" | head -1 | cut -d'=' -f2- | tr -d '"'\'' ')
+BACKFILL_KEY=""
+BACKFILL_USER=""
+BACKFILL_PW=""
+
+if [ ! -f "${SIDECAR_FILE}" ]; then
+    # ---- 首次启动 / 升级接入（建立基准快照） ----
+    bashio::log.info "建立初始参数基线快照..."
+
+    # API_KEYS 初始决策
+    if [ -n "${OPT_API_KEYS}" ]; then
+        APPLIED_API_KEYS="${OPT_API_KEYS}"
+    elif [ -n "${CURRENT_ENV_KEY}" ]; then
+        APPLIED_API_KEYS="${CURRENT_ENV_KEY}"
+        BACKFILL_KEY="${CURRENT_ENV_KEY}"
+        NEED_BACKFILL=true
+    else
+        APPLIED_API_KEYS="sk-agy-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+        BACKFILL_KEY="${APPLIED_API_KEYS}"
+        NEED_BACKFILL=true
+        bashio::log.info "首次启动，已生成默认网关 API 密钥: ${APPLIED_API_KEYS}"
     fi
-    # 仍为空时，首启自动生成一个安全随机密钥
-    if [ -z "${OPT_API_KEYS}" ]; then
-        OPT_API_KEYS="sk-agy-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-        bashio::log.info "首次启动，已生成默认网关 API 密钥: ${OPT_API_KEYS}"
+
+    # ADMIN_USERNAME 初始决策
+    if [ -n "${OPT_ADMIN_USERNAME}" ]; then
+        APPLIED_ADMIN_USER="${OPT_ADMIN_USERNAME}"
+    elif [ -n "${CURRENT_ENV_USER}" ]; then
+        APPLIED_ADMIN_USER="${CURRENT_ENV_USER}"
+    else
+        APPLIED_ADMIN_USER="admin"
+        BACKFILL_USER="admin"
         NEED_BACKFILL=true
     fi
-fi
 
-# 5. 安全回填 HA 选项界面
-if [ "${NEED_BACKFILL}" = "true" ]; then
-    ha_options_backfill "API_KEYS" "${OPT_API_KEYS}" || true
-fi
-
-# 6. 生成并更新 /config/.env
-touch "${ENV_FILE}"
-update_env_key() {
-    local k="$1"
-    local v="$2"
-    if grep -q "^${k}=" "${ENV_FILE}"; then
-        sed -i "s|^${k}=.*|${k}=${v}|" "${ENV_FILE}"
+    # ADMIN_PASSWORD 初始决策
+    if [ -n "${OPT_ADMIN_PASSWORD}" ]; then
+        APPLIED_ADMIN_PW="${OPT_ADMIN_PASSWORD}"
+    elif [ -n "${CURRENT_ENV_PW}" ]; then
+        APPLIED_ADMIN_PW="${CURRENT_ENV_PW}"
+        BACKFILL_PW="${CURRENT_ENV_PW}"
+        NEED_BACKFILL=true
     else
-        echo "${k}=${v}" >> "${ENV_FILE}"
+        APPLIED_ADMIN_PW="admin"
+        BACKFILL_PW="admin"
+        NEED_BACKFILL=true
+        bashio::log.warning "首次启动，已预置管理员初始密码: admin（可在管理界面随时修改）"
     fi
-}
 
-update_env_key "LISTEN" "0.0.0.0:8017"
-update_env_key "AUTH_DIR" "${AUTH_DIR}"
-update_env_key "RUNTIME_DIR" "${RUNTIME_DIR}"
-update_env_key "API_KEYS" "${OPT_API_KEYS}"
+    # PROXY 初始决策
+    APPLIED_PROXY="${OPT_PROXY:-${CURRENT_ENV_PROXY}}"
 
-if [ -n "${OPT_ADMIN_PASSWORD}" ]; then
-    update_env_key "ADMIN_AUTH_ENABLED" "true"
-    update_env_key "ADMIN_USERNAME" "admin"
-    update_env_key "ADMIN_PASSWORD" "${OPT_ADMIN_PASSWORD}"
+    # 写入 .env
+    set_env_val "API_KEYS" "${APPLIED_API_KEYS}"
+    set_env_val "ADMIN_USERNAME" "${APPLIED_ADMIN_USER}"
+    set_env_val "ADMIN_PASSWORD" "${APPLIED_ADMIN_PW}"
+    [ -n "${APPLIED_PROXY}" ] && set_env_val "PROXY" "${APPLIED_PROXY}"
+
+    # 保存明文密码副本
+    printf '%s' "${APPLIED_ADMIN_PW}" > "${PW_TXT_FILE}"
+    chmod 600 "${PW_TXT_FILE}"
+
+    # 写入初始 sidecar
+    jq -n \
+        --arg ak "${APPLIED_API_KEYS}" \
+        --arg au "${APPLIED_ADMIN_USER}" \
+        --arg ap "${APPLIED_ADMIN_PW}" \
+        --arg px "${APPLIED_PROXY}" \
+        '{API_KEYS: $ak, ADMIN_USERNAME: $au, ADMIN_PASSWORD: $ap, PROXY: $px}' > "${SIDECAR_FILE}"
 else
-    if ! grep -q "^ADMIN_AUTH_ENABLED=" "${ENV_FILE}"; then
-        update_env_key "ADMIN_AUTH_ENABLED" "false"
+    # ---- 二次及稳态启动（差分核验与双向同步） ----
+    APPLIED_API_KEYS="$(jq -r '.API_KEYS // ""' "${SIDECAR_FILE}")"
+    APPLIED_ADMIN_USER="$(jq -r '.ADMIN_USERNAME // ""' "${SIDECAR_FILE}")"
+    APPLIED_ADMIN_PW="$(jq -r '.ADMIN_PASSWORD // ""' "${SIDECAR_FILE}")"
+    APPLIED_PROXY="$(jq -r '.PROXY // ""' "${SIDECAR_FILE}")"
+
+    FINAL_KEY="${CURRENT_ENV_KEY:-${APPLIED_API_KEYS}}"
+    FINAL_USER="${CURRENT_ENV_USER:-${APPLIED_ADMIN_USER}}"
+    FINAL_PW="${CURRENT_ENV_PW:-${APPLIED_ADMIN_PW}}"
+    FINAL_PROXY="${CURRENT_ENV_PROXY:-${APPLIED_PROXY}}"
+
+    # 1. 检查 HA 选项是否主动变更（灾备覆盖 / 显式重置优先级最高）
+    if [ -n "${OPT_API_KEYS}" ] && [ "${OPT_API_KEYS}" != "${APPLIED_API_KEYS}" ]; then
+        bashio::log.info "检测到 HA 选项 API_KEYS 变更，执行灾备同步写回 .env"
+        FINAL_KEY="${OPT_API_KEYS}"
+        set_env_val "API_KEYS" "${FINAL_KEY}"
+    fi
+
+    if [ -n "${OPT_ADMIN_USERNAME}" ] && [ "${OPT_ADMIN_USERNAME}" != "${APPLIED_ADMIN_USER}" ]; then
+        bashio::log.info "检测到 HA 选项 ADMIN_USERNAME 变更，执行灾备同步写回 .env"
+        FINAL_USER="${OPT_ADMIN_USERNAME}"
+        set_env_val "ADMIN_USERNAME" "${FINAL_USER}"
+    fi
+
+    if [ -n "${OPT_ADMIN_PASSWORD}" ] && [ "${OPT_ADMIN_PASSWORD}" != "${APPLIED_ADMIN_PW}" ]; then
+        bashio::log.info "检测到 HA 选项 ADMIN_PASSWORD 变更，执行灾备同步写回 .env"
+        FINAL_PW="${OPT_ADMIN_PASSWORD}"
+        set_env_val "ADMIN_PASSWORD" "${FINAL_PW}"
+    fi
+
+    if [ "${OPT_PROXY}" != "${APPLIED_PROXY}" ]; then
+        bashio::log.info "检测到 HA 选项 PROXY 变更，同步写回 .env"
+        FINAL_PROXY="${OPT_PROXY}"
+        set_env_val "PROXY" "${FINAL_PROXY}"
+    fi
+
+    # 2. 检查 Web UI 是否修改了密码/配置（.env 变动反向回填至 HA Options）
+    if [ -n "${CURRENT_ENV_PW}" ] && [ "${CURRENT_ENV_PW}" != "${APPLIED_ADMIN_PW}" ] && [ "${OPT_ADMIN_PASSWORD}" = "${APPLIED_ADMIN_PW}" ]; then
+        bashio::log.info "检测到 Web 管理端已更新管理密码，保留面板改动并反向回填至 HA 选项..."
+        FINAL_PW="${CURRENT_ENV_PW}"
+        BACKFILL_PW="${CURRENT_ENV_PW}"
+        NEED_BACKFILL=true
+    fi
+
+    if [ -n "${CURRENT_ENV_USER}" ] && [ "${CURRENT_ENV_USER}" != "${APPLIED_ADMIN_USER}" ] && [ "${OPT_ADMIN_USERNAME}" = "${APPLIED_ADMIN_USER}" ]; then
+        bashio::log.info "检测到 Web 管理端已更新管理用户名，保留面板改动并反向回填至 HA 选项..."
+        FINAL_USER="${CURRENT_ENV_USER}"
+        BACKFILL_USER="${CURRENT_ENV_USER}"
+        NEED_BACKFILL=true
+    fi
+
+    if [ -n "${CURRENT_ENV_KEY}" ] && [ "${CURRENT_ENV_KEY}" != "${APPLIED_API_KEYS}" ] && [ "${OPT_API_KEYS}" = "${APPLIED_API_KEYS}" ]; then
+        bashio::log.info "检测到 Web 管理端已更新 API_KEYS，保留面板改动并反向回填至 HA 选项..."
+        FINAL_KEY="${CURRENT_ENV_KEY}"
+        BACKFILL_KEY="${CURRENT_ENV_KEY}"
+        NEED_BACKFILL=true
+    fi
+
+    # 更新本地密码明文备忘
+    printf '%s' "${FINAL_PW}" > "${PW_TXT_FILE}"
+    chmod 600 "${PW_TXT_FILE}"
+
+    # 更新 sidecar 镜像
+    jq -n \
+        --arg ak "${FINAL_KEY}" \
+        --arg au "${FINAL_USER}" \
+        --arg ap "${FINAL_PW}" \
+        --arg px "${FINAL_PROXY}" \
+        '{API_KEYS: $ak, ADMIN_USERNAME: $au, ADMIN_PASSWORD: $ap, PROXY: $px}' > "${SIDECAR_FILE}"
+fi
+
+# 8. 执行 Supervisor 选项回填
+if [ "${NEED_BACKFILL}" = "true" ]; then
+    BACKFILL_ARGS=()
+    [ -n "${BACKFILL_KEY}" ] && BACKFILL_ARGS+=("API_KEYS" "${BACKFILL_KEY}")
+    [ -n "${BACKFILL_USER}" ] && BACKFILL_ARGS+=("ADMIN_USERNAME" "${BACKFILL_USER}")
+    [ -n "${BACKFILL_PW}" ] && BACKFILL_ARGS+=("ADMIN_PASSWORD" "${BACKFILL_PW}")
+    if [ ${#BACKFILL_ARGS[@]} -gt 0 ]; then
+        if ha_options_backfill "${BACKFILL_ARGS[@]}"; then
+            bashio::log.info "已成功将凭据/配置状态同步回填至 Home Assistant 选项界面。"
+        fi
     fi
 fi
 
-if [ -n "${OPT_PROXY}" ]; then
-    update_env_key "PROXY" "${OPT_PROXY}"
-fi
+# 9. 确保 .env 中 ADMIN_AUTH_ENABLED 必须开启
+set_env_val "ADMIN_AUTH_ENABLED" "true"
 
-# 7. 写入就绪标记，放行 S6 longrun 服务
+# 10. 写入就绪标记，放行 S6 longrun 服务
 touch /run/antigravity2api-initialized
-bashio::log.info "Antigravity2API initialized successfully."
+bashio::log.info "Antigravity2API initialized successfully (Remote Web Access Enabled)."

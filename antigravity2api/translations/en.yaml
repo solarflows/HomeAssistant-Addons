@@ -4,12 +4,16 @@ configuration:
     name: API Keys
     description: >-
       Bearer API keys for clients to access OpenAI / Claude / Gemini compatible endpoints.
-      Leave empty on first boot to auto-generate a secure key.
+      Leave empty on first boot to auto-generate a secure random key.
+  ADMIN_USERNAME:
+    name: Admin Username
+    description: >-
+      Admin username for Web Dashboard (default: admin).
   ADMIN_PASSWORD:
     name: Admin Password
     description: >-
-      Password for Web Admin Dashboard (username is admin).
-      Leave empty for local access without authentication; set to require login for remote access.
+      Password for Web Admin Dashboard (default: admin, remote Web access enabled out-of-the-box).
+      Supports two-way sync: modify anytime in Web UI without losing on restart, or edit here for disaster recovery reset.
   PROXY:
     name: Upstream Proxy
     description: >-
