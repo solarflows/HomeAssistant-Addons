@@ -22,21 +22,19 @@
 ## 快速开始
 
 1. 启动加载项，通过 **打开 Web UI** 或访问 `http://<你的HA>:8788`。
-2. 默认面板登录密码为 `admin`（如已在配置项填写 `PANEL_PASSWORD`，重启一次即自动同步覆盖）。
+2. 默认面板登录密码为 `admin`，可在面板内自行修改并持久化保存。
 3. 首次启动若未设置 `API_KEY`（且无存量启用密钥），会自动生成 `wb-...` 随机密钥，保存至 `/app/accounts/settings.json` 与 `/app/accounts/api_key.txt`，打印在日志并**自动回填到 HA 加载项配置 UI**。
 4. 在面板中添加 WorkBuddy / CodeBuddy 账号后，将客户端 Base URL 设为 `http://<你的HA>:8788/v1`（Anthropic 客户端为 `http://<你的HA>:8788`）即可调用。
 
 ## 配置项
 
-环境变量遵循**默认 `unset`、仅必需或覆写上游默认行为的项预置默认值**原则（空值或未填项不会导出空白环境变量）：
+环境变量遵循**默认 `unset`、仅冷启动基础设施项预置在 options** 原则（面板密码与时区已分别由 Web 面板自治及主机同步，不在此冗余暴露）：
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
 | `API_KEY` | `""`（不作为 env 导出） | 客户端调用 Bearer Key；首次留空提取存量启用密钥或自动生成回填；多 Key 模式下仅更新 `ha-option` 条目 |
-| `PANEL_PASSWORD` | `""`（不作为 env 导出） | 面板登录密码（上游默认 `admin`）；仅在选项变更时同步设置，保留面板内改密 |
-| `TZ` | `Asia/Shanghai` *(预置)* | 容器运行与日志时区 |
-| `WB_ENABLE_ANTHROPIC_MESSAGES` | `true` *(预置)* | 上游默认关闭，加载项预置开启 Anthropic `/v1/messages` 兼容端点 |
 | `HTTPS_PROXY` | `""`（`unset`） | 可选出站代理 URL（例：`http://192.168.1.2:7890`）；留空直连 |
+| `WB_ENABLE_ANTHROPIC_MESSAGES` | `true` *(默认开启)* | 默认开启 Anthropic `/v1/messages` 兼容端点；可在 schema 中显式设为 `false` 关闭 |
 | `WB_PROXY_DEFAULT_REALM` | `unset` *(可选覆盖)* | 未设时交由上游默认 `intl`；可在「显示未使用的可选配置项」中选择 `intl` 或 `cn` |
 | `WB_TLS_FINGERPRINT` | `unset` *(可选覆盖)* | 未设时交由上游默认 `auto`；可选 `auto` / `python` / `node` |
 

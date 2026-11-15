@@ -13,37 +13,34 @@ bashio::log.info "Initializing workbuddy2api-hub..."
 DATA_DIR="/app/accounts"
 LEGACY_DIR="/legacy_ha/workbuddy2api-hub"
 UPDATER_DIR="/run/workbuddy2api-hub-updater"
-PW_FLAG_FILE="/run/workbuddy2api-hub-panel-pw"
 
 mkdir -p "${DATA_DIR}" /data/usage /data/catalog /data/subbridge-data /data/updates "${UPDATER_DIR}"
-rm -f "${PW_FLAG_FILE}"
 
-# ha_options_backfill <key> <value> [<key> <value> ...]
-# 读取 /data/options.json 合并后单次提交（POST /addons/self/options 为整体覆盖语义）
+# ha_options_backfill <key> <value>
+# 基于 SUPERVISOR_SOCKET 的原生增量回填函数
 ha_options_backfill() {
-    if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
-        bashio::log.warning "缺少 SUPERVISOR_TOKEN，无法回填加载项选项（密钥见日志与 api_key.txt）"
-        return 1
+    local key="$1"
+    local val="$2"
+    local sock="${SUPERVISOR_SOCKET:-/run/supervisor/supervisor.sock}"
+
+    if [ -S "${sock}" ]; then
+        local payload
+        payload=$(jq -nc --arg k "${key}" --arg v "${val}" '{options: {($k): $v}}')
+        curl -fsS -m 5 --unix-socket "${sock}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "${payload}" \
+            "http://localhost/addons/self/options" >/dev/null 2>&1 || true
+    elif [ -n "${SUPERVISOR_TOKEN:-}" ]; then
+        local payload
+        payload=$(jq -nc --arg k "${key}" --arg v "${val}" '{options: {($k): $v}}')
+        curl -fsS -m 5 \
+            -X POST \
+            -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "${payload}" \
+            "http://supervisor/addons/self/options" >/dev/null 2>&1 || true
     fi
-    if [ ! -f /data/options.json ]; then
-        bashio::log.warning "/data/options.json 不存在，跳过选项回填"
-        return 1
-    fi
-    local payload
-    payload=$(jq -c '{options: .}' /data/options.json) || return 1
-    while [ $# -ge 2 ]; do
-        payload=$(jq -c --arg k "$1" --arg v "$2" '.options[$k] = $v' <<<"${payload}") || return 1
-        shift 2
-    done
-    if curl -fsS -o /dev/null --max-time 10 -X POST \
-        -H "Authorization: Bearer ${SUPERVISOR_TOKEN}" \
-        -H "Content-Type: application/json" \
-        --data "${payload}" \
-        http://supervisor/addons/self/options; then
-        return 0
-    fi
-    bashio::log.warning "回填加载项选项失败（不影响启动；密钥见日志与 api_key.txt）"
-    return 1
 }
 
 # 将面板热更新备份目录 /app/updates 指向 /data/updates（不污染容器可写层及 /app/accounts 备份）
@@ -72,13 +69,11 @@ if [ -d "${LEGACY_DIR}" ] && [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
     fi
 fi
 
-# 选项读取与 settings.json / HA 选项双向同步
+# 选项读取与 settings.json / HA 选项双向同步（仅 API_KEY，面板密码由 Web 界面自治）
 OPT_KEY="$(bashio::config 'API_KEY' '')"
 [ "${OPT_KEY}" = "null" ] && OPT_KEY=""
-OPT_PANEL_PW="$(bashio::config 'PANEL_PASSWORD' '')"
-[ "${OPT_PANEL_PW}" = "null" ] && OPT_PANEL_PW=""
 
-BACKFILL_KEY="$(python3 - "${DATA_DIR}" "${OPT_KEY}" "${OPT_PANEL_PW}" "${PW_FLAG_FILE}" <<'PYEOF'
+BACKFILL_KEY="$(python3 - "${DATA_DIR}" "${OPT_KEY}" <<'PYEOF'
 import json
 import os
 import secrets
@@ -88,8 +83,6 @@ from pathlib import Path
 
 data_dir = Path(sys.argv[1])
 opt_key = sys.argv[2].strip()
-opt_pw = sys.argv[3]
-pw_flag = Path(sys.argv[4])
 
 settings_path = data_dir / "settings.json"
 sidecar_path = data_dir / "options_applied.json"
@@ -194,21 +187,14 @@ if first_init:
         write_key_txt(gen)
         backfill = gen
         applied_key = gen
-    if opt_pw:
-        pw_flag.write_text(opt_pw, encoding="utf-8")
-        os.chmod(pw_flag, 0o600)
-    new_sidecar = {"API_KEY": applied_key, "PANEL_PASSWORD": opt_pw}
+    new_sidecar = {"API_KEY": applied_key}
 else:
     prev_key = str(sidecar.get("API_KEY") or "").strip()
-    prev_pw = str(sidecar.get("PANEL_PASSWORD") or "")
     if opt_key and (opt_key != prev_key or not settings_existed):
         apply_opt_key(settings, opt_key)
         settings_dirty = True
         write_key_txt(opt_key)
-    if opt_pw and (opt_pw != prev_pw or not settings_existed):
-        pw_flag.write_text(opt_pw, encoding="utf-8")
-        os.chmod(pw_flag, 0o600)
-    new_sidecar = {"API_KEY": opt_key, "PANEL_PASSWORD": opt_pw}
+    new_sidecar = {"API_KEY": opt_key}
 
 if settings_dirty:
     atomic_write_json(settings_path, settings, 0o600)
@@ -224,13 +210,6 @@ if [ -n "${BACKFILL_KEY}" ]; then
     if ha_options_backfill API_KEY "${BACKFILL_KEY}"; then
         bashio::log.info "API_KEY 已自动回填到加载项配置界面。"
     fi
-fi
-
-# 应用时区配置
-TZ_CFG="$(bashio::config 'TZ' 'Asia/Shanghai')"
-if [ -n "${TZ_CFG}" ] && [ -f "/usr/share/zoneinfo/${TZ_CFG}" ]; then
-    ln -snf "/usr/share/zoneinfo/${TZ_CFG}" /etc/localtime
-    echo "${TZ_CFG}" > /etc/timezone
 fi
 
 touch /run/workbuddy2api-hub-initialized

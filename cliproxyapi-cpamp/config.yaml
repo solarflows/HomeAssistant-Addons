@@ -36,10 +36,6 @@ map:
     path: /legacy_ha
     read_only: false
 options:
-  MANAGEMENT_KEY: ""
-  CPAMP_ADMIN_KEY: ""
   PROXY_URL: ""
 schema:
-  MANAGEMENT_KEY: password?
-  CPAMP_ADMIN_KEY: password?
   PROXY_URL: str?

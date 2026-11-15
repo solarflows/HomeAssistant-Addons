@@ -101,39 +101,6 @@ validate_cpa_config() {
     ' "${file}"
 }
 
-# ha_options_backfill <key> <value> [<key> <value> ...]
-#   把首启生成的密钥回填到 HA 加载项选项（POST /addons/self/options）。
-#   读取 /data/options.json 合并键值后整体提交（该接口为整体替换语义）。
-#   依据: supervisor/api/middleware/security.py 的 api_bypass 放行
-#   /addons/self/*（无需 hassio_api）；失败仅告警不阻断启动。
-ha_options_backfill() {
-    if [ -z "${SUPERVISOR_TOKEN:-}" ]; then
-        bashio::log.warning "缺少 SUPERVISOR_TOKEN，无法回填加载项选项（密钥见日志与 txt 文件）"
-        return 1
-    fi
-    if [ ! -f /data/options.json ]; then
-        bashio::log.warning "/data/options.json 不存在，跳过选项回填"
-        return 1
-    fi
-    local payload
-    payload=$(jq -c '{options: .}' /data/options.json) || return 1
-    while [ $# -ge 2 ]; do
-        payload=$(jq -c --arg k "$1" --arg v "$2" '.options[$k] = $v' <<<"${payload}") || return 1
-        shift 2
-    done
-    local auth_header
-    auth_header="Authorization: Bearer ${SUPERVISOR_TOKEN}"
-    if curl -fsS --max-time 10 -X POST \
-        -H "${auth_header}" \
-        -H "Content-Type: application/json" \
-        --data "${payload}" \
-        http://supervisor/addons/self/options; then
-        return 0
-    fi
-    bashio::log.warning "回填加载项选项失败（不影响启动；密钥见日志与 txt 文件）"
-    return 1
-}
-
 ################
 # DIRS         #
 ################
@@ -174,20 +141,15 @@ elif ! validate_cpa_config "${CONFIG_FILE}"; then
 fi
 
 if [ "${FIRST_START}" = "1" ]; then
-    MANAGEMENT_KEY=$(bashio::config 'MANAGEMENT_KEY' '')
-    GENERATED_KEY=0
-    if [ -z "${MANAGEMENT_KEY}" ]; then
-        if [ -s "${CONFIG_DIR}/management_key.txt" ]; then
-            MANAGEMENT_KEY=$(cat "${CONFIG_DIR}/management_key.txt")
-            bashio::log.info "复用现有管理密钥副本: ${CONFIG_DIR}/management_key.txt"
-        else
-            MANAGEMENT_KEY="$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-            GENERATED_KEY=1
-            bashio::log.warning "MANAGEMENT_KEY 未配置，已生成随机管理密钥（面板登录 / API 管理 / CPAMP 连接均使用）"
-        fi
+    if [ -s "${CONFIG_DIR}/management_key.txt" ]; then
+        MANAGEMENT_KEY=$(cat "${CONFIG_DIR}/management_key.txt")
+        bashio::log.info "复用现有管理密钥副本: ${CONFIG_DIR}/management_key.txt"
+    else
+        MANAGEMENT_KEY="$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+        printf '%s' "${MANAGEMENT_KEY}" > "${CONFIG_DIR}/management_key.txt"
+        chmod 600 "${CONFIG_DIR}/management_key.txt"
+        bashio::log.warning "已生成随机管理密钥: ${MANAGEMENT_KEY}（保存在 ${CONFIG_DIR}/management_key.txt，用于轻量面板登录 / CPAMP 连接）"
     fi
-    printf '%s' "${MANAGEMENT_KEY}" > "${CONFIG_DIR}/management_key.txt"
-    chmod 600 "${CONFIG_DIR}/management_key.txt"
 
     # YAML 双引号字符串转义（防注入/解析失败）
     MANAGEMENT_KEY_ESC=${MANAGEMENT_KEY//\\/\\\\}
@@ -240,31 +202,22 @@ YAML
     bashio::log.info "已生成默认配置: ${CONFIG_FILE}"
     bashio::log.info "管理密钥同时保存在: ${CONFIG_DIR}/management_key.txt"
 
-    # 首启生成的密钥：打印一次；回填统一在脚本末尾单次 POST（避免多次整体替换互相覆盖）
-    if [ "${GENERATED_KEY}" = "1" ]; then
-        bashio::log.warning "管理密钥: ${MANAGEMENT_KEY}（登录轻量面板使用，请妥善保存）"
-        BACKFILL_MGMT_KEY="${MANAGEMENT_KEY}"
-    fi
-
     # 记录本次实际写入配置的选项值（下次启动据此判断选项是否变更）
-    jq -n --arg mk "${MANAGEMENT_KEY}" --arg pu "${PROXY_URL}" \
-        '{MANAGEMENT_KEY: $mk, PROXY_URL: $pu}' > "${CONFIG_DIR}/options_applied.json"
+    jq -n --arg pu "${PROXY_URL}" '{PROXY_URL: $pu}' > "${CONFIG_DIR}/options_applied.json"
 fi
 
 ################
 # CPAMP ADMIN KEY #
 ################
-# CPAMP 完整面板管理员密钥：选项 > 持久化文件 > 首启生成（并回填 HA 选项）。
+# CPAMP 完整面板管理员密钥：持久化文件 > 首启生成。
 # 生成逻辑放在 cont-init（run 脚本仅读取），避免服务重启竞态下重复生成。
-CPAMP_ADMIN_KEY=$(bashio::config 'CPAMP_ADMIN_KEY' '')
 ADMIN_KEY_FILE="${CONFIG_DIR}/cpamp_admin_key.txt"
-if [ -z "${CPAMP_ADMIN_KEY}" ] && [ ! -s "${ADMIN_KEY_FILE}" ]; then
+if [ ! -s "${ADMIN_KEY_FILE}" ]; then
     CPAMP_ADMIN_KEY="cpamp_$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')"
     printf '%s' "${CPAMP_ADMIN_KEY}" > "${ADMIN_KEY_FILE}"
     chmod 600 "${ADMIN_KEY_FILE}"
     bashio::log.warning "已生成 CPAMP 管理员密钥: ${CPAMP_ADMIN_KEY}"
     bashio::log.warning "该密钥同时保存于 ${ADMIN_KEY_FILE}（完整面板登录使用，请妥善保存）"
-    BACKFILL_ADMIN_KEY="${CPAMP_ADMIN_KEY}"
 fi
 
 ################
@@ -288,48 +241,32 @@ fi
 ################
 # OPTION SYNC  #
 ################
-# 选项 → 配置回写（双向同步的"选项 → 配置"方向）：
-#   - 选项值非空且与上次已应用值（sidecar）不同 → 回写 config.yaml 对应字段；
-#   - 选项为空 = 交由管理面板管理，不写也不删；
-#   - 面板在两次启动间改掉的值不会被相同选项值覆盖（仅选项"变更"才回写）。
-# CPA 启动时会把 management.secret-key 明文哈希化并写回，回写明文即可生效。
-# CPAMP_ADMIN_KEY 无需 sidecar：run 脚本每次启动都按"选项 > 文件"取值。
+# 选项 → 配置回写：
+# 仅针对冷启动基础设施选项（PROXY_URL），管理密钥由 Web 面板自治，不参与同步
 SIDECAR="${CONFIG_DIR}/options_applied.json"
-OPT_KEY=$(bashio::config 'MANAGEMENT_KEY' '')
 OPT_PROXY=$(bashio::config 'PROXY_URL' '')
 
-# 首启已写入正确的 sidecar（生成密钥场景下选项尚未回填），跳过同步避免误判
+# 首启已写入正确的 sidecar，跳过同步避免误判
 if [ "${FIRST_START}" != "1" ]; then
     if [ ! -f "${SIDECAR}" ]; then
-        # 旧版本升级：无同步状态。旧语义为"选项仅首启写入"，视当前选项为已应用，
-        # 不改动现有配置；之后的选项变更才会回写。
-        jq -n --arg mk "${OPT_KEY}" --arg pu "${OPT_PROXY}" \
-            '{MANAGEMENT_KEY: $mk, PROXY_URL: $pu}' > "${SIDECAR}"
+        # 旧版本升级：无同步状态，视当前选项为已应用
+        jq -n --arg pu "${OPT_PROXY}" '{PROXY_URL: $pu}' > "${SIDECAR}"
         bashio::log.info "已初始化选项同步状态（不改动现有配置）"
     else
-        APPLIED_KEY=""
         APPLIED_PROXY=""
         if [ -s "${SIDECAR}" ] && jq -e 'type == "object"' "${SIDECAR}" >/dev/null 2>&1; then
-            APPLIED_KEY=$(jq -r '.MANAGEMENT_KEY // ""' "${SIDECAR}")
             APPLIED_PROXY=$(jq -r '.PROXY_URL // ""' "${SIDECAR}")
         elif [ -s "${SIDECAR}" ]; then
             bashio::log.warning "options_applied.json 不是有效 JSON，视为未同步（非空选项将重新写入配置）"
         fi
 
-        if [ -n "${OPT_KEY}" ] && [ "${OPT_KEY}" != "${APPLIED_KEY}" ]; then
-            set_yaml_scalar "${CONFIG_FILE}" management secret-key "$(yaml_quote "${OPT_KEY}")"
-            printf '%s' "${OPT_KEY}" > "${CONFIG_DIR}/management_key.txt"
-            chmod 600 "${CONFIG_DIR}/management_key.txt"
-            bashio::log.info "MANAGEMENT_KEY 选项已变更，已回写 management.secret-key"
-        fi
         if [ -n "${OPT_PROXY}" ] && [ "${OPT_PROXY}" != "${APPLIED_PROXY}" ]; then
             set_yaml_scalar "${CONFIG_FILE}" requests proxy-url "$(yaml_quote "${OPT_PROXY}")"
             bashio::log.info "PROXY_URL 选项已变更，已回写 requests.proxy-url"
         fi
 
-        # sidecar 镜像当前选项值（空 = 未由选项管理）
-        jq -n --arg mk "${OPT_KEY}" --arg pu "${OPT_PROXY}" \
-            '{MANAGEMENT_KEY: $mk, PROXY_URL: $pu}' > "${SIDECAR}"
+        # sidecar 镜像当前选项值
+        jq -n --arg pu "${OPT_PROXY}" '{PROXY_URL: $pu}' > "${SIDECAR}"
     fi
 fi
 
@@ -351,22 +288,6 @@ ln -sfn "${CONFIG_FILE}" /CLIProxyAPI/config.yaml
 if [ ! -s "${DATA_DIR}/static/management.html" ]; then
     cp -f /opt/cliproxyapi-seed/management.html "${DATA_DIR}/static/management.html"
     bashio::log.info "已从镜像种子恢复 CPAMP 管理面板（联网后将自动检查更新）"
-fi
-
-################
-# OPTIONS BACKFILL #
-################
-# 首启生成的密钥统一回填 HA 选项 UI（POST /addons/self/options 为整体替换语义，
-# 多个键必须合并为一次提交，否则后一次会用过期 options.json 覆盖前一次）
-BACKFILL_MGMT_KEY="${BACKFILL_MGMT_KEY:-}"
-BACKFILL_ADMIN_KEY="${BACKFILL_ADMIN_KEY:-}"
-if [ -n "${BACKFILL_MGMT_KEY}" ] || [ -n "${BACKFILL_ADMIN_KEY}" ]; then
-    backfill_args=()
-    [ -n "${BACKFILL_MGMT_KEY}" ] && backfill_args+=(MANAGEMENT_KEY "${BACKFILL_MGMT_KEY}")
-    [ -n "${BACKFILL_ADMIN_KEY}" ] && backfill_args+=(CPAMP_ADMIN_KEY "${BACKFILL_ADMIN_KEY}")
-    if ha_options_backfill "${backfill_args[@]}"; then
-        bashio::log.info "生成的密钥已回填到加载项选项（配置界面可见）"
-    fi
 fi
 
 touch /run/cpamp-initialized

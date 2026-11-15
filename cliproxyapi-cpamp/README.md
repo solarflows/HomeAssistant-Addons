@@ -30,18 +30,16 @@
 ## 快速开始
 
 1. 启动加载项。
-2. **轻量面板**（账号/OAuth/基础配置）：访问 `http://<你的HA>:8317/management.html`，用**管理密钥**登录（见日志或 `/config/management_key.txt`，首启自动生成并回填）。
-3. **完整面板**（监控/用量/成本）：通过 **打开 Web UI** 或访问 `http://<你的HA>:18317/management.html`，用 **CPAMP 管理员密钥**登录（见日志或 `/config/cpamp_admin_key.txt`，首启自动生成并回填）。
+2. **轻量面板**（账号/OAuth/基础配置）：访问 `http://<你的HA>:8317/management.html`，用**管理密钥**登录（见日志或 `/config/management_key.txt`，首次启动自动生成）。
+3. **完整面板**（监控/用量/成本）：通过 **打开 Web UI** 或访问 `http://<你的HA>:18317/management.html`，用 **CPAMP 管理员密钥**登录（见日志或 `/config/cpamp_admin_key.txt`，首次启动自动生成）。
 4. 容器内已自动预连 CPA（loopback `:8317` + 密钥）；在面板中添加账号并替换示例客户端 API Key 后即可从 `:8317/v1` 调用。
 
 ## 配置项
 
-密钥与代理配置由 `00-init.sh` 与 S6 `run` 按优先级写入 `/config/config.yaml` 或注入 `cpa-manager-plus`（留空选项不会覆盖已生成的持久密钥）：
+代理配置由 `00-init.sh` 按变更状态同步写入 `/config/config.yaml`（管理密钥由面板自治）：
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `MANAGEMENT_KEY` | `""`（不作为 env 导出） | CPA 网关管理密钥；首次留空自动生成并回填到本选项 |
-| `CPAMP_ADMIN_KEY` | `""`（优先选项 > `/config/cpamp_admin_key.txt`） | CPAMP 完整面板登录密钥；首次留空自动生成 `cpamp_...` 并回填到本选项 |
 | `PROXY_URL` | `""`（不作为 env 导出） | 上游请求代理；修改重启回写 `/config/config.yaml`，清空交由面板管理 |
 
 ## 与轻量版（`cliproxyapi`）的区别

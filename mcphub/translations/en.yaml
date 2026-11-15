@@ -1,10 +1,5 @@
 ---
 configuration:
-  ADMIN_PASSWORD:
-    name: Admin Password
-    description: >-
-      Password for the panel admin user. Leave empty to let MCPHub generate a
-      random one, printed once in the add-on log on first start.
   NPM_REGISTRY:
     name: npm Registry
     description: >-

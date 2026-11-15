@@ -7,14 +7,6 @@ configuration:
       已有可用密钥（api_keys 中的 ha-option 或首个启用密钥 / api_key / launcher_key），
       无存量时自动生成 qd-... 并回填到本选项；多 Key 模式下修改本值仅新增或更新
       id="ha-option" 条目，不会覆盖面板内自建的其它分域/限账号 Key。
-  PANEL_PASSWORD:
-    name: 管理面板密码
-    description: >-
-      Web 控制台登录密码（上游默认 admin）。仅在本选项值变更时同步覆盖面板密码，
-      面板内自行修改后的密码可稳定跨重启保留。
-  TZ:
-    name: 时区
-    description: 容器运行与日志时区（例如 Asia/Shanghai、UTC）。
   QD_PROXY_DEFAULT_REALM:
     name: 默认服务区（可选覆盖）
     description: >-

@@ -20,13 +20,9 @@ environment:
   RUNTIME_DIR: "/data/runtime"
 options:
   API_KEYS: ""
-  ADMIN_USERNAME: "admin"
-  ADMIN_PASSWORD: "admin"
   PROXY: ""
 schema:
   API_KEYS: str?
-  ADMIN_USERNAME: str?
-  ADMIN_PASSWORD: password?
   PROXY: str?
 map:
   - type: app_config

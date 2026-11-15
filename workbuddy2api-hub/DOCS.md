@@ -17,9 +17,10 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
 
 ## 2. 首次启动与密钥安全
 
-- 默认开启 `--lan` 监听 `0.0.0.0:8788`，未设置 `API_KEY` 时首次启动会按上游优先级从 `/app/accounts/settings.json` 提取现有可用密钥（若已启用多 Key `api_keys` 列表，优先取 `id="ha-option"` 或首个未删除且启用的 Key；否则依次检查传统 `api_key` / `launcher_key`），无存量时**自动生成随机 `wb-` Bearer Key**，保存于 `/app/accounts/api_key.txt`、在加载项日志打印，并调用 Supervisor API **自动回填至 HA 加载项配置界面**。
-- 借助 `/app/accounts/options_applied.json` 双向同步机制：未改动 HA 选项时，用户在 Web 面板内修改的多 Key 列表、单 Key 与面板密码均会跨重启保留；当 HA 配置页面填入新的非空 `API_KEY` 时，若面板已启用 `api_keys` 多 Key 列表，仅非破坏性地更新/插入 `id="ha-option"` 条目（保留其余自建分域/限模型 Key 及软删除审计记录）。
-- 面板默认登录密码为 `admin`。如在配置项填入 `PANEL_PASSWORD`，在变更后首次启动时同步写入 `settings.json`。
+- 默认开启 `--lan` 监听 `0.0.0.0:8788`，未设置 `API_KEY` 时首次启动会按上游优先级从 `/app/accounts/settings.json` 提取现有可用密钥（若已启用多 Key `api_keys` 列表，优先取 `id="ha-option"` 或首个未删除且启用的 Key；否则依次检查传统 `api_key` / `launcher_key`），无存量时**自动生成随机 `wb-` Bearer Key**，保存于 `/app/accounts/api_key.txt`、在加载项日志打印，并经由 Supervisor Socket API **自动回填至 HA 加载项配置界面**。
+- 借助 `/app/accounts/options_applied.json` 同步机制：未改动 HA 选项时，用户在 Web 面板内修改的多 Key 列表与单 Key 均会跨重启保留；当 HA 配置页面填入新的非空 `API_KEY` 时，若面板已启用 `api_keys` 多 Key 列表，仅非破坏性地更新/插入 `id="ha-option"` 条目（保留其余自建分域/限模型 Key 及软删除审计记录）。
+- 面板默认登录密码为 `admin`。密码由 Web 控制台自身管理与持久化（保存在 `settings.json` 中，重启稳定保留），不在加载项选项暴露。
+- 容器时区自动同步 Home Assistant 主机时区（零选项自动继承）。
 - 管理面板大量使用根路径 API（`/health`、`/panel/status`、`/accounts/export`），故不启用 HA Ingress，请直接通过 **打开 Web UI** 或 `http://<你的HA>:8788` 访问。
 
 > ⚠️ 合规提示：请勿将公网或未受信任局域网直接暴露至 `8788` 端口，并遵守上游服务条款使用自有合规账号。
@@ -29,8 +30,8 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
 S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出环境变量：
 
 - **容器固定预置（非用户选项）**：`HOST=0.0.0.0`、`PORT=8788`、`WB_PROXY_USAGE_DIR=/data/usage`、`WB_PROXY_CATALOG_DIR=/data/catalog`、`WB_SUBBRIDGE_DATA_DIR=/data/subbridge-data`、`WB_UPDATE_INSTALL_ENABLED=1`、`WB_UPDATE_EXECUTOR=external`、`WB_UPDATE_REQUEST_DIR=/run/workbuddy2api-hub-updater`、`WB_UPDATE_PROFILE=app`。
-- **加载项预置默认值（2 项）**：`TZ=Asia/Shanghai`；`WB_ENABLE_ANTHROPIC_MESSAGES=true`（上游默认关闭 `/v1/messages`，加载项刻意默认开启以开箱适配 Claude Code）。
-- **保持默认 `unset` 的项**：`WB_PROXY_DEFAULT_REALM`（未设由上游默认 `intl`）、`WB_TLS_FINGERPRINT`（未设由上游默认 `auto`）、`HTTPS_PROXY`（未设直连），以及其余上游高级环境变量均不预填或导出空串；`API_KEY` / `PANEL_PASSWORD` 刻意不以环境变量方式导出，统一由 `00-init.sh` 写入 `settings.json` 并按需回填。
+- **冷启动与网络选项（用户 options）**：`API_KEY`（写入 `settings.json`）、`HTTPS_PROXY`（可选出站代理）。
+- **折叠高级 Schema 覆盖项**：`WB_ENABLE_ANTHROPIC_MESSAGES`（默认开启以开箱适配 Claude Code）、`WB_PROXY_DEFAULT_REALM`（未设由上游默认 `intl`）、`WB_TLS_FINGERPRINT`（未设由上游默认 `auto`）。
 
 ## 4. 常用客户端端点
 
@@ -58,6 +59,7 @@ S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出
 1. **升级或重装后界面无法打开 / 端口被占用**
    - 确认宿主机 `8788` 端口未被其它容器占用，或已在加载项「网络」设置中映射到自定义端口。
 2. **忘记面板密码或 API Key**
+   - 查看加载项启动日志检索初始生成的密钥（保存在 `/app/accounts/api_key.txt`）；面板默认密码为 `admin`，若曾修改可在 `/app/accounts/settings.json` 中查看或编辑重置。
    - 查看加载项「日志」检索自动生成的 `launcher_key`；或填写 `PANEL_PASSWORD` 重启一次重设面板密码。
 3. **海外区域连接超时**
    - 如网络无法直连国际区接口，可在配置项填入 `HTTPS_PROXY`（如 `http://192.168.1.2:7890`），或将 `WB_PROXY_DEFAULT_REALM` 设为 `cn`。

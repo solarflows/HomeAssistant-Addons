@@ -24,8 +24,6 @@ map:
     path: /legacy_ha
     read_only: false
 options:
-  ADMIN_PASSWORD: ""
   NPM_REGISTRY: "https://registry.npmjs.org/"
 schema:
-  ADMIN_PASSWORD: password?
   NPM_REGISTRY: str?

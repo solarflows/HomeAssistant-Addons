@@ -8,15 +8,6 @@ configuration:
       in api_keys, or api_key / launcher_key) or generates a random wb-... key
       and backfills this option. In multi-key mode, changing this value only
       upserts the "ha-option" entry without overwriting other dashboard keys.
-  PANEL_PASSWORD:
-    name: Panel Password
-    description: >-
-      Web dashboard login password (upstream default is "admin"). Applied to
-      settings.json only when changed so in-panel password updates survive
-      restarts.
-  TZ:
-    name: Timezone
-    description: Container timezone (e.g. Asia/Shanghai, UTC).
   WB_PROXY_DEFAULT_REALM:
     name: Default Realm (Optional Override)
     description: >-

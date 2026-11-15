@@ -5,15 +5,6 @@ configuration:
     description: >-
       用于客户端接入 OpenAI / Claude / Gemini API 时的 Bearer 密钥（可逗号分隔多个）。
       留空首启将自动随机生成并在日志打印且回填到本选项。
-  ADMIN_USERNAME:
-    name: 管理端用户名
-    description: >-
-      网页管理控制台（http://<IP>:8017/）登录用户名（默认 admin）。
-  ADMIN_PASSWORD:
-    name: 管理端密码
-    description: >-
-      网页管理控制台登录密码（出厂预置为 admin，远程 Web 访问默认开启）。
-      支持双向同步：可在 Web 控制台随时修改（重启不丢失），亦可在此输入新密码作为灾备覆盖重置。
   PROXY:
     name: 上游代理
     description: >-

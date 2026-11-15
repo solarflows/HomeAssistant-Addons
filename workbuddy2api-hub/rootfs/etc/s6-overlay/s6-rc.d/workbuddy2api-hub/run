@@ -53,17 +53,16 @@ export WB_UPDATE_REQUEST_DIR="/run/workbuddy2api-hub-updater"
 export WB_UPDATE_PROFILE="app"
 
 # 环境变量导出策略：默认 unset（留空或不定义时不导出）；仅容器契约路径与必要/覆写默认项显式填充
-# API_KEY / PANEL_PASSWORD 在 00-init.sh 通过 settings.json + options_applied.json 双向同步管理，此处不导出。
-_export_str "TZ"                      # 预置默认值 Asia/Shanghai（与 Dockerfile 一致）
+# API_KEY 在 00-init.sh 通过 settings.json + options_applied.json 双向同步管理，此处不导出。
 _export_str "WB_PROXY_DEFAULT_REALM"  # 默认 unset（未填由上游默认为 intl）
 _export_str "WB_TLS_FINGERPRINT"      # 默认 unset（未填由上游默认为 auto）
 _export_str "HTTPS_PROXY"             # 默认 unset（留空直连）
 
-# 预置默认值 true：上游默认关闭 /v1/messages，加载项刻意默认开启以开箱兼容 Claude Code
-if bashio::config.true 'WB_ENABLE_ANTHROPIC_MESSAGES'; then
-    export WB_ENABLE_ANTHROPIC_MESSAGES="1"
-else
+# 默认开启 /v1/messages 以开箱兼容 Claude Code；仅当显式配置为 false 时关闭
+if bashio::config.false 'WB_ENABLE_ANTHROPIC_MESSAGES'; then
     export WB_ENABLE_ANTHROPIC_MESSAGES="0"
+else
+    export WB_ENABLE_ANTHROPIC_MESSAGES="1"
 fi
 
 if [ -n "${HTTPS_PROXY:-}" ] && [ -z "${NO_PROXY:-}" ]; then
@@ -73,15 +72,6 @@ fi
 cd /app || exit 1
 
 set -- python3 -m wb_proxy --host 0.0.0.0 --port 8788 --lan
-
-PW_FLAG_FILE="/run/workbuddy2api-hub-panel-pw"
-if [ -f "${PW_FLAG_FILE}" ]; then
-    PANEL_PW="$(cat "${PW_FLAG_FILE}")"
-    rm -f "${PW_FLAG_FILE}"
-    if [ -n "${PANEL_PW}" ]; then
-        set -- "$@" --panel-password "${PANEL_PW}"
-    fi
-fi
 
 bashio::log.info "Starting WorkBuddy2API Hub on port ${PORT}..."
 exec "$@"
