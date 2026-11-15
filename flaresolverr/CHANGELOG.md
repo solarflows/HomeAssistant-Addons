@@ -1,3 +1,14 @@
+### 3.5.2-build.9 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+- chore(icons): 等价重构 7 个插件图标至 256x256 视网膜高清透明规范
+- docs: unify README layout and align real configs across all addons
+- docs: 同步全仓 v3 map 原生路径说明与 CI 防滚木契约
+- refactor: 全量升级 v3 map 对象化映射架构与零软链重构，修复 README 下载量徽章
+
+---
+
 ### 3.5.2-build.8 (2026-11-09)
 
 Dockerfile 维护
