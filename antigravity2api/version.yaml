@@ -1,5 +1,5 @@
 # antigravity2api 版本检查配置
-version: "0.1.7"
+version: "0.1.8"
 source: github
 repo: Mag1cFall/Antigravity2API
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.2"
-  file_sha: "117f14832bc1219a7b4145559b076ff9f30a39e5"
-  build_num: 7
+  file_sha: "22228ccef415d76c305ba87000feb56ea2fae10c"
+  build_num: 0

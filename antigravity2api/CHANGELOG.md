@@ -1,3 +1,50 @@
+### 0.1.8 (2026-11-15)
+
+#### 下载
+
+| 系统 | 推荐 | 其他 |
+| --- | --- | --- |
+| Windows 10 及以上 | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-v0.1.8-windows-amd64.zip) | — |
+| macOS（Apple 芯片与 Intel） | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-desktop-v0.1.8-darwin-universal.tar.gz) | — |
+| Linux 桌面 | [x64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-desktop-v0.1.8-linux-amd64.tar.gz) · [ARM64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-desktop-v0.1.8-linux-arm64.tar.gz) | — |
+| Linux 服务器 | [x64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-v0.1.8-linux-amd64.tar.gz) · [ARM64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-v0.1.8-linux-arm64.tar.gz) | Docker 镜像 ghcr.io/mag1cfall/antigravity2api:v0.1.8 |
+| macOS 命令行 | [Apple 芯片](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-v0.1.8-darwin-arm64.tar.gz) · [Intel](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.8/antigravity2api-v0.1.8-darwin-amd64.tar.gz) | — |
+
+桌面版与命令行版启动后都在 `http://127.0.0.1:8017` 提供管理页面与 API，解压即用。
+
+#### 新功能
+
+- 停用的账户也能预热：预热时临时启动，不接其他请求；预热对话框按额度组分组，默认选中各组费用最低的模型，账户全部停用时也能选择模型
+- 接入页列出全部接口与常用能力，点开可查看协议、完整地址、认证、主要参数、curl 示例与官方文档
+- 关闭登录对话框后可在账户页继续，登录结束后对话框保留结果；对话框关着时登录失败，账户页留下失败原因
+- 远程配对令牌在有效期内保留，可手动换新，用于添加账户后自动换回生成命令
+- OpenAI 模型列表带上下文与输出上限、思考档位与输入模态，omp 等客户端可直接读取
+
+#### 改进
+
+- 补齐全部目录模型的单价，包括 Gemini 4 Carbon、Hydrogen、Orchestrator、生图与语音转写模型；生图按图片输出单价计费，涨价日期按官方分档
+- Gemini 4 长输出超过单次上限时继续生成，客户端收到完整输出，用量为各段之和
+- 流式请求在上游返回首个内容前 10 秒内写出响应头并保活
+- 结构化输出的格式要求写在最后一条用户消息末尾，JSON 输出更稳定
+- 长文本的本地 token 计数从数秒到两分钟降到 0.1 秒以内
+- 上游按输入拒绝请求时，Gemini 返回 200 与 `promptFeedback`，其余协议返回 400
+- 首字节前连接断开时在同一账户再试一次，生图同样处理
+
+#### 修复
+
+- Claude Code、Codex、OpenCode、pi、omp、OpenClaw、Magpie 等客户端系统提示中的部分句子使上游立即返回 429；现在发送前整句删去这些句子，其余原文不变（[#3](https://github.com/Mag1cFall/Antigravity2API/issues/3)）
+- 工具调用与结果之间夹着其他消息、并行调用只回传部分结果、结果找不到对应调用时请求被拒绝
+- Anthropic 开启思考、模型直接调用工具时，客户端显示 Unsupported content type
+- 重新生成用完仍以格式错误的函数调用或回复结束且没有输出时，返回 200 空回答
+- 错误消息与后台 Responses 的失败对象不含重试时间
+- 需要验证的账户在定时刷新或刷新全部后被重新启用，下一个请求再次失败
+- Gemini 接口拒绝只带 id 的函数结果，`MALFORMED_RESPONSE` 结束原因显示为 `OTHER`
+- 多轮结构化输出的 token 计数重复计入格式要求，引用显式缓存的请求被拒绝时用量缺少缓存 token 数
+
+**完整变更**：[v0.1.7...v0.1.8](https://github.com/Mag1cFall/Antigravity2API/compare/v0.1.7...v0.1.8)
+
+---
+
 ### 0.1.7-build.7 (2026-11-15)
 
 Dockerfile 维护
