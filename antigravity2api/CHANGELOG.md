@@ -1,3 +1,10 @@
+### 0.1.7-build.5 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): eliminate synthetic credentials and enforce zero-default service startup
+
+---
+
 ### 0.1.7-build.4 (2026-11-15)
 
 rootfs 维护
