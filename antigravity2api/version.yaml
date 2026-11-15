@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.2"
-  file_sha: "1f4abc02f10ed57f5b48e6a7c5144c18a18230db"
-  build_num: 2
+  file_sha: "6abfa4d3f4dc274c19e7f3293a8795bfe4c5c799"
+  build_num: 3

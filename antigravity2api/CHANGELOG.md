@@ -1,3 +1,11 @@
+### 0.1.7-build.3 (2026-11-15)
+
+rootfs 维护
+- feat(antigravity2api): enable remote access by default and add sidecar two-way option sync
+- chore(antigravity2api): 更新为标准 256x256 透明矢量光栅化 Antigravity 图标
+
+---
+
 ### 0.1.7-build.2 (2026-11-15)
 
 - **远程访问预置修复**：解决非 loopback（Docker 网桥/局域网）访问报 `401 admin_remote_disabled`（“远程登录未开启”）的问题，默认预置启用管理鉴权。
