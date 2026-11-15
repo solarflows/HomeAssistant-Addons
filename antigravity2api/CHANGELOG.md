@@ -1,3 +1,10 @@
+### 0.1.7-build.6 (2026-11-15)
+
+rootfs 维护
+- fix(antigravity2api): restore ADMIN_AUTH_ENABLED and initial credentials for headless remote access
+
+---
+
 ### 0.1.7-build.5 (2026-11-15)
 
 rootfs 维护
