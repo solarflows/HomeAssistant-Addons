@@ -1,3 +1,10 @@
+### 0.1.7-build.7 (2026-11-15)
+
+Dockerfile 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+
+---
+
 ### 0.1.7-build.6 (2026-11-15)
 
 rootfs 维护
