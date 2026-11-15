@@ -1,3 +1,10 @@
+### 8.0.72-build.1 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): streamline runtime configuration, adopt zero-option TZ, and migrate to supervisor socket
+
+---
+
 ### 8.0.72 (2026-11-14)
 
 #### Changelog
