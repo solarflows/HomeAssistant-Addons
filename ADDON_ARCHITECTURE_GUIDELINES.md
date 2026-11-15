@@ -28,13 +28,17 @@
                                      - 无 Web 界面的纯微服务启动参数 (trawl, flaresolverr)
 ```
 
-### 2. 负向红线（禁止暴露于 HA Options）
-1. **业务密码与凭据坚决不暴露**：
+### 2. 负向红线与服务拉起原则 (Zero-Synthetic-Defaults & Service Bring-up)
+1. **服务拉起为唯一底线职责**：
+   - 容器与初始化脚本（`cont-init.d`）的核心职责是将服务拉起来（网络监听绑定至 `0.0.0.0`、建立数据持久化软链与目录），**严禁在启动脚本中凭空虚假创建凭据**；
+   - **非必要不填充默认值**：若上游原生无默认密码（如 Antigravity2API 默认未启用远程鉴权直通），则保持原生行为；若上游自带固定默认密码（如 Qoder2API / WorkBuddy2API 的 `admin`），则在 `DOCS.md` 与界面描述中如实标注；
+   - 留空的配置项严禁在初始化时通过伪随机算法（如 `secrets.token_urlsafe`）自动生成假 Key 并反向回填到 HA Options。
+2. **业务密码与凭据坚决不暴露于 HA Options**：
    - 严禁在 `config.yaml` 的 `options` 或 `schema` 中暴露 `ADMIN_PASSWORD`、`MANAGEMENT_KEY`、`PANEL_PASSWORD` 等字段；
-   - **出厂预置与文档规范**：出厂统一预置默认凭据（如 `admin / admin` 或 `666 / 666`），并在 `DOCS.md` 与多语言描述中明示；首次登录后由用户在 Web 控制台内修改，由应用私有存储（`.env`、`config.yaml` 或 SQLite）全权自治；
+   - 上游原生权鉴在 `DOCS.md` 与多语言描述中如实明示，后续由用户在 Web 控制台内自主设置与修改，由应用私有存储（`.env`、`config.yaml`、SQLite）全权自治；
    - **解除环境变量锁死**：禁止将业务凭据通过 Docker `ENV` 导出，避免触发 Go/Node 上游将参数标记为只读（如 Antigravity2API 的 `cfg.Environment`）。
-2. **杜绝脆弱的双向胶水层**：
-   - 从源头上不暴露业务密码，彻底消除“外部选项 vs 内部修改”的二元真理源冲突，不再维护复杂的 sidecar 差分快照。
+3. **杜绝脆弱的双向胶水层与虚假回填**：
+   - 从源头上不暴露业务密码与假默认值，彻底消除“外部选项 vs 内部修改”的二元真理源冲突，严禁多头回填踩踏。
 
 ### 3. 配置分层设计（Options 常用项 vs Schema 高级折叠项）
 - **`options` 字典**：仅保留最核心的常用冷启动项（如首启代理 `PROXY: ""`、基础资源 `LOW_MEMORY: true`）；
@@ -78,11 +82,13 @@ Home Assistant Supervisor 在启动任何容器时，已在底层原生固化了
 | **响应耗时** | 30ms ~ 50ms | **< 1ms** |
 | **稳定性** | 网络抖动或 DNS 慢时存在超时风险 | **极高**（完全无视网络栈故障） |
 
-### 2. 标准局部增量选项回写函数 (Atomic Backfill)
-Supervisor 的 `POST /addons/self/options` 接口原生支持**增量合并**（无需读取全量 `options.json` 再覆盖）。在启动脚本中统一采用以下极简原子函数：
+### 2. 标准局部增量选项回写协议储备 (Atomic Backfill Protocol)
+Supervisor 的 `POST /addons/self/options` 接口原生支持**增量合并**（无需读取全量 `options.json` 再覆盖）。
+
+> ⚠️ **规范红线**：根据“非必要不填充默认值”红线，**严禁使用此接口将容器脚本自动生成的假密码或伪随机 Key 回写到 HA Options**。该机制仅作为底层基础设施或系统级状态同步的架构能力储备，禁止滥用于业务凭据篡改。
 
 ```bash
-# 基于 SUPERVISOR_SOCKET 的原生增量回写（仅在首启生成必要静态 API Key 时调用）
+# 基于 SUPERVISOR_SOCKET 的原生增量回写协议模板
 ha_backfill_option() {
     local key="$1"
     local val="$2"
@@ -132,7 +138,7 @@ ha_backfill_option() {
 
 | 加载项 (Add-on) | 当前持久化真理源 | 准入 HA Options 暴露项 | 准入高级 Schema (折叠) | 坚决剔除项 (由 Web 或底层自治) |
 |---|---|---|---|---|
-| **`antigravity2api`** | `/config/.env` | `PROXY`, `API_KEYS` | 无 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` *(出厂 admin/admin 并在 Web 改密)* |
+| **`antigravity2api`** | `/config/.env` | `PROXY`, `API_KEYS` | 无 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` *(上游原生无密码直通，可在 Web 设置自主开启认证)* |
 | **`cliproxyapi`** | `/config/config.yaml` | `PROXY_URL` | 无 | `MANAGEMENT_KEY` *(首启生成至 txt，面板接管)* |
 | **`cliproxyapi-cpamp`** | `/config/config.yaml` | `PROXY_URL` | 无 | `MANAGEMENT_KEY`, `CPAMP_ADMIN_KEY` |
 | **`qoder2api-hub`** | `/app/accounts/settings.json` | `API_KEY`, `HTTPS_PROXY` | `QD_CN_VPC_ENDPOINT`, `QD_SESSION_CACHE`, `QD_PROXY_DEFAULT_REALM`, `QD_ANTHROPIC_THINKING` | `PANEL_PASSWORD`, `TZ` |

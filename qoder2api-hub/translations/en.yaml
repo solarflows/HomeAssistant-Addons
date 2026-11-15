@@ -3,11 +3,9 @@ configuration:
   API_KEY:
     name: API Key
     description: >-
-      Bearer API key for OpenAI / Anthropic client access. When empty on first
-      start, extracts the existing active key (ha-option or first enabled entry
-      in api_keys, or api_key / launcher_key) or generates a random qd-... key
-      and backfills this option. In multi-key mode, changing this value only
-      upserts the "ha-option" entry without overwriting other dashboard keys.
+      Bearer API key for OpenAI / Anthropic client access. Leave empty to manage
+      API keys within the Web dashboard; setting this option updates or creates
+      the dedicated "ha-option" entry without overwriting other dashboard keys.
   QD_PROXY_DEFAULT_REALM:
     name: Default Realm (Optional Override)
     description: >-

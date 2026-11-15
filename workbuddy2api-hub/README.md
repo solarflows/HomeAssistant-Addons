@@ -23,7 +23,7 @@
 
 1. 启动加载项，通过 **打开 Web UI** 或访问 `http://<你的HA>:8788`。
 2. 默认面板登录密码为 `admin`，可在面板内自行修改并持久化保存。
-3. 首次启动若未设置 `API_KEY`（且无存量启用密钥），会自动生成 `wb-...` 随机密钥，保存至 `/app/accounts/settings.json` 与 `/app/accounts/api_key.txt`，打印在日志并**自动回填到 HA 加载项配置 UI**。
+3. 客户端调用密钥可在 Web 管理面板中创建与管理；若在加载项配置中显式填写 `API_KEY`，初始化脚本将同步写入 `settings.json`。
 4. 在面板中添加 WorkBuddy / CodeBuddy 账号后，将客户端 Base URL 设为 `http://<你的HA>:8788/v1`（Anthropic 客户端为 `http://<你的HA>:8788`）即可调用。
 
 ## 配置项
@@ -32,7 +32,7 @@
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `API_KEY` | `""`（不作为 env 导出） | 客户端调用 Bearer Key；首次留空提取存量启用密钥或自动生成回填；多 Key 模式下仅更新 `ha-option` 条目 |
+| `API_KEY` | `""`（不作为 env 导出） | 客户端调用 Bearer Key（可选）；留空完全由 Web 管理面板自治管理；配置后同步至 `settings.json` |
 | `HTTPS_PROXY` | `""`（`unset`） | 可选出站代理 URL（例：`http://192.168.1.2:7890`）；留空直连 |
 | `WB_ENABLE_ANTHROPIC_MESSAGES` | `true` *(默认开启)* | 默认开启 Anthropic `/v1/messages` 兼容端点；可在 schema 中显式设为 `false` 关闭 |
 | `WB_PROXY_DEFAULT_REALM` | `unset` *(可选覆盖)* | 未设时交由上游默认 `intl`；可在「显示未使用的可选配置项」中选择 `intl` 或 `cn` |
@@ -42,7 +42,7 @@
 
 | 容器路径 | 内容 | 随 HA 备份 |
 |---|---|---|
-| `/app/accounts/` | 账号凭据（`*.json`）、`settings.json`、`api_key.txt` | ✅ |
+| `/app/accounts/` | 账号凭据（`*.json`）、`settings.json` | ✅ |
 | `/data/usage/` | 用量统计、限流事件、每日估算与 `logs.sqlite3` | ❌ |
 | `/data/catalog/` | 官方模型/产品目录动态缓存 | ❌ |
 | `/data/subbridge-data/` | 可选 Mihomo 订阅桥运行数据 | ❌ |

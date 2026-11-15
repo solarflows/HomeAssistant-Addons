@@ -16,9 +16,9 @@ Qoder 多账号池化反代网关与管理面板，基于上游源码在 Home As
 
 ## 2. 首次启动与密钥安全
 
-- 默认开启 `--lan` 监听 `0.0.0.0:8790`，未设置 `API_KEY` 时首次启动会按上游优先级从 `/app/accounts/settings.json` 提取现有可用密钥（若已启用多 Key `api_keys` 列表，优先取 `id="ha-option"` 或首个启用的 Key；否则依次检查传统 `api_key` / `launcher_key`），无存量时**自动生成随机 `qd-` Bearer Key**，保存于 `/app/accounts/api_key.txt`、在加载项日志打印，并经由 Supervisor Socket API **自动回填至 HA 加载项配置界面**。
-- 借助 `/app/accounts/options_applied.json` 同步机制：未改动 HA 选项时，用户在 Web 面板内修改的多 Key 列表与单 Key 均会跨重启保留；当 HA 配置页面填入新的非空 `API_KEY` 时，若面板已启用 `api_keys` 多 Key 列表，仅非破坏性地更新/插入 `id="ha-option"` 条目（保留其余自建分域/限账号 Key）。
-- 面板默认登录密码为 `admin`。密码由 Web 控制台自身管理与持久化（保存在 `settings.json` 中，重启稳定保留），不在加载项选项暴露。
+- 默认开启 `--lan` 监听 `0.0.0.0:8790`。
+- **管理面板默认密码**：上游原生默认密码为 `admin`。密码由 Web 控制台自身管理与持久化（保存在 `settings.json` 中，重启稳定保留），不在加载项选项暴露；登录后请在面板中及时修改。
+- **API 密钥管理**：留空表示由 Web 控制台自主管理 API 密钥；在 HA 配置页面填入非空 `API_KEY` 时，若面板已启用 `api_keys` 多 Key 列表，仅非破坏性地更新/插入 `id="ha-option"` 条目（保留其余自建分域/限账号 Key）。
 - 容器时区自动同步 Home Assistant 主机时区（零选项自动继承）。
 - 管理面板大量使用根路径请求（`/credits/probe`、`/panel/status`、`/admin/routing`），故不启用 HA Ingress，请通过 **打开 Web UI** 或 `http://<你的HA>:8790` 访问。
 
@@ -56,6 +56,6 @@ S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出
 1. **国际区无法连接或超时**
    - 检查网络连通性；需要走代理时请在配置项填入 `HTTPS_PROXY`（如 `http://192.168.1.2:7890`）。
 2. **忘记面板密码或 API Key**
-   - 查看加载项启动日志检索初始生成的密钥（保存在 `/app/accounts/api_key.txt`）；面板默认密码为 `admin`，若曾修改可在 `/app/accounts/settings.json` 中查看或编辑重置。
+   - 面板原生默认密码为 `admin`，若曾修改可在 `/app/accounts/settings.json` 中查看或编辑重置；API Key 亦可在该文件中查阅或在 Web 控制台重新生成。
 3. **企业内网专用网关接入**
    - 如使用企业 VPC 专用域且触发私网 SSRF 拦截，请将专用地址填入 `QD_CN_VPC_ENDPOINT`。

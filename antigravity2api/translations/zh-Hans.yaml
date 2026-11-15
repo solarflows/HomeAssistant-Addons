@@ -4,7 +4,7 @@ configuration:
     name: API 密钥
     description: >-
       用于客户端接入 OpenAI / Claude / Gemini API 时的 Bearer 密钥（可逗号分隔多个）。
-      留空首启将自动随机生成并在日志打印且回填到本选项。
+      留空表示不设选项级密钥限制（亦可在 Web 控制台配置）。
   PROXY:
     name: 上游代理
     description: >-

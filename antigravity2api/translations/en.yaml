@@ -4,7 +4,7 @@ configuration:
     name: API Keys
     description: >-
       Bearer API keys for clients to access OpenAI / Claude / Gemini compatible endpoints.
-      Leave empty on first boot to auto-generate a secure random key.
+      Leave empty for no option-level key restriction (can also be managed in the Web console).
   PROXY:
     name: Upstream Proxy
     description: >-

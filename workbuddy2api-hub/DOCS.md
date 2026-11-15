@@ -15,11 +15,12 @@ WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游�
   - 伴生服务 `workbuddy2api-hub-updater` 启用官方 `wb_update_external.py`（`WB_UPDATE_EXECUTOR=external`, `profile=app`）：面板触发一键更新/回退后，由更新器完成 SHA256 校验、备份（落于 `/data/updates`）与优雅停机，主服务等落盘结束再由 S6 拉起并完成 `/health` 验收。
   - **注意**：面板热更新仅作用于当前运行容器层；当涉及 Go `wb-tls-bridge` 升级或加载项重构/重装时，仍以 HA 商店推送的新镜像为准。
 
-## 2. 首次启动与密钥安全
+## 2. 首次启动与权鉴说明
 
-- 默认开启 `--lan` 监听 `0.0.0.0:8788`，未设置 `API_KEY` 时首次启动会按上游优先级从 `/app/accounts/settings.json` 提取现有可用密钥（若已启用多 Key `api_keys` 列表，优先取 `id="ha-option"` 或首个未删除且启用的 Key；否则依次检查传统 `api_key` / `launcher_key`），无存量时**自动生成随机 `wb-` Bearer Key**，保存于 `/app/accounts/api_key.txt`、在加载项日志打印，并经由 Supervisor Socket API **自动回填至 HA 加载项配置界面**。
-- 借助 `/app/accounts/options_applied.json` 同步机制：未改动 HA 选项时，用户在 Web 面板内修改的多 Key 列表与单 Key 均会跨重启保留；当 HA 配置页面填入新的非空 `API_KEY` 时，若面板已启用 `api_keys` 多 Key 列表，仅非破坏性地更新/插入 `id="ha-option"` 条目（保留其余自建分域/限模型 Key 及软删除审计记录）。
-- 面板默认登录密码为 `admin`。密码由 Web 控制台自身管理与持久化（保存在 `settings.json` 中，重启稳定保留），不在加载项选项暴露。
+- 默认开启 `--lan` 监听 `0.0.0.0:8788`。
+- 上游原生默认管理面板登录密码为 `admin`。密码由 Web 面板自身管理与持久化（保存在 `/app/accounts/settings.json` 中，重启稳定保留），不在加载项配置中冗余暴露。
+- 客户端接入所需的 Bearer API Key 可在 Web 管理面板中创建与维护；若在加载项配置中显式填写 `API_KEY`，初始化脚本将同步写入 `settings.json`（在多 Key 模式下仅非破坏性地更新/插入 `id="ha-option"` 条目，保留其余自建分域/限模型 Key 及软删除审计记录）。
+- 容器遵循“非必要不填充默认值，严禁虚假凭据生成”规范，加载项仅负责将服务拉起与基础网络/存储编排，不自动凭空生成伪随机密钥或反向回填 HA 选项。
 - 容器时区自动同步 Home Assistant 主机时区（零选项自动继承）。
 - 管理面板大量使用根路径 API（`/health`、`/panel/status`、`/accounts/export`），故不启用 HA Ingress，请直接通过 **打开 Web UI** 或 `http://<你的HA>:8788` 访问。
 
@@ -59,7 +60,6 @@ S6 启动脚本通过 `_export_str` 仅在配置非空且不为 `null` 时导出
 1. **升级或重装后界面无法打开 / 端口被占用**
    - 确认宿主机 `8788` 端口未被其它容器占用，或已在加载项「网络」设置中映射到自定义端口。
 2. **忘记面板密码或 API Key**
-   - 查看加载项启动日志检索初始生成的密钥（保存在 `/app/accounts/api_key.txt`）；面板默认密码为 `admin`，若曾修改可在 `/app/accounts/settings.json` 中查看或编辑重置。
-   - 查看加载项「日志」检索自动生成的 `launcher_key`；或填写 `PANEL_PASSWORD` 重启一次重设面板密码。
+   - 面板原生默认密码为 `admin`，若曾修改可在 `/app/accounts/settings.json` 中查看或编辑重置。API Key 亦可在面板或 `settings.json` 中直接管理；如在加载项配置中指定了 `API_KEY`，重启将同步写入。
 3. **海外区域连接超时**
    - 如网络无法直连国际区接口，可在配置项填入 `HTTPS_PROXY`（如 `http://192.168.1.2:7890`），或将 `WB_PROXY_DEFAULT_REALM` 设为 `cn`。
