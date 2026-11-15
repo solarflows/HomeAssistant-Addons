@@ -1,3 +1,10 @@
+### 1.11.1-build.2 (2026-11-15)
+
+rootfs 维护
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+
+---
+
 ### 1.11.1-build.1 (2026-11-13)
 
 CI 工作流维护
