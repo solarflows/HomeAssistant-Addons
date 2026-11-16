@@ -1,3 +1,10 @@
+### 1.131.0-build.4 (2026-11-16)
+
+Dockerfile + rootfs 维护
+- feat(s6): standardize S6-rc v3 architecture, decouple alist-tvbox services, and eliminate startup race conditions
+
+---
+
 ### 1.131.0-build.3 (2026-11-16)
 
 rootfs 维护
