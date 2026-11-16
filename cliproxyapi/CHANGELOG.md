@@ -1,3 +1,24 @@
+### 8.0.74 (2026-11-16)
+
+#### Changelog
+
+- fix(openai): fail over pre-commit responses websocket create errors (a8c9c8a4)
+- Merge pull request #7564 from aupilot/codex/add-hyphantria-readme (f7bbd32d)
+- chore: replace standard regexp with moego regexp throughout the project (b4fdfdec)
+- chore: replace standard JSON package with moego JSON throughout the project (508f8708)
+- fix(translator): keep unsigned Gemini text chunks in one Claude text block (4a9effcb)
+- fix(claude): strip thinking suffix from advisor tool model (8bdffcad)
+- fix(openai): route duplex quota errors through replay guard after response.created (14144df5)
+
+
+#### What's Changed
+* docs: add Hyphantria to Who is with us by @aupilot in https://github.com/router-for-me/CLIProxyAPI/pull/7564
+
+#### New Contributors
+* @aupilot made their first contribution in https://github.com/router-for-me/CLIProxyAPI/pull/7564
+
+---
+
 ### 8.0.73-build.1 (2026-11-16)
 
 rootfs 维护
