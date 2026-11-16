@@ -1,2 +1,2 @@
-Dockerfile + rootfs 维护
-- feat(s6): standardize S6-rc v3 architecture, decouple alist-tvbox services, and eliminate startup race conditions
+Dockerfile 维护
+- feat(healthcheck,skills): 全量标准化 Healthcheck 规约体系与智能体部署时序推导引擎
