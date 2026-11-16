@@ -1,3 +1,10 @@
+### 20261108-build.13 (2026-11-16)
+
+Dockerfile 维护
+- feat(healthcheck,skills): 全量标准化 Healthcheck 规约体系与智能体部署时序推导引擎
+
+---
+
 ### 20261108-build.12 (2026-11-16)
 
 Dockerfile + rootfs 维护
