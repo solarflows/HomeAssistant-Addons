@@ -1,3 +1,12 @@
+### 1.131.0-build.2 (2026-11-16)
+
+rootfs 维护
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+- chore(icons): 等价重构 7 个插件图标至 256x256 视网膜高清透明规范
+
+---
+
 ### 1.131.0-build.1 (2026-11-13)
 
 Dockerfile + rootfs 维护
