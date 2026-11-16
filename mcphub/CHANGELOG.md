@@ -1,3 +1,50 @@
+### 1.2.5 (2026-11-16)
+
+#### Summary
+
+v1.2.5 adds opt-in OpenAI-compatible tool names and the first backend/API implementation of file staging for configured stdio tools. It also prevents unnecessary list-change notification loops and makes language/theme controls visually consistent.
+
+#### Features
+
+- Add optional OpenAI-compatible tool names in System Settings, disabled by default. Reconnect clients after changing the setting. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1498
+- Add opt-in file staging for configured stdio tools, including upload, status, and download tools. This release delivers the backend/API; browser upload UI and Smart Routing integration remain future work. by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1491
+
+#### Fixes
+
+- Avoid list-change notification loops when upstream lists have not changed. by @Harbor404 in https://github.com/samanhappy/mcphub/pull/1483
+- Unify button styles and icon sizes in language and theme controls. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1492
+- Upgrade note: deployments using `DB_SYNCHRONIZE=false` must apply `docs/migrations/0006-file-staging.sql` and `docs/migrations/0007-tool-name-compatibility.sql` before upgrading.
+
+#### 摘要
+
+v1.2.5 新增默认关闭的 OpenAI 兼容工具名称选项，并首次交付针对已配置 stdio 工具的文件暂存后端/API。同时修复上游列表未变化时的重复通知循环，统一语言与主题切换控件的视觉样式。
+
+#### 功能
+
+- 在系统设置中新增 OpenAI 兼容工具名称选项，默认关闭；修改后需重新连接客户端。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1498
+- 为已配置的 stdio 工具提供可选文件暂存能力，包含上传、状态查询和下载工具。本次交付后端/API，浏览器上传界面和智能路由集成将在后续实现。 by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1491
+
+#### 修复
+
+- 修复上游列表未变化时反复触发列表变更通知的问题。 by @Harbor404 in https://github.com/samanhappy/mcphub/pull/1483
+- 统一语言与主题切换控件的按钮样式和图标尺寸。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1492
+- 升级提示：使用 `DB_SYNCHRONIZE=false` 的部署必须在升级前执行 `docs/migrations/0006-file-staging.sql` 和 `docs/migrations/0007-tool-name-compatibility.sql`。
+
+#### New Contributors
+
+- @Harbor404 made their first contribution in #1483
+
+#### References
+
+- feat: add opt-in OpenAI-compatible tool names by @samanhappy in https://github.com/samanhappy/mcphub/pull/1498
+- fix: unify button styles and icon sizes in LanguageSwitch and ThemeSwitch components by @samanhappy in https://github.com/samanhappy/mcphub/pull/1492
+- feat(staging): file staging for stdio tools — PR1 backend and API (#1056) by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1491
+- fix: avoid list-change loops when upstream lists are unchanged by @Harbor404 in https://github.com/samanhappy/mcphub/pull/1483
+- docs: add file staging design for #1056 by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1471
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.4...v1.2.5
+
+---
+
 ### 1.2.4-build.3 (2026-11-16)
 
 Dockerfile 维护
