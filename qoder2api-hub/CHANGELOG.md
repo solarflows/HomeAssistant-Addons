@@ -1,3 +1,10 @@
+### 1.9.9-build.4 (2026-11-16)
+
+rootfs 维护
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+
+---
+
 ### 1.9.9-build.3 (2026-11-15)
 
 Dockerfile 维护
