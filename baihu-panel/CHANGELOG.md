@@ -1,3 +1,10 @@
+### 1.7.0-build.1 (2026-11-16)
+
+Dockerfile 维护
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+
+---
+
 ### 1.7.0 (2026-11-14)
 
 #### 更新日志 (v1.7.0)
