@@ -1,3 +1,18 @@
+### 8.0.75 (2026-11-16)
+
+#### Changelog
+
+- feat(payload): add user text replacement payload rules (f00a3d39)
+- perf(executor): optimize payload user text replacement (5aa44948)
+- fix(config): preserve empty payload replacements on save (ecae1a4f)
+- Merge pull request #7599 from router-for-me/payload (c19787b2)
+
+
+#### What's Changed
+* feat(payload): add user text replacement payload rules by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/7599
+
+---
+
 ### 8.0.74-build.1 (2026-11-16)
 
 Dockerfile 维护
