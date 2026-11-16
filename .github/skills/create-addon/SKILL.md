@@ -29,16 +29,20 @@ description: 新建 HA 加载项。从模板创建骨架目录，后续由 plan-
 .github/templates/binary/
 ├── analysis.yaml              # 上游分析产物（由 plan-addon 填充）
 ├── config.yaml                # 加载项基础清单
-├── Dockerfile                 # 多架构下载与装配文件
+├── Dockerfile                 # 多架构下载与装配文件 (含规范 HEALTHCHECK)
 ├── version.yaml               # 版本与依赖追踪
 ├── rootfs/etc/cont-init.d/
-│   └── 00-init.sh             # 原生直挂校验、自愈探测与启动屏障锁
-├── rootfs/etc/s6-overlay/
-│   ├── scripts/
-│   │   └── stage2_hook.sh     # S6 stage2 启动钩子
-│   └── s6-rc.d/ADDON_SLUG/    # 需重命名为目标 <slug>
-│       ├── run                # 前台启动脚本 (longrun)
-│       └── type               # 文件内容为: longrun
+│   └── 00-init.sh             # 纯本地离线秒级初始化与存量自愈探测
+├── rootfs/etc/s6-overlay/s6-rc.d/
+│   ├── ADDON_SLUG/            # 业务服务 longrun 拓扑 (需重命名为目标 <slug>)
+│   │   ├── dependencies.d/
+│   │   │   └── legacy-cont-init # 声明式依赖：强约束 cont-init 退出 0 后拉起
+│   │   ├── finish             # 原生退出捕获与 5 次熔断保护器
+│   │   ├── run                # 前台阻塞启动脚本 (exec 挂载)
+│   │   └── type               # 文件内容为: longrun
+│   └── user/
+│       └── contents.d/
+│           └── ADDON_SLUG     # 纳管注册点 (需同步重命名为目标 <slug>)
 ├── translations/
 │   ├── en.yaml
 │   └── zh-Hans.yaml
@@ -54,14 +58,16 @@ cp -r .github/templates/binary/ <addon-slug>/
 
 # 2. 全局替换占位符（config.yaml slug, Dockerfile, 00-init.sh, run, translations, README）
 
-# 3. 若使用 binary 或 source 模板，重命名 S6 服务目录：
+# 3. 若使用 binary 或 source 模板，重命名 S6 业务服务目录与 user contents 注册点：
 mv <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/ADDON_SLUG \
-   <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/<slug>/
+   <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/<slug>
+mv <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/user/contents.d/ADDON_SLUG \
+   <addon-slug>/rootfs/etc/s6-overlay/s6-rc.d/user/contents.d/<slug>
 
 # 4. 完善 config.yaml（map 对象化声明、url、webui、ports、description）
-# 5. 实现 Dockerfile 构建逻辑
-# 6. 配置 00-init.sh 执行存量自愈探测与初始化屏障锁（严禁写 ln -s 软链接）
-# 7. 配置 run 脚本前台 exec 主程序（参数直指原生直挂路径）
+# 5. 实现 Dockerfile 构建逻辑，并填入 plan-addon 合成的标准 HEALTHCHECK（必须带 --noproxy '*' 与语言阶梯 start-period）
+# 6. 配置 00-init.sh 执行纯本地离线播种与存量自愈探测（严禁外网网络请求，严禁写 ln -s 软链接）
+# 7. 配置 run 脚本前台 exec 主程序（参数直指原生直挂路径，零后台进程 &）
 # 8. 本地验证无误后登记至 AGENTS.md 列表
 ```
 

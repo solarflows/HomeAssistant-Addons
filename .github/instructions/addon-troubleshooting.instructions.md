@@ -17,9 +17,12 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - **服务配置默认端口**：应用配置若无默认端口会绑定 `:0` 导致端口映射失效；生成初始配置时必须显式填入有效默认端口（如 `8317`）。
 - **合并回填加载项选项**：调用 `POST /addons/self/options` 会全量覆盖选项；必须先读取合并后再执行单次请求，严禁连续分散请求。
 - **配置持久同步 sidecar 机制**：采用 `/config/options_applied.json`（或未映射 `app_config` 时使用 `/data/options_applied.json`）记录已应用选项；首次启动跳过同步以防覆盖，非空且变更时覆写对应配置。
-- **冷启动与看门狗窗口**：ARM 设备冷启动高负载服务（如 JVM）需 150~200s；Dockerfile `HEALTHCHECK` 必须设置 `start-period=300s, retries=5`，防止 Supervisor 看门狗提前杀进程。
-- **健康检查与探活免刷屏**：优先使用上游原生免鉴权静默健康检查路由（如 `/health`, `/healthz`, `/api/v1/ping`），严禁请求前端根路径或需要加载全量静态资源/渲染 SPA 页面的路径；无原生健康端点的服务，在 S6 运行时监控中采用 Bash 原生零日志 TCP 握手探活 `(exec 3<>/dev/tcp/127.0.0.1/<PORT> && exec 3>&-)`，彻底杜绝 HTTP 访问日志污染与代理环境变量反噬。
-- **初始化与运行串行化**：`cont-init.d/00-init.sh` 结束时创建 `/run/<slug>-initialized`；S6 `run` 脚本必须有界循环等待该标记，严禁二者无序争抢 CPU/IO。
+- **冷启动与看门狗窗口**：ARM 低功耗设备冷启动高负载服务（如 JVM 需 140s~200s）；Dockerfile `HEALTHCHECK` 必须按运行时阶梯配置 `start-period`（Go/Rust 二进制 30s，Node.js/Python 45~60s，重型无头浏览器/迁移 90~180s，JVM 300s），防止 Supervisor 看门狗提前误杀。
+- **健康检查全链路规约**：
+  - **强制免疫代理**：必须使用 `curl -sfo /dev/null --noproxy '*' --max-time <timeout>`，严禁缺少 `--noproxy '*'`，杜绝宿主/容器全局代理环境变量（`HTTP_PROXY` / `no_proxy`）将 `127.0.0.1` 环回流量劫持至外部代理造成假死；
+  - **多服务解耦全覆盖**：拆分了网关与后端微服务的插件（如 `alist-tvbox` 包含 `atv-nginx:80` 与 `alist-tvbox:4567`，`cliproxyapi-cpamp` 包含 `8317` 与 `18317`），健康检查必须双轨串联（`curl ... && curl ...`），防止前端网关崩溃成为故障黑洞；
+  - **优先原生静默端点**：优先请求免鉴权轻量健康检查路由（如 `/health`, `/healthz`, `/api/v1/ping`），严禁请求需要渲染 SPA 或大体积静态资源的根路径。
+- **初始化与运行声明式依赖 (S6-rc v3 铁律)**：通过 `dependencies.d/legacy-cont-init` 显式保证 `cont-init.d/00-init.sh` 100% 退出 0 后 S6 才放行拉起 longrun 服务，严禁在 `run` 脚本中编写 `for` / `while` 自旋等待锁。
 
 ## 语言构建策略规范
 
@@ -56,12 +59,11 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 | trawl | `/app/data` | `app_config -> /app/data` 原生直挂，存放抓取规则 |
 | flaresolverr | *(无状态)* | 会话内存维持，无需配置持久化，零膨胀 |
 
-## S6 进程监督约束
-- **严禁新增不支持的服务文件**：`debian-base:9.3.0` 内置老版本 S6；严禁添加 `notification-fd` 或 `timeout-up`，否则服务被静默跳过。
-- **Stage 2 Hook 必需**：依赖 `S6_STAGE2_HOOK` 环境变量与对应 hook 脚本清理 `down` 标记文件；严禁在 cont-init 中执行 `rm -f down`。
-- **消除 hook 与 cont-init 竞态**：S6 longrun `run` 脚本在 `exec` 真实进程前，必须加入有界等待（≤30s），等待 cont-init 生成必要配置文件。
-- **S6 原生退出钩子与熔断阻断**：所有 S6 longrun 服务必须配套提供 `./finish` 脚本；捕获非零退出码并以滑动时间窗口（60s）维护内存态崩溃计数；连续失败达到阈值（5次）时触发 `s6-svc -d .` 原生指令将服务置为 down 状态，彻底阻断无限重启死循环。
-- **容器层执行权限固化**：在 Dockerfile 执行 `COPY rootfs /` 后，必须紧跟 `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh`。
+## S6 进程监督约束 (S6-rc v3 架构规范)
+- **声明式依赖拓扑**：所有业务 longrun 服务必须创建 `dependencies.d/legacy-cont-init`，并在 `user/contents.d/<slug>` 中注册；S6 引擎原生保证 `cont-init.d` 运行结束前主服务物理挂起，彻底废弃 `stage2_hook.sh` 与自旋循环。
+- **纯前台阻塞主进程**：S6 longrun `run` 脚本必须以 `exec` 挂载业务进程（如 `exec /usr/local/bin/app ...`），严禁将主进程扔入后台（`&`），确保 S6 精准捕获退出信号。
+- **S6 原生退出钩子与熔断阻断**：所有 S6 longrun 服务必须配套提供 `./finish` 脚本；捕获非零退出码并以滑动时间窗口（60s）维护内存态崩溃计数；连续失败达到阈值（5次）时触发 `s6-svc -d .` 原生指令并将退出码设为 `125`，彻底阻断无限重启死循环。
+- **容器层执行权限固化**：在 Dockerfile 执行 `COPY rootfs /` 后，必须紧跟 `RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish`。
 
 ## Chromium 容器约束
 - 仅在文档明确要求 Chromium 运行依赖时才授予 `SYS_ADMIN` 或 `IPC_LOCK` 特权。
@@ -74,4 +76,4 @@ applyTo: ["**/*.sh", "**/Dockerfile", "**/config.yaml", "**/version.yaml"]
 - **零软链铁律**：严禁在 `00-init.sh` 中使用 `rm -rf <path> && ln -s ...` 模拟运行目录，杜绝 Node.js/Go/Python/SQLite 在原子写入（`rename`）时的解绑断链故障。
 - **存量历史自愈探测与平滑迁移**：在 `map` 中声明挂载 `type: homeassistant_config, path: /legacy_ha`；`00-init.sh` 仅在目标原生目录为空且 `/legacy_ha/<slug>` 存在存量数据时执行一次性迁移（`cp -a /legacy_ha/<slug>/. <upstream_path>/`），并写入 `.migrated_from_legacy` 标记。
 - **严禁提前清理旧数据**：迁移暂存后，必须等 S6 守护确认服务端口/健康检查完全就绪，方可安全延时清理旧数据，防止启动失败导致不可逆损坏。
-- **S6 初始化屏障**：`00-init.sh` 退出前生成 `/run/<slug>-initialized`；S6 `run` 必须自旋等待该锁文件放行，彻底消除并发竞态。
+- **声明式初始化屏障**：依赖 S6-rc 的 `dependencies.d/legacy-cont-init` 机制实现拓扑级天然串行，无需任何临时标记文件或锁机制。

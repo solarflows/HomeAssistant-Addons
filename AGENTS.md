@@ -62,6 +62,7 @@ The repository has no single project-wide test command. The normal local verific
 - **Build**: multi-stage source / upstream image adaptation / base+binary / base+JAR. Check the current Dockerfile before choosing a strategy.
 - **CI**: `Version_Check (6h cron) -> Release -> multi-arch build -> ghcr.io -> independent metadata commits`; details are in [fix-ci/SKILL.md](.github/skills/fix-ci/SKILL.md).
 - **Runtime**: S6 longruns must keep the application in the foreground and `exec` the real process. `flaresolverr`, `mcphub`, and `trawl` are the upstream-image exceptions and use wrapped upstream entrypoints.
+- **Lifecycle & Healthcheck**: 四阶段生命周期（`00-init.sh` 纯本地离线播种 -> S6 声明式 DAG 依赖 `dependencies.d/legacy-cont-init` 串行拉起 -> 异步后台守护进程 -> 规范化 Docker `HEALTHCHECK`）。探活必须强制注入 `--noproxy '*'` 与 `--max-time`，并按运行时阶梯配置 `start-period`（Go: 30s, Node/Python: 60s, heavy/browser: 90~180s, JVM: 300s）。详见 [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) 与 [plan-addon/SKILL.md](.github/skills/plan-addon/SKILL.md)。
 - **Troubleshooting**: [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) is auto-loaded for Dockerfiles, Shell, `config.yaml`, and `version.yaml`.
 
 ## Runtime Boundaries & Data Architecture

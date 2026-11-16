@@ -66,5 +66,5 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 EXPOSE 8790/tcp
 
-HEALTHCHECK --interval=30s --start-period=20s --timeout=5s --retries=3 \
-    CMD curl -fsS --noproxy '*' "http://127.0.0.1:${PORT}/ping" >/dev/null || exit 1
+HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:${PORT}/ping" || exit 1

@@ -34,5 +34,5 @@ fi
 #   set -e
 #   [ $init_rc -ne 0 ] && bashio::log.warning "upstream init script exited with code $init_rc"
 
-# 生成首启就绪标志（供 S6 run 脚本自旋等待，彻底消除启动竞态）
+# S6-rc v3 架构下，通过 dependencies.d/legacy-cont-init 天然保证串行，退出 0 即完成就绪放行
 bashio::log.info "ADDON_SLUG initialization completed"

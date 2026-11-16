@@ -66,7 +66,7 @@ EXPOSE 16601/tcp
 
 # Healthcheck
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sfo /dev/null http://127.0.0.1:16601/ || exit 1
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:16601/" || exit 1
 
 # S6 overlay 接管启动，不再硬编码 ENTRYPOINT
 # 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/lucky/run

@@ -89,5 +89,5 @@ ENV LISTEN=0.0.0.0:8017
 WORKDIR /config
 EXPOSE 8017/tcp
 
-HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -fsS --noproxy '*' "http://127.0.0.1:8017/api/status" >/dev/null || exit 1
+HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:8017/api/status" || exit 1

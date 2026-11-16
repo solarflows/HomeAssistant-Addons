@@ -32,5 +32,5 @@ CMD ["node", "dist/index.js"]
 EXPOSE 3000/tcp
 
 # Healthcheck（原生 /health 免鉴权轻量健康检查路由）
-HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sfo /dev/null http://127.0.0.1:3000/health || exit 1
+HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:3000/health" || exit 1

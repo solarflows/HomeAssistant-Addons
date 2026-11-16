@@ -38,4 +38,4 @@ EXPOSE 8191/tcp 8192/tcp
 
 # Healthcheck（上游原生 /health；浏览器池预热较慢，放宽 start-period）
 HEALTHCHECK --interval=30s --start-period=90s --timeout=10s --retries=5 \
-    CMD curl -sfo /dev/null http://127.0.0.1:8191/health || exit 1
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 10 "http://127.0.0.1:8191/health" || exit 1

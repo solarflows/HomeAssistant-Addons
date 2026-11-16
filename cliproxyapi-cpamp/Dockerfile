@@ -87,9 +87,9 @@ ENV MANAGEMENT_STATIC_PATH=/data/cliproxyapi-cpamp/static
 EXPOSE 8317/tcp 18317/tcp
 
 # Healthcheck（CPA /healthz + CPAMP /health）
-HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \
-    CMD curl -sfo /dev/null http://127.0.0.1:8317/healthz \
-        && curl -sfo /dev/null http://127.0.0.1:18317/health || exit 1
+HEALTHCHECK --interval=30s --start-period=45s --timeout=5s --retries=3 \
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:8317/healthz" \
+        && curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:18317/health" || exit 1
 
 # S6 overlay 接管启动（两个 longrun 服务）
 # 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/{cliproxyapi,cpamp}/run

@@ -134,9 +134,10 @@ EXPOSE 4567/tcp 80/tcp
 # 持久化目录（/data 由 HAOS Supervisor 自动挂载）
 VOLUME ["/www/static"]
 
-# Healthcheck
+# Healthcheck (双轨探活: 管理端 4567 + Nginx 80 网关)
 HEALTHCHECK --interval=30s --start-period=300s --timeout=10s --retries=5 \
-    CMD curl -sfo /dev/null http://127.0.0.1:4567/ || exit 1
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:4567/" \
+     && curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:80/" || exit 1
 
 # S6 overlay 接管启动，不再硬编码 ENTRYPOINT
 # 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/alist-tvbox/run

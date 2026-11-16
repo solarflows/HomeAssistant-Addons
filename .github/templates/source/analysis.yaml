@@ -1,2 +1,68 @@
 # analysis.yaml — filled by plan-addon skill
 # https://github.com/solarflows/HomeAssistant-Addons/.github/skills/plan-addon
+---
+upstream:
+  repo: owner/repo
+  description: 服务功能简述
+  license: MIT
+
+build:
+  strategy: multi-stage          # multi-stage | binary-download | upstream-image | release-jar
+  builder_image: golang:1.24
+  apt_build_deps: []
+  build_steps:
+    - go build -ldflags="-s -w" -o /app-bin .
+  artifacts: /app-bin
+  runtime_deps:
+    apt: []
+    pip: []
+  version_arg: APP_VERSION
+
+runtime:
+  language: go                   # go | rust | node | python | java | binary
+  entrypoint: /usr/local/bin/app
+  working_dir: /app
+  env: {}
+  data_dir: /app/data
+
+network:
+  port: 8080
+  protocol: tcp
+
+lifecycle:
+  init_mode: offline_only        # 纯本地离线播种，严禁公网网络下载
+  topology: single_longrun       # single_longrun | multi_service_dag
+  services:
+    - name: ADDON_SLUG
+      type: longrun
+      dependencies:
+        - legacy-cont-init
+
+healthcheck:
+  type: http                     # http | dual_http | tcp
+  endpoint: /health              # 优先免鉴权端点 (如 /health, /healthz, /ping, /status)
+  port: 8080
+  start_period: 30s              # 按语言运行时定界: go/rust 30s, node/py 60s, heavy 90~180s, java 300s
+  timeout: 5s
+  interval: 30s
+  retries: 3
+  command: "curl -sfo /dev/null --noproxy '*' --max-time 5 \"http://127.0.0.1:8080/health\" || exit 1"
+
+filesystem:
+  persistent_dirs:
+    - container: /app/data
+      ha: app_config
+      type: direct_mount
+      read_only: false
+      reason: Upstream data directory
+  hardcoded_paths: []
+  cwd_matters: false
+
+config:
+  options: {}
+  schema: {}
+
+adaptations:
+  - 采用 app_config 原生直挂持久化，零软链架构
+  - S6 overlay 纳管主进程为 longrun 服务，声明式依赖 legacy-cont-init
+  - Healthcheck 绑定免鉴权探活路由，强制注入 --noproxy '*'

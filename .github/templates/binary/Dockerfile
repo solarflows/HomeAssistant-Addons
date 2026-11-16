@@ -34,5 +34,6 @@ RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overla
 # 端口声明 (按需修改)
 EXPOSE 8080/tcp
 
-# Healthcheck 探活 (默认以 HTTP 为例，按需调整端口和路径)
-HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3     CMD curl -sfo /dev/null http://127.0.0.1:8080/ || exit 1
+# Healthcheck 探活 (默认以 HTTP 为例，按需调整端口和路径；必须带 --noproxy '*' 防代理污染)
+HEALTHCHECK --interval=30s --start-period=60s --timeout=5s --retries=3 \
+    CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:8080/" || exit 1
