@@ -1,3 +1,11 @@
+### 2.0.2-stable-build.9 (2026-11-16)
+
+rootfs 维护
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+- chore(icons): 等价重构 7 个插件图标至 256x256 视网膜高清透明规范
+
+---
+
 ### 2.0.2-stable-build.8 (2026-11-13)
 
 Dockerfile + rootfs 维护
