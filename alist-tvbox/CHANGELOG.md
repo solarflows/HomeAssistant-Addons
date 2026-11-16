@@ -1,3 +1,10 @@
+### 1.131.0-build.3 (2026-11-16)
+
+rootfs 维护
+- fix(alist-tvbox): sanitize bashio config null returns and prevent httpd bind conflict
+
+---
+
 ### 1.131.0-build.2 (2026-11-16)
 
 rootfs 维护
