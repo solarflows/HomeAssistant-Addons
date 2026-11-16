@@ -1,3 +1,25 @@
+### 0.1.9 (2026-11-16)
+
+#### 下载
+
+| 系统 | 推荐 | 其他 |
+| --- | --- | --- |
+| Windows 10 及以上 | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-v0.1.9-windows-amd64.zip) | — |
+| macOS（Apple 芯片与 Intel） | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-desktop-v0.1.9-darwin-universal.tar.gz) | — |
+| Linux 桌面 | [x64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-desktop-v0.1.9-linux-amd64.tar.gz) · [ARM64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-desktop-v0.1.9-linux-arm64.tar.gz) | — |
+| Linux 服务器 | [x64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-v0.1.9-linux-amd64.tar.gz) · [ARM64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-v0.1.9-linux-arm64.tar.gz) | Docker 镜像 ghcr.io/mag1cfall/antigravity2api:v0.1.9 |
+| macOS 命令行 | [Apple 芯片](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-v0.1.9-darwin-arm64.tar.gz) · [Intel](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.9/antigravity2api-v0.1.9-darwin-amd64.tar.gz) | — |
+
+桌面版与命令行版启动后都在 `http://127.0.0.1:8017` 提供管理页面与 API，解压即用。
+
+#### 修复
+
+- omp 系统提示中的 `You are omp's trusted coding assistant.` 一句使上游返回 429，omp 的请求全部失败；现在发送前整句删去，其余原文不变
+
+**完整变更**：[v0.1.8...v0.1.9](https://github.com/Mag1cFall/Antigravity2API/compare/v0.1.8...v0.1.9)
+
+---
+
 ### 0.1.8-build.1 (2026-11-16)
 
 Dockerfile + rootfs 维护
