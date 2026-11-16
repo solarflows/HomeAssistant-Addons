@@ -1,3 +1,11 @@
+### 3.5.0-build.10 (2026-11-16)
+
+Dockerfile + rootfs 维护
+- feat(s6): standardize S6-rc v3 architecture, decouple alist-tvbox services, and eliminate startup race conditions
+- chore(icons): 等价重构 7 个插件图标至 256x256 视网膜高清透明规范
+
+---
+
 ### 3.5.0-build.9 (2026-11-13)
 
 Dockerfile + rootfs 维护
