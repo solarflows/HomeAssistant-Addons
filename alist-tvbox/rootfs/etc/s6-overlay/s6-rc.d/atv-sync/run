@@ -1,0 +1,60 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# atv-sync: 后台异步云端更新巡检守护进程
+# 在核心业务启动就绪后延迟运行，周期性同步小雅预设云盘存储与索引
+# 失败仅记录日志，严禁阻塞或中断主容器生命周期
+# ==============================================================================
+
+# 开机退避 60 秒，确保 Java 与 AList 已经完全对外提供服务
+sleep 60
+
+bashio::log.info "atv-sync: 后台更新守护进程已就绪，进入周期巡检循环..."
+
+while true; do
+    AUTO_UPDATE=$(bashio::config 'AUTO_UPDATE' 'true')
+    if [ "${AUTO_UPDATE}" = "true" ]; then
+        bashio::log.info "atv-sync: 开始检查小雅云端数据更新..."
+
+        # 1. 检查小雅索引更新 (version.txt)
+        REMOTE_VER=""
+        TMP_VER="/tmp/atv_remote_version.txt"
+        rm -f "${TMP_VER}"
+
+        if curl -fsSL --connect-timeout 10 -m 15 "https://raw.githubusercontent.com/xiaoyaliu00/data/main/version.txt" -o "${TMP_VER}" 2>/dev/null || \
+           curl -fsSL --connect-timeout 10 -m 15 "https://d.har01d.cn/version.txt" -o "${TMP_VER}" 2>/dev/null; then
+            REMOTE_VER=$(head -n1 "${TMP_VER}" 2>/dev/null | tr -d '\r\n')
+        fi
+
+        LOCAL_VER="0.0.0"
+        [ -f /data/index/version.txt ] && LOCAL_VER=$(head -n1 /data/index/version.txt | tr -d '\r\n')
+
+        if [ -n "${REMOTE_VER}" ] && [ "${REMOTE_VER}" != "${LOCAL_VER}" ]; then
+            bashio::log.info "atv-sync: 发现小雅新版索引 (local=${LOCAL_VER}, remote=${REMOTE_VER})，触发后台更新..."
+            if [ -f /index.sh ]; then
+                bash /index.sh "${REMOTE_VER}" >/dev/null 2>&1 || bashio::log.warning "atv-sync: 索引更新失败，稍后将重试"
+            fi
+        fi
+
+        # 2. 检查并增量同步 update.zip (小雅 215 公网存储)
+        TMP_ZIP="/tmp/atv_update.zip"
+        TMP_DIR="/tmp/atv_update_extract"
+        rm -rf "${TMP_ZIP}" "${TMP_DIR}"
+        if curl -fsSL --connect-timeout 10 -m 30 "https://raw.githubusercontent.com/xiaoyaliu00/data/main/update.zip" -o "${TMP_ZIP}" 2>/dev/null || \
+           curl -fsSL --connect-timeout 10 -m 30 "https://d.har01d.cn/update.zip" -o "${TMP_ZIP}" 2>/dev/null; then
+            mkdir -p "${TMP_DIR}"
+            if unzip -q -P abcd "${TMP_ZIP}" -d "${TMP_DIR}" 2>/dev/null && [ -f "${TMP_DIR}/update.sql" ]; then
+                bashio::log.info "atv-sync: 获取到最新 update.sql，以非侵入方式同步至 AList 数据库..."
+                sed -i 's/v3.9.2/v3.44.0/' "${TMP_DIR}/update.sql"
+                sed -i 's/pass_code/share_pwd/' "${TMP_DIR}/update.sql"
+                # 采用 INSERT OR REPLACE 导入，绝不 drop table x_storages 以免抹除用户自定义存储
+                sed -i 's/INSERT INTO x_storages/INSERT OR REPLACE INTO x_storages/g' "${TMP_DIR}/update.sql"
+                sqlite3 /config/alist/data.db < "${TMP_DIR}/update.sql" 2>/dev/null || true
+            fi
+            rm -rf "${TMP_ZIP}" "${TMP_DIR}"
+        fi
+    fi
+
+    # 每 24 小时巡检一次
+    sleep 86400
+done

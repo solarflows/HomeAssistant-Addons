@@ -6,14 +6,6 @@
 # - 权鉴完全交由 Web 管理面板自主自治，不通过环境变量或启动参数锁定密码
 # ==============================================================================
 
-for _ in $(seq 1 30); do
-    [ -f /run/qoder2api-hub-initialized ] && break
-    sleep 1
-done
-if [ ! -f /run/qoder2api-hub-initialized ]; then
-    bashio::log.warning "00-init.sh 仍未完成或超时，继续尝试启动"
-fi
-
 _export_str() {
     local key="$1"
     local val

@@ -54,5 +54,4 @@ export BH_DB_PATH=/app/data/baihu.db
 bashio::log.info "Baihu Panel config: port=${BH_SERVER_PORT}, host=${BH_SERVER_HOST}, db=${BH_DB_PATH}"
 
 # 生成初始化放行锁屏障
-touch /run/baihu-initialized
 bashio::log.info "Baihu Panel initialization completed"

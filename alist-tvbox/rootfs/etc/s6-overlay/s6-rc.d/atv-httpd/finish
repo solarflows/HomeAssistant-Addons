@@ -1,0 +1,55 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# S6 原生服务退出处理与熔断保护脚本
+# ==============================================================================
+# S6 传参规则 (s6-supervise 规范):
+#   - 进程正常自愿退出: $1 = 退出码 (0-255), $2 未定义
+#   - 进程被信号杀灭:   $1 = 256,            $2 = 信号数值 (如 15=SIGTERM, 2=SIGINT)
+EXIT_CODE="${1:-0}"
+SIGNAL="${2:-0}"
+
+# 1. 正常退出 (0) 或由标准终止信号 (SIGTERM=143, SIGINT=130, SIGHUP=129) 退出，无需统计
+if [ "${EXIT_CODE}" -eq 0 ] || [ "${EXIT_CODE}" -eq 143 ] || [ "${EXIT_CODE}" -eq 130 ] || [ "${EXIT_CODE}" -eq 129 ]; then
+    exit 0
+fi
+
+# 2. S6 信号报告机制：$1 == 256 时 $2 为杀灭信号。排除良性终止信号 (SIGTERM=15, SIGINT=2, SIGHUP=1)
+if [ "${EXIT_CODE}" -eq 256 ]; then
+    if [ "${SIGNAL}" -eq 15 ] || [ "${SIGNAL}" -eq 2 ] || [ "${SIGNAL}" -eq 1 ]; then
+        exit 0
+    fi
+fi
+
+SERVICE_NAME="$(basename "${PWD}")"
+CRASH_COUNT_FILE="/run/s6_crash_${SERVICE_NAME}_count"
+LAST_CRASH_FILE="/run/s6_crash_${SERVICE_NAME}_last"
+MAX_RETRIES=5
+RESET_INTERVAL=60
+
+NOW=$(date +%s)
+LAST_CRASH=$(cat "${LAST_CRASH_FILE}" 2>/dev/null || echo 0)
+
+# 若距离上次异常已稳定运行超过健康窗口 (60s)，重置计数器
+if [ "$((NOW - LAST_CRASH))" -ge "${RESET_INTERVAL}" ]; then
+    CRASH_COUNT=1
+else
+    CRASH_COUNT=$(($(cat "${CRASH_COUNT_FILE}" 2>/dev/null || echo 0) + 1))
+fi
+
+echo "${CRASH_COUNT}" > "${CRASH_COUNT_FILE}"
+echo "${NOW}" > "${LAST_CRASH_FILE}"
+
+if [ "${CRASH_COUNT}" -ge "${MAX_RETRIES}" ]; then
+    bashio::log.fatal "============================================================"
+    bashio::log.fatal "[S6 原生熔断] 服务 ${SERVICE_NAME} 连续异常退出达到上限 (${CRASH_COUNT}/${MAX_RETRIES})！"
+    bashio::log.fatal "退出状态: exit=${EXIT_CODE}, signal=${SIGNAL}。触发 S6 永久下线机制 (Permanent Failure)。"
+    bashio::log.fatal "S6 监工已永久阻断拉起以保护系统资源。排查修复后请在 HA 控制台手动重启加载项。"
+    bashio::log.fatal "============================================================"
+    s6-svc -d . 2>/dev/null || s6-svc -d "/run/s6/services/${SERVICE_NAME}" 2>/dev/null || true
+    # S6 原生永久失败退出码：告知 s6-supervise 彻底停止拉起，标记为 down (equivalent to s6-svc -O)
+    exit 125
+fi
+
+bashio::log.warning "服务 ${SERVICE_NAME} 异常退出 (退出状态: exit=${EXIT_CODE}, signal=${SIGNAL})，第 ${CRASH_COUNT}/${MAX_RETRIES} 次失败，冷却 3 秒后由 S6 重试..."
+sleep 3

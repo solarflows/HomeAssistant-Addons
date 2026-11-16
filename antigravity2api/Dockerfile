@@ -82,10 +82,9 @@ RUN mkdir -p /config /data/runtime /data/logs \
     && chmod +x /usr/local/bin/antigravity2api
 
 COPY rootfs /
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 
-ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh \
-    LISTEN=0.0.0.0:8017
+ENV LISTEN=0.0.0.0:8017
 
 WORKDIR /config
 EXPOSE 8017/tcp

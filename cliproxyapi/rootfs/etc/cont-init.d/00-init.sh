@@ -272,5 +272,4 @@ if [ ! -s "${DATA_DIR}/static/management.html" ]; then
     bashio::log.info "已从镜像种子恢复 CPAMP 管理面板（联网后将自动检查更新）"
 fi
 
-touch /run/cliproxyapi-initialized
 bashio::log.info "CLIProxyAPI initialization completed"

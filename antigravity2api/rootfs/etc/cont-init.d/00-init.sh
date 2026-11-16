@@ -120,5 +120,4 @@ if [ -n "${OPT_PROXY}" ]; then
 fi
 
 # 5. 写入就绪标记，放行 S6 longrun 服务
-touch /run/antigravity2api-initialized
 bashio::log.info "Antigravity2API initialized successfully (Remote Web Access Enabled)."

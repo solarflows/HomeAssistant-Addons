@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# atv-httpd: Busybox HTTPD 服务 (端口 81)
+# 托管 /www/cgi-bin/ (search, sou, whatsnew)，提供 TvBox 客户端本地索引秒级搜索
+# ==============================================================================
+bashio::log.info "Starting BusyBox HTTPD on port 81 (TvBox CGI search engine)..."
+exec /bin/busybox httpd -f -p 81 -h /www

@@ -10,6 +10,16 @@ configuration:
     description: >-
       开启 Spring Boot 调试日志（条件评估报告）。
       仅在排查启动问题时开启。
+  AUTO_UPDATE:
+    name: 后台自动更新
+    description: >-
+      开启后由后台独立服务周期性检查并同步小雅云端索引和预设存储，绝不阻塞开机。
+      关闭后为纯离线运行模式。
+  JVM_OPTS:
+    name: 自定义 JVM 参数
+    description: >-
+      追加到 Java 运行时的额外 JVM 参数（如 -Xmx768M 或性能调优参数）。
+      留空则使用默认配置。
 network:
   4567/tcp: 管理后台 Web UI（TvBox 配置、订阅管理）
   80/tcp: AList Web UI（文件浏览、网盘管理）

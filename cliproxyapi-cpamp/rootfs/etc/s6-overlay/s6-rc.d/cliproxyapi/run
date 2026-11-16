@@ -5,14 +5,5 @@
 # ==============================================================================
 bashio::log.info "Starting CLIProxyAPI..."
 
-# 等待 cont-init 完成（最多等 60 秒，消除启动竞态）
-for _ in $(seq 1 60); do
-    [ -f /run/cpamp-initialized ] && break
-    sleep 1
-done
-if [ ! -f /run/cpamp-initialized ]; then
-    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
-fi
-
 cd /CLIProxyAPI
 exec /CLIProxyAPI/cli-proxy-api -config /config/config.yaml

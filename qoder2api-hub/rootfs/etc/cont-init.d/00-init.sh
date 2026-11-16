@@ -123,5 +123,4 @@ if settings_dirty:
 atomic_write_json(sidecar_path, new_sidecar, 0o600)
 PYEOF
 
-touch /run/qoder2api-hub-initialized
 bashio::log.info "qoder2api-hub initialization completed."

@@ -8,14 +8,6 @@
 #   以及 wb_update_external.py 一键更新后平滑重启）。
 # ==============================================================================
 
-for _ in $(seq 1 30); do
-    [ -f /run/workbuddy2api-hub-initialized ] && break
-    sleep 1
-done
-if [ ! -f /run/workbuddy2api-hub-initialized ]; then
-    bashio::log.warning "00-init.sh 仍未完成或超时，继续尝试启动"
-fi
-
 STATUS_FILE="/run/workbuddy2api-hub-updater/status.json"
 for _ in $(seq 1 30); do
     [ -f "${STATUS_FILE}" ] || break

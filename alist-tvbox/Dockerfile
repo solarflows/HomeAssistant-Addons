@@ -118,10 +118,8 @@ RUN echo "${ALIST_TVBOX_VERSION}" > /app_version \
 COPY rootfs /
 
 # 确保脚本可执行
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh \
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish \
     && chmod +x /docker/scripts/*.sh
-
-ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 
 # 环境变量
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \

@@ -62,9 +62,8 @@ RUN test -n "${CPA_VERSION}" || { echo "CPA_VERSION is required"; exit 1; } \
 COPY rootfs /
 
 # 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 
-ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 # WRITABLE_PATH: CPA 运行时可写目录统一基准（上游 util.WritablePath()）
 #   → logs（启用 logging-to-file 时）、static 面板缓存、discovery 状态均落到 /data
 ENV WRITABLE_PATH=/data/cliproxyapi

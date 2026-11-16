@@ -2,22 +2,9 @@
 # shellcheck shell=bash
 # ==============================================================================
 # alist-tvbox-standalone 启动脚本 (S6 longrun)
-# 直接控制 Java，不依赖上游 entrypoint.sh
+# 直接控制 Java，依赖 dependencies.d/legacy-cont-init 确定性启动
 # ==============================================================================
 bashio::log.info "Starting AList-TvBox Standalone..."
-
-APP_PID=
-trap 'kill ${APP_PID} 2>/dev/null; exit 0' TERM INT
-
-# 等待 cont-init 完成（legacy-cont-init 与 atv-standalone 可能并行启动）
-# 使用 /run 临时内存标记文件确保 00-init.sh 执行完毕，最多等待 60 秒
-for _ in $(seq 1 60); do
-    [ -f /run/atv-initialized ] && break
-    sleep 1
-done
-if [ ! -f /run/atv-initialized ]; then
-    bashio::log.warning "00-init.sh 仍未完成或超时，继续启动以暴露错误"
-fi
 
 # 确认服务启动成功后，清空旧迁移数据并固化一次性迁移标记
 if [ -f /run/migration_cleanup_pending ]; then
@@ -28,7 +15,7 @@ if [ -f /run/migration_cleanup_pending ]; then
                 bashio::log.info "AList-TvBox Standalone 服务启动成功，开始清空旧迁移数据..."
                 CLEANUP_PATHS=$(cat /run/migration_cleanup_pending)
                 for p in ${CLEANUP_PATHS}; do
-                    rm -rf ${p} 2>/dev/null || true
+                    rm -rf "${p}" 2>/dev/null || true
                 done
                 rm -f /run/migration_cleanup_pending
                 touch /config/.migrated
@@ -65,6 +52,7 @@ if [ "${ATV_DEBUG}" = "true" ]; then
     DEBUG_FLAG="--debug"
     bashio::log.info "Debug mode enabled"
 fi
+
 cd /opt/atv
 exec java ${JVM_OPTS} \
     -Duser.timezone=Asia/Shanghai \

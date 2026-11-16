@@ -44,5 +44,4 @@ if [ -f /ql/.env.example ] && [ ! -f /ql/.env ]; then
     cp /ql/.env.example /ql/.env
 fi
 
-touch /run/qinglong-initialized
 bashio::log.info "Qinglong initialization completed"

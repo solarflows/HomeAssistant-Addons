@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# atv-nginx: Nginx 反向代理服务 (端口 80 -> 5244)
+# 负责反向代理 AList 存储接口、图片缓存以及限制危险管理接口
+# ==============================================================================
+bashio::log.info "Starting Nginx reverse proxy (port 80 -> 5244)..."
+mkdir -p /var/cache/nginx/image
+exec nginx -g "daemon off;"

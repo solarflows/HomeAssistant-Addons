@@ -30,5 +30,4 @@ if [ ! -f "${DATA_DIR}/.migrated_from_legacy" ]; then
     fi
 fi
 
-touch /run/qdtoday-initialized
 bashio::log.info "QD-Today initialization completed"

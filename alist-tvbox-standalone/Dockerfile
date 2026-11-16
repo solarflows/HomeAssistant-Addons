@@ -53,22 +53,21 @@ COPY --from=app-builder /extracted/application/ /opt/atv/application/
 
 # 从上游源码复制脚本和资源
 COPY --from=source /src/docker/scripts/ /docker/scripts/
-COPY --from=source /src/data/tvbox.zip /data/
-COPY --from=source /src/data/115.index.zip /data/
-COPY --from=source /src/data/cat.zip /data/
-COPY --from=source /src/data/pg.zip /data/
-COPY --from=source /src/data/zx.zip /data/
-COPY --from=source /src/data/base_version /data/
+COPY --from=source /src/data/tvbox.zip /tvbox.zip
+COPY --from=source /src/data/115.index.zip /115.index.zip
+COPY --from=source /src/data/cat.zip /cat.zip
+COPY --from=source /src/data/pg.zip /pg.zip
+COPY --from=source /src/data/zx.zip /zx.zip
+COPY --from=source /src/data/data.zip /data.zip
+COPY --from=source /src/data/base_version /base_version
 COPY --from=source /src/config/alist.json /alist.json
 
 # 复制 HA rootfs
 COPY rootfs /
 
 # 确保脚本可执行
-RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish /etc/s6-overlay/scripts/stage2_hook.sh \
+RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish \
     && chmod +x /docker/scripts/*.sh
-
-ENV S6_STAGE2_HOOK=/etc/s6-overlay/scripts/stage2_hook.sh
 
 # 环境变量
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \

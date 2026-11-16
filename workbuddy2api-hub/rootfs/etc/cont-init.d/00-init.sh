@@ -128,5 +128,4 @@ if settings_dirty:
 atomic_write_json(sidecar_path, new_sidecar, 0o600)
 PYEOF
 
-touch /run/workbuddy2api-hub-initialized
 bashio::log.info "workbuddy2api-hub initialization completed."

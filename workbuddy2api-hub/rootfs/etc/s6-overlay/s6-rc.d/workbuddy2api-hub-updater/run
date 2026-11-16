@@ -6,11 +6,6 @@
 # 校验 SHA256SUMS、备份、停旧进程（S6 自动重拉起）并验证 /health。
 # ==============================================================================
 
-for _ in $(seq 1 30); do
-    [ -f /run/workbuddy2api-hub-initialized ] && break
-    sleep 1
-done
-
 REQ_DIR="/run/workbuddy2api-hub-updater"
 REQ_FILE="${REQ_DIR}/request.json"
 

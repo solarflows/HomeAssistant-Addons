@@ -10,6 +10,16 @@ configuration:
     description: >-
       Enable Spring Boot debug logging (condition evaluation report).
       Only enable when troubleshooting startup issues.
+  AUTO_UPDATE:
+    name: Background auto-update
+    description: >-
+      Periodically syncs Xiaoya indexes and storages in the background without blocking boot.
+      Disable for 100% offline operation.
+  JVM_OPTS:
+    name: Custom JVM options
+    description: >-
+      Additional JVM parameters appended to the Java runtime.
+      Leave empty for default configuration.
 network:
   4567/tcp: Management Web UI (TvBox config, subscriptions)
   80/tcp: AList Web UI (file browsing, cloud storage management)
