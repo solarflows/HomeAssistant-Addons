@@ -1,3 +1,11 @@
+### 1.11.1-build.3 (2026-11-16)
+
+Dockerfile 维护
+- feat(healthcheck,skills): 全量标准化 Healthcheck 规约体系与智能体部署时序推导引擎
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+
+---
+
 ### 1.11.1-build.2 (2026-11-15)
 
 rootfs 维护
