@@ -44,7 +44,7 @@ _export_str() {
   local key="$1"
   local val
   val="$(bashio::config "${key}")"
-  if [ -n "${val}" ]; then
+  if [ -n "${val}" ] && [ "${val}" != "null" ]; then
     export "${key}=${val}"
     bashio::log.debug "Configured: ${key}=${val}"
   fi
@@ -54,8 +54,11 @@ _export_val() {
   local key="$1" default="${2:-}"
   local val
   val="$(bashio::config "${key}" "${default}")"
-  export "${key}=${val}"
-  bashio::log.debug "Configured: ${key}=${val}"
+  [ "${val}" = "null" ] && val="${default}"
+  if [ -n "${val}" ]; then
+    export "${key}=${val}"
+    bashio::log.debug "Configured: ${key}=${val}"
+  fi
 }
 
 _export_val "QD_DEBUG" "false"

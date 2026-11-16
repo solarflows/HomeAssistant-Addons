@@ -11,6 +11,8 @@ trap 'kill ${APP_PID} 2>/dev/null; exit 0' TERM INT
 
 # 启动 httpd（xiaoya 模式，端口 81）
 if [ -f /bin/busybox-extras ]; then
+    killall busybox-extras 2>/dev/null || true
+    sleep 0.2
     bashio::log.info "Starting httpd on port 81..."
     /bin/busybox-extras httpd -p 81 -h /www &
 fi
@@ -69,6 +71,7 @@ else
 fi
 
 USER_JVM_OPTS=$(bashio::config 'JVM_OPTS' '')
+[ "${USER_JVM_OPTS}" = "null" ] && USER_JVM_OPTS=""
 if [ -n "${USER_JVM_OPTS}" ]; then
     bashio::log.info "AList-TvBox 追加用户自定义 JVM 参数: ${USER_JVM_OPTS}"
     JVM_OPTS="${JVM_OPTS} ${USER_JVM_OPTS}"

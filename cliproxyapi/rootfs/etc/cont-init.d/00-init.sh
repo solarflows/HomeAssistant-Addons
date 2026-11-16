@@ -154,6 +154,7 @@ if [ "${FIRST_START}" = "1" ]; then
     MANAGEMENT_KEY_ESC=${MANAGEMENT_KEY_ESC//\"/\\\"}
 
     PROXY_URL=$(bashio::config 'PROXY_URL' '')
+    [ "${PROXY_URL}" = "null" ] && PROXY_URL=""
 
     {
         cat << 'YAML'
@@ -225,6 +226,7 @@ fi
 # 仅针对冷启动基础设施选项（PROXY_URL），管理密钥由 Web 面板自治，不参与同步
 SIDECAR="${CONFIG_DIR}/options_applied.json"
 OPT_PROXY=$(bashio::config 'PROXY_URL' '')
+[ "${OPT_PROXY}" = "null" ] && OPT_PROXY=""
 
 # 首启已写入正确的 sidecar，跳过同步避免误判
 if [ "${FIRST_START}" != "1" ]; then

@@ -53,6 +53,7 @@ else
 fi
 
 USER_JVM_OPTS=$(bashio::config 'JVM_OPTS' '')
+[ "${USER_JVM_OPTS}" = "null" ] && USER_JVM_OPTS=""
 if [ -n "${USER_JVM_OPTS}" ]; then
     bashio::log.info "AList-TvBox Standalone 追加用户自定义 JVM 参数: ${USER_JVM_OPTS}"
     JVM_OPTS="${JVM_OPTS} ${USER_JVM_OPTS}"
