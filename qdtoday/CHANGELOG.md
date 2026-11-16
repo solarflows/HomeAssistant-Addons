@@ -1,3 +1,10 @@
+### 20261108-build.10 (2026-11-16)
+
+rootfs 维护
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+
+---
+
 ### 20261108-build.9 (2026-11-15)
 
 rootfs 维护
