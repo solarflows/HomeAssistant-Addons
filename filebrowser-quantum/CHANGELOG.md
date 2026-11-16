@@ -1,3 +1,10 @@
+### 2.0.2-stable-build.10 (2026-11-16)
+
+Dockerfile + rootfs 维护
+- feat(s6): standardize S6-rc v3 architecture, decouple alist-tvbox services, and eliminate startup race conditions
+
+---
+
 ### 2.0.2-stable-build.9 (2026-11-16)
 
 rootfs 维护
