@@ -10,7 +10,7 @@ configuration:
       Each instance costs roughly 300-400 MB RAM; keep 1 on small devices.
   METRICS_DASHBOARD_ENABLED:
     name: Metrics Dashboard
-    description: Enable the local dashboard at /dashboard.
+    description: Enable the local dashboard at /dashboard (required before using the "OPEN WEB UI" button).
   METRICS_DASHBOARD_TOKEN:
     name: Dashboard Token
     description: >-

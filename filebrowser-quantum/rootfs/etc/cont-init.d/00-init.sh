@@ -33,10 +33,12 @@ DEFAULT_CONFIG="/usr/local/share/filebrowser/config.yaml"
 if [ ! -f "$FILEBROWSER_CONFIG" ]; then
     # 生成最小默认配置
     cat > "$FILEBROWSER_CONFIG" << 'YAML'
-server:
+http:
   port: 8080
   listen: 0.0.0.0
-  database: /config/database.db
+server:
+  database:
+    path: /config/filebrowser.sqlite
   cacheDir: /cache
   sources:
     - path: /
@@ -57,13 +59,26 @@ YAML
 fi
 
 ################
-# SERVER       #
+# SERVER & HTTP#
 ################
-bashio::log.info "Applying server config..."
-yq e -i '.server.port = 8080'                      "$FILEBROWSER_CONFIG"
-yq e -i '.server.listen = "0.0.0.0"'               "$FILEBROWSER_CONFIG"
-yq e -i '.server.database = "/config/database.db"' "$FILEBROWSER_CONFIG"
-yq e -i '.server.cacheDir = "/cache"'               "$FILEBROWSER_CONFIG"
+bashio::log.info "Applying server & http config..."
+# 清理可能存在的历史遗留字段（避免 DisallowUnknownField 报错）
+yq e -i 'del(.server.port) | del(.server.listen)' "$FILEBROWSER_CONFIG"
+if [ "$(yq e '.server.database | type' "$FILEBROWSER_CONFIG" 2>/dev/null)" = "!!str" ]; then
+    yq e -i 'del(.server.database)' "$FILEBROWSER_CONFIG"
+fi
+
+# 兼容历史 database.db 文件迁移（gtsteffaniak/filebrowser 要求旧库重命名为 .old 触发自动迁移）
+if [ -f /config/database.db ] && [ ! -f /config/filebrowser.sqlite ]; then
+    bashio::log.info "检测到历史 database.db，更名为 database.db.old 以便触发自动迁移..."
+    mv -f /config/database.db /config/database.db.old
+    yq e -i '.server.database.migrateFrom = "/config/database.db.old"' "$FILEBROWSER_CONFIG"
+fi
+
+yq e -i '.http.port = 8080'                                    "$FILEBROWSER_CONFIG"
+yq e -i '.http.listen = "0.0.0.0"'                             "$FILEBROWSER_CONFIG"
+yq e -i '.server.database.path = "/config/filebrowser.sqlite"' "$FILEBROWSER_CONFIG"
+yq e -i '.server.cacheDir = "/cache"'                          "$FILEBROWSER_CONFIG"
 
 ################
 # USER SCOPE   #

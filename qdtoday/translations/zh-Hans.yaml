@@ -8,10 +8,14 @@ configuration:
     name: AES 加密密钥
     description: >-
       数据加密密钥，强烈建议修改默认值。留空使用 QD 默认值。
-  COOKIE_SECRET:
+  COOKIE_SIGN_SECRET:
     name: Cookie 签名密钥
     description: >-
-      Cookie 签名密钥，强烈建议修改默认值。留空使用 QD 默认值。
+      用于签名会话 Cookie，设置固定值后可避免每次加载项重启登录态失效。留空每次启动随机生成。
+  COOKIE_SECRET:
+    name: Cookie 密钥（已弃用兼容项）
+    description: >-
+      旧版 Cookie 密钥配置，已弃用。建议改用 COOKIE_SIGN_SECRET。
   DOMAIN:
     name: 站点域名
     description: >-

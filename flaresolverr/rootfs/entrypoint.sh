@@ -50,7 +50,7 @@ echo "Warning - minimum configuration recommended: 2 CPU cores and 4 GB memory"
 if [ -f /data/options.json ]; then
     echo "[FlareSolverr] Reading HA addon options..."
     python3 -c "
-import json
+import json, shlex
 with open('/data/options.json') as f:
     opts = json.load(f)
 with open('/tmp/ha_options.env', 'w') as out:
@@ -58,7 +58,7 @@ with open('/tmp/ha_options.env', 'w') as out:
         if v is not None and v != '':
             if isinstance(v, bool):
                 v = str(v).lower()
-            out.write(f'{k}={v}\n')
+            out.write(f'{k}={shlex.quote(str(v))}\n')
 "
     set -a; . /tmp/ha_options.env; set +a
     rm -f /tmp/ha_options.env

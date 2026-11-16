@@ -22,6 +22,7 @@ schema:
   QD_DEBUG: bool?
   USE_PYCURL: bool?
   AES_KEY: str?
+  COOKIE_SIGN_SECRET: str?
   COOKIE_SECRET: str?
   DOMAIN: str?
   MAIL_SMTP: str?

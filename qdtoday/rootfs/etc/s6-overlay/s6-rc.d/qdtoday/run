@@ -60,7 +60,15 @@ _export_val() {
 
 _export_val "QD_DEBUG" "false"
 _export_str "AES_KEY"
-_export_str "COOKIE_SECRET"
+COOKIE_SIGN_SECRET="$(bashio::config 'COOKIE_SIGN_SECRET' '')"
+[ "${COOKIE_SIGN_SECRET}" = "null" ] && COOKIE_SIGN_SECRET=""
+if [ -z "${COOKIE_SIGN_SECRET}" ]; then
+  COOKIE_SIGN_SECRET="$(bashio::config 'COOKIE_SECRET' '')"
+  [ "${COOKIE_SIGN_SECRET}" = "null" ] && COOKIE_SIGN_SECRET=""
+fi
+if [ -n "${COOKIE_SIGN_SECRET}" ]; then
+  export COOKIE_SIGN_SECRET
+fi
 _export_str "DOMAIN"
 _export_val "USE_PYCURL" "true"
 _export_str "DNS_SERVER"

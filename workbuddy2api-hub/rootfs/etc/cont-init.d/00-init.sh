@@ -29,7 +29,7 @@ EOF
 
 # 自愈上次未完成的外部更新（若存在残留中断状态）
 if [ -f /app/wb_update_external.py ]; then
-    python3 /app/wb_update_external.py --root /app --request-dir "${UPDATER_DIR}" --profile app || true
+    python3 /app/wb_update_external.py --root /app --request-dir "${UPDATER_DIR}" || true
 fi
 
 # 存量数据双轨自愈迁入（仅当 /app/accounts 为空且存在 /legacy_ha/workbuddy2api-hub 时）

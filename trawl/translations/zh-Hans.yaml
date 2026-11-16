@@ -10,7 +10,7 @@ configuration:
       每实例约 300–400MB 内存，小内存设备建议保持 1。
   METRICS_DASHBOARD_ENABLED:
     name: 启用本地仪表盘
-    description: 开启 /dashboard 请求历史与统计面板。
+    description: 开启 /dashboard 请求历史与统计面板（点击 HA “打开 WEB UI” 按钮前需开启此项）。
   METRICS_DASHBOARD_TOKEN:
     name: 仪表盘令牌
     description: >-

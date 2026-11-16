@@ -39,7 +39,7 @@ build:
 
 runtime:
   language: binary
-  entrypoint: S6 longrun → filebrowser -c /config/filebrowser.json -a 0.0.0.0 -p 8080
+  entrypoint: S6 longrun → FILEBROWSER_CONFIG=/config/config.yaml /usr/local/bin/filebrowser
   working_dir: /config
   env: {}
   data_dir: /config

@@ -37,7 +37,7 @@ runtime:
         以及与外部更新器无竞态重拉起。
     - name: workbuddy2api-hub-updater
       type: longrun
-      command: "轮询 /run/workbuddy2api-hub-updater/request.json -> wb_update_external.py --profile app"
+      command: "轮询 /run/workbuddy2api-hub-updater/request.json -> wb_update_external.py"
       notes: >-
         原生对接上游 wb_update_external.py（WB_UPDATE_INSTALL_ENABLED=1 +
         WB_UPDATE_EXECUTOR=external）：面板触发更新/回退时，下载 release zip 验签、

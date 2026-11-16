@@ -8,7 +8,7 @@ configuration:
     name: 日志文件路径
     description: >-
       日志文件路径，留空则输出到控制台。
-      例：/config/flaresolverr.log
+      例：/data/flaresolverr.log 或 /tmp/flaresolverr.log
   HEADLESS:
     name: 无头模式
     description: >-

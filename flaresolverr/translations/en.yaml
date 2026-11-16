@@ -8,7 +8,7 @@ configuration:
     name: Log file path
     description: >-
       Path to log file. Leave empty to output logs to stdout.
-      Example: /config/flaresolverr.log
+      Example: /data/flaresolverr.log or /tmp/flaresolverr.log
   HEADLESS:
     name: Headless mode
     description: >-

@@ -9,11 +9,15 @@ configuration:
     description: >-
       AES key for data encryption. Strongly recommend changing from default.
       Leave empty to use QD default.
-  COOKIE_SECRET:
-    name: Cookie secret
+  COOKIE_SIGN_SECRET:
+    name: Cookie Signing Secret
     description: >-
-      Secret key for cookie signing. Strongly recommend changing from default.
-      Leave empty to use QD default.
+      Secret key for cookie signing. Set a fixed value to persist web sessions across
+      addon restarts. Leave empty to generate a random key per startup.
+  COOKIE_SECRET:
+    name: Cookie secret (Deprecated)
+    description: >-
+      Legacy cookie secret, deprecated by upstream. Use COOKIE_SIGN_SECRET instead.
   DOMAIN:
     name: Site domain
     description: >-

@@ -2,7 +2,7 @@
 #=============================================================================
 # MCPHub HA 适配入口
 #=============================================================================
-#   1) 数据目录接管: /app/data → /config（设置/用户/凭据绑定，随 HA 备份）
+#   1) 数据目录接管: /app/data 原生直挂 app_config（设置/用户/凭据绑定，随 HA 备份）
 #   2) 软件包缓存接管: /root/.npm、/root/.cache → /data/mcphub
 #      （npx/uvx 拉取的 MCP server 包在 addon 更新后不丢失，冷启动更快）
 #   3) CLI profile 接管: /root/.config/mcphub、/root/.local/share/mcphub → /data/mcphub
