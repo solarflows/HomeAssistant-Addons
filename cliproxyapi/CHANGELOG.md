@@ -1,3 +1,30 @@
+### 8.0.76 (2026-11-17)
+
+#### Changelog
+
+- fix(clienterror,openai): classify bio_policy and safety policy blocks as 400 request faults (1f76e479)
+- fix(codex): preserve string errors and recognize untyped failures (20df0c25)
+- fix(openai,codex): build stream errors via ojson.Doc and preserve SSE status (80e8350c)
+- fix(codex,openai): preserve nested WS error headers and honor explicit SSE event types (5a373ede)
+- fix(codex): preserve Retry-After headers on inferred WebSocket statuses (7dd360d9)
+- fix(auth): treat Claude expired refresh token response as terminal (0bfb3d01)
+- Merge pull request #7457 from sususu98/fix/bio-policy-request-fault (d11ff499)
+- fix(codex): preserve nested Retry-After headers on overload errors (deacbf21)
+- fix(executor): enforce payload rules as final barrier (b4410dd5)
+- Merge pull request #7605 from router-for-me/payload (4ed882f1)
+- feat(plugin): add bounded Codex scheduler continuity hook (7fcdfcfe)
+- chore(deps): upgrade moego to v0.1.0-alpha.4 (240a0271)
+- test(pluginhost): expect clamped 10s retry-after floor in rpc error test (72f7b6b8)
+- fix(auth): return thread_not_found when pinned Claude Thread owner is unavailable (b1faf0bd)
+- fix(auth): back off non-refreshing auths with past next check (7df56074)
+
+
+#### What's Changed
+* fix(clienterror,openai): classify bio_policy and safety policy blocks as 400 request faults by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7457
+* fix(executor): enforce payload rules as final barrier by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/7605
+
+---
+
 ### 8.0.75 (2026-11-16)
 
 #### Changelog
