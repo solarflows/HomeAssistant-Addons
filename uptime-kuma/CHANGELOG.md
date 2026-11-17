@@ -1,3 +1,11 @@
+### 2.5.12 (2026-11-17)
+
+### ⬆️ Security Fixes
+- #8187 fix: sandbox a dangerous library 
+- #8167 chore: Update dependencies
+
+---
+
 ### 2.5.11-build.4 (2026-11-17)
 
 CI 工作流维护
