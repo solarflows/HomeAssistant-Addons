@@ -1,3 +1,10 @@
+### 20261108-build.14 (2026-11-17)
+
+CI 工作流维护
+- feat: unify build-time hot-patching architecture and dockerfile partitioning
+
+---
+
 ### 20261108-build.13 (2026-11-16)
 
 Dockerfile 维护
