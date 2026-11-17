@@ -36,7 +36,8 @@ FROM eclipse-temurin:21-jre AS app-builder
 ARG ALIST_TVBOX_VERSION
 
 ADD https://github.com/power721/alist-tvbox/releases/download/${ALIST_TVBOX_VERSION}/alist-tvbox-1.0.jar /tmp/app.jar
-RUN java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
+RUN java -Djarmode=tools -jar /tmp/app.jar extract --layers --launcher --destination /extracted 2>/dev/null \
+ || java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
 
 # ==============================================================================
 # [Stage 3/5] Extract AList Binary & Base Data (AList 内核提取)
