@@ -1,3 +1,10 @@
+### 1.9.10-build.1 (2026-11-17)
+
+CI 工作流维护
+- feat: unify build-time hot-patching architecture and dockerfile partitioning
+
+---
+
 ### 1.9.10 (2026-11-16)
 
 #### v1.9.10 — 持续排队诊断（#158）
