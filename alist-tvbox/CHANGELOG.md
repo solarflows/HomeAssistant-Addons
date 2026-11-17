@@ -1,3 +1,10 @@
+### 1.131.0-build.6 (2026-11-17)
+
+CI 工作流维护
+- feat: unify build-time hot-patching architecture and dockerfile partitioning
+
+---
+
 ### 1.131.0-build.5 (2026-11-16)
 
 Dockerfile 维护
