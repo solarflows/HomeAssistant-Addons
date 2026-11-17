@@ -1,16 +1,17 @@
 # syntax=docker/dockerfile:1
-#=============================================================================
+# ==============================================================================
 # Antigravity2API HA Addon - 多阶段源码构建 (BoringCrypto / CGO 原生支持)
-#=============================================================================
-# Stage 1: 克隆指定版本的上游源码
+# Stage 1: 克隆指定版本的上游源码并应用统一补丁
 # Stage 2: 编译前端 WebUI (Node 22 + pnpm)
 # Stage 3: 交叉编译 Go 后端并开启 CGO_ENABLED=1 GOEXPERIMENT=boringcrypto
 # Stage 4: HA debian-base:9.3.0 运行时 + S6 Overlay v3 守护与原生熔断
-#=============================================================================
+# ==============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: Clone source ----
+# ==============================================================================
+# [Stage 1/4] Upstream Source Fetch & Hot Patching (源码检出与补丁)
+# ==============================================================================
 FROM alpine/git:latest AS source
 
 ARG VERSION
@@ -20,7 +21,15 @@ RUN git clone --depth 1 --branch "v${VERSION}" https://github.com/Mag1cFall/Anti
     || git clone --depth 1 --branch "${VERSION}" https://github.com/Mag1cFall/Antigravity2API.git /src \
     || { echo "Failed to clone Antigravity2API @ ${VERSION}"; exit 1; }
 
-# ---- Stage 2: Build WebUI ----
+WORKDIR /src
+
+# --- Apply Hot Patches ---
+COPY patches/ /patches/
+RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "Antigravity2API" /src
+
+# ==============================================================================
+# [Stage 2/4] Build WebUI Frontend (前端编译阶段)
+# ==============================================================================
 FROM --platform=$BUILDPLATFORM node:22-bookworm-slim AS web-builder
 
 WORKDIR /src/web
@@ -31,7 +40,9 @@ COPY --from=source /src/web/ ./
 COPY --from=source /src/internal/i18n/messages/ /src/internal/i18n/messages/
 RUN pnpm run build
 
-# ---- Stage 3: Cross-compile Go with BoringCrypto (CGO_ENABLED=1) ----
+# ==============================================================================
+# [Stage 3/4] Cross-compile Go Backend (Go 交叉编译阶段)
+# ==============================================================================
 FROM --platform=$BUILDPLATFORM golang:1.27-bookworm AS app-builder
 
 ARG TARGETOS
@@ -61,12 +72,15 @@ RUN set -e; \
     CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOEXPERIMENT=boringcrypto \
     go build -trimpath -ldflags="-s -w" -o /out/antigravity2api ./cmd/antigravity2api
 
-# ---- Stage 4: HA debian-base runtime + S6 overlay ----
+# ==============================================================================
+# [Stage 4/4] Runtime Environment (生产运行环境)
+# ==============================================================================
 FROM ${BUILD_FROM}
 
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
+# --- 4.1 System Packages ---
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -76,16 +90,17 @@ RUN apt-get update \
         procps \
     && rm -rf /var/lib/apt/lists/*
 
+# --- 4.2 Application Binary & Workdir ---
 COPY --from=app-builder /out/antigravity2api /usr/local/bin/antigravity2api
-
 RUN mkdir -p /config /data/runtime /data/logs \
     && chmod +x /usr/local/bin/antigravity2api
 
+# --- 4.3 HA Rootfs & Permissions ---
 COPY rootfs /
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 
+# --- 4.4 Network & Healthcheck ---
 ENV LISTEN=0.0.0.0:8017
-
 WORKDIR /config
 EXPOSE 8017/tcp
 

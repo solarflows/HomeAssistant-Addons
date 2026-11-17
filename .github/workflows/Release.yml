@@ -82,7 +82,7 @@ jobs:
           for _part in "${REASON_PARTS[@]}"; do
             case "$_part" in
               version_changed) IS_VERSION_CHANGE=true ;;
-              dockerfile|rootfs|config|workflow|file_changed) IS_FILE_TRIGGER=true ;;
+              dockerfile|rootfs|patches|config|workflow|file_changed) IS_FILE_TRIGGER=true ;;
             esac
           done
 
@@ -255,6 +255,8 @@ jobs:
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v7
+        env:
+          BUILDKIT_PROGRESS: plain
         with:
           context: ${{ steps.prep.outputs.addon_dir }}
           file: ${{ steps.prep.outputs.dockerfile }}
@@ -315,6 +317,7 @@ jobs:
               case "$r" in
                 dockerfile)  TAG_PART="Dockerfile" ;;
                 rootfs)      TAG_PART="rootfs" ;;
+                patches)     TAG_PART="patches" ;;
                 config)      TAG_PART="config" ;;
                 workflow)    TAG_PART="CI 工作流" ;;
                 *)           TAG_PART="$r" ;;
@@ -488,6 +491,7 @@ jobs:
                 case "$r" in
                   dockerfile)  PART="Dockerfile" ;;
                   rootfs)      PART="rootfs" ;;
+                  patches)     PART="patches" ;;
                   config)      PART="config" ;;
                   workflow)    PART="CI" ;;
                   *)           PART="$r" ;;

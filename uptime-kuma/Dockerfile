@@ -1,15 +1,15 @@
-#=============================================================================
+# syntax=docker/dockerfile:1
+# ==============================================================================
 # Uptime Kuma HA Addon - debian-base + S6 overlay + 全套功能
-#=============================================================================
-# 上游 Dockerfile 参考:
-#   docker/dockerfile           (多阶段构建)
-#   docker/debian-base.dockerfile (base2-slim / base2)
-#   docker/builder-go.dockerfile  (Go healthcheck)
-#=============================================================================
+# Stage 1: Node.js 源码构建与统一补丁
+# Stage 2: HA debian-base:9.3.0 运行时 (完整 base2 等价) + S6 Overlay
+# ==============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: Node.js 源码构建 ----
+# ==============================================================================
+# [Stage 1/2] Build & Dependencies Compilation (构建阶段)
+# ==============================================================================
 FROM node:22-bookworm-slim AS builder
 
 ARG UPTIME_KUMA_VERSION
@@ -19,37 +19,38 @@ WORKDIR /app
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
+# --- 1.1 Source Fetch ---
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates patch \
     && curl -fsSL "https://github.com/louislam/uptime-kuma/archive/refs/tags/${UPTIME_KUMA_VERSION}.tar.gz" \
-        | tar xzf - --strip-components 1 \
-    && npm ci --no-audit --no-fund --no-update-notifier --omit=dev \
+        | tar xzf - --strip-components 1
+
+# --- 1.2 Apply Hot Patches ---
+COPY patches/ /patches/
+RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "uptime-kuma" /app
+
+# --- 1.3 Compile & Prepare Frontend ---
+RUN npm ci --no-audit --no-fund --no-update-notifier --omit=dev \
     && npm run download-dist \
     && mkdir ./data \
     && apt-get purge -y curl \
     && rm -rf /var/lib/apt/lists/* /root/.npm /root/.cache /tmp/*
 
-# ---- Stage 2: HA 运行时 (完整 base2 等价) ----
+# ==============================================================================
+# [Stage 2/2] Runtime Environment (生产运行环境)
+# ==============================================================================
 FROM ${BUILD_FROM}
 
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-#===========================================================================
-# 依赖对照上游 debian-base.dockerfile (base2-slim + base2):
-#   base2-slim: dumb-init / nscd / cloudflared / apprise / python3-paho-mqtt
-#   base2:      chromium / fonts-indic / fonts-noto / fonts-noto-cjk / mariadb
-#   Apprise 改用 pip 安装（上游已停止发布 .deb, 仅 .whl + .tar.gz）
-#===========================================================================
-
+# --- 2.1 Runtime Tools, Chromium & Database ---
+# base2-slim 等价: dumb-init / nscd / sudo / sqlite3 / ping / python3
+# base2 等价: chromium / 字体族 / mariadb-server
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
-    \
-    # ---- Node.js 22 ----
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    \
-    # ---- base2-slim 等价 ----
     && apt-get install -y --no-install-recommends \
+        nodejs \
         dumb-init \
         nscd \
         sudo \
@@ -60,24 +61,16 @@ RUN apt-get update \
         python3-pip \
         python3-setuptools \
         python3-paho-mqtt \
-    \
-    # ---- base2 等价 (Chromium + 字体 + MariaDB) ----
-    && apt-get install -y --no-install-recommends \
         chromium \
         fonts-indic \
         fonts-noto \
         fonts-noto-cjk \
         mariadb-server \
-    \
-    # ---- Apprise (pip 安装最新版，上游已不再发布 .deb) ----
     && pip3 install --break-system-packages --no-cache-dir apprise \
-    \
-    # ---- 清理 (保留 curl 给 HEALTHCHECK 用) ----
     && apt-get purge -y gnupg \
     && rm -rf /var/lib/apt/lists/*
 
-# ---- cloudflared (Cloudflare Tunnel) ----
-# Cloudflare 未提供 trixie 源，使用 bookworm 包（向前兼容）
+# --- 2.2 Cloudflared Tunnel & DNS Cache ---
 RUN curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
         -o /usr/share/keyrings/cloudflare-main.gpg \
     && echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared bookworm main' \
@@ -87,7 +80,6 @@ RUN curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
     && cloudflared version \
     && rm -rf /var/lib/apt/lists/*
 
-# ---- nscd 配置 (上游 docker/etc/nscd.conf) ----
 RUN printf '# Uptime Kuma nscd config (hosts cache only)\n\
 enable-cache\tpasswd\tno\n\
 enable-cache\tgroup\tno\n\
@@ -104,12 +96,10 @@ enable-cache\tnetgroup\tno\n\
 paranoia\tno\n\
 debug-level\t0\n' > /etc/nscd.conf
 
-# 复制构建产物
+# --- 2.3 Application Artifacts & Native Modules Rebuild ---
 COPY --from=builder /app /opt/uptime-kuma
 WORKDIR /opt/uptime-kuma
 
-# 重新编译原生模块 (@louislam/sqlite3, cpu-features, oracledb 等)
-# 确保 C++ addon 链接到运行时系统库，而非 builder 阶段的库
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \
     && npm rebuild \
@@ -117,17 +107,13 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制 HA rootfs (S6 overlay)
+# --- 2.4 HA Rootfs & Permissions ---
 COPY rootfs /
-
-# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 
-
-# 端口
+# --- 2.5 Network & Healthcheck ---
 EXPOSE 3001/tcp
 
-# 环境变量 (参照上游 docker/dockerfile + debian-base.dockerfile)
 ENV UPTIME_KUMA_IS_CONTAINER=1 \
     UPTIME_KUMA_PORT=3001 \
     UPTIME_KUMA_HOST=0.0.0.0 \
@@ -135,7 +121,7 @@ ENV UPTIME_KUMA_IS_CONTAINER=1 \
     UPTIME_KUMA_ENABLE_EMBEDDED_MARIADB=1 \
     NODE_ENV=production
 
-# Healthcheck (curl 替代上游 Go 二进制)
 HEALTHCHECK --interval=60s --timeout=15s --start-period=180s --retries=5 \
     CMD curl -sfo /dev/null --noproxy '*' --max-time 10 "http://127.0.0.1:3001/" || exit 1
 
+# S6 overlay 接管启动（启动脚本: rootfs/etc/s6-overlay/s6-rc.d/uptime-kuma/run）

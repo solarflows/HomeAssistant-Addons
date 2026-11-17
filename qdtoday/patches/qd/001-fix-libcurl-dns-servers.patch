@@ -1,0 +1,16 @@
+diff --git a/libs/fetcher.py b/libs/fetcher.py
+index ead1162..5ea7ea5 100644
+--- a/libs/fetcher.py
++++ b/libs/fetcher.py
+@@ -155,7 +155,10 @@ class Fetcher(object):
+                             "unsetopt pycurl.CONTENT_LENGTH failed: %s", e
+                         )
+                 if config.dns_server:
+-                    curl.setopt(pycurl.DNS_SERVERS, config.dns_server)
++                    try:
++                        curl.setopt(pycurl.DNS_SERVERS, config.dns_server)
++                    except Exception as e:
++                        logger_fetcher.warning("setopt pycurl.DNS_SERVERS failed: %s", e)
+                 curl.setopt(pycurl.NOPROGRESS, 0)
+                 curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
+                 curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))

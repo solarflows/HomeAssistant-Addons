@@ -1,14 +1,15 @@
-#=============================================================================
+# syntax=docker/dockerfile:1
+# ==============================================================================
 # Baihu Panel HA Addon - Go 多阶段编译
-#=============================================================================
-# 多阶段构建：
-#   Stage 1: Go builder 编译二进制
-#   Stage 2: HA 底包运行时
-#=============================================================================
+# Stage 1: Go builder 编译前端 Web 与后端二进制
+# Stage 2: HA debian-base:9.3.0 运行时 + mise 多环境管理
+# ==============================================================================
 
 ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.3.0
 
-# ---- Stage 1: Go builder ----
+# ==============================================================================
+# [Stage 1/2] Build & Dependencies Compilation (构建阶段)
+# ==============================================================================
 FROM --platform=$BUILDPLATFORM golang:1.26 AS builder
 
 ARG TARGETOS
@@ -16,21 +17,25 @@ ARG TARGETARCH
 ARG BAIHU_VERSION
 RUN test -n "${BAIHU_VERSION}" || { echo "BAIHU_VERSION is required"; exit 1; }
 
-# 克隆源码
+# --- 1.1 Source Fetch ---
 RUN git clone --depth 1 --branch "v${BAIHU_VERSION}" \
        https://github.com/engigu/baihu-panel.git /src \
     || { echo "Failed to clone baihu-panel @ v${BAIHU_VERSION}"; exit 1; }
 
 WORKDIR /src
 
-# 安装 Node.js 22（golang:1.26 内置 Node 18，Vite 需要 ≥20）
+# --- 1.2 Apply Hot Patches ---
+COPY patches/ /patches/
+RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "baihu-panel" /src
+
+# --- 1.3 Node.js Toolchain (Vite WebUI requires >= 20) ---
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# 构建前端（如果存在），确保产出目录不为空
+# --- 1.4 Frontend Build ---
 RUN if [ -d "web" ] && [ -f "web/package.json" ]; then \
         cd web && npm ci && npm run build && cd ..; \
     fi \
@@ -47,18 +52,20 @@ RUN if [ -d "web" ] && [ -f "web/package.json" ]; then \
         touch /app/configs/.gitkeep; \
     fi
 
-# 构建后端（配置多代理链路，实现自动容灾故障转移）
+# --- 1.5 Backend Build ---
 ENV GOPROXY="https://proxy.golang.org,https://goproxy.io,direct"
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o /baihu .
 
-# ---- Stage 2: HA 运行时 ----
+# ==============================================================================
+# [Stage 2/2] Runtime Environment (生产运行环境)
+# ==============================================================================
 FROM ${BUILD_FROM}
 
 LABEL org.opencontainers.image.authors="solarflows"
 LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssistant-Addons"
 
-# 安装运行时依赖 + mise (Python/Node 版本管理器)
+# --- 2.1 Runtime Tools & mise Manager ---
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
@@ -69,31 +76,26 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://mise.run | sh \
     && mv /root/.local/bin/mise /usr/local/bin/mise
-# 预装 Python 和 Node 到 /opt/mise-base（耗时的下载放在构建期）
+
+# 预装 Python 和 Node 到 /opt/mise-base（构建期提前缓存）
 ENV MISE_DATA_DIR=/opt/mise-base MISE_CONFIG_DIR=/opt/mise-base
 RUN mise install python@3 node@22 \
     && mise use -g python@3 \
     && mise use -g node@22
 
-# 复制 Go 二进制
+# --- 2.2 Application Artifacts ---
 COPY --from=builder /baihu /usr/local/bin/baihu
 RUN chmod +x /usr/local/bin/baihu
 
-# 复制前端静态文件和配置（Stage 1 已确保目录非空）
 COPY --from=builder /www/baihu /www/baihu
 COPY --from=builder /app/configs /app/configs
-
-# 创建数据目录
 RUN mkdir -p /app/data /app/configs /app/envs
 
-# 复制 HA rootfs
+# --- 2.3 HA Rootfs & Permissions ---
 COPY rootfs /
-
-# 修复 Windows 平台丢失的执行权限 (Git 不保留 Unix 权限位)
 RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overlay/s6-rc.d/*/finish
 
-
-# 环境变量
+# --- 2.4 Network & Healthcheck ---
 ENV BH_SERVER_PORT=8052 \
     BH_SERVER_HOST=0.0.0.0 \
     BH_DB_PATH=/app/data/baihu.db \
@@ -101,14 +103,9 @@ ENV BH_SERVER_PORT=8052 \
     NODE_OPTIONS="--max-old-space-size=256" \
     PYTHONPATH=/app/data/scripts
 
-# 端口
 EXPOSE 8052/tcp
 
-# 持久化目录（/config 由 HAOS Supervisor 自动挂载，子目录经 init 脚本 symlink）
-
-# Healthcheck - 使用原生 /api/v1/ping 端点 (返回 {"message":"pong"})
 HEALTHCHECK --interval=30s --start-period=45s --timeout=5s --retries=3 \
     CMD curl -sfo /dev/null --noproxy '*' --max-time 5 "http://127.0.0.1:8052/api/v1/ping" || exit 1
 
-# S6 overlay 接管启动，不再硬编码 ENTRYPOINT
-# 启动脚本见 rootfs/etc/s6-overlay/s6-rc.d/baihu/run
+# S6 overlay 接管启动（启动脚本: rootfs/etc/s6-overlay/s6-rc.d/baihu/run）

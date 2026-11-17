@@ -76,6 +76,19 @@ Agent 分析上游 API 与进程特征时，必须按以下决策树自动推导
 4. **多网关级联探活**：
    - 若拆分了前端反代网关与后端微服务（如 `Nginx:80` + `App:4567`），必须串联双轨校验：`curl ... :4567 && curl ... :80`，防止网关瘫痪出现监控黑洞。
 
+### 7. 构建期统一热补丁规范 (Build-Time Hot-Patching Protocol)
+针对源码构建型（`multi-stage` / `source`）Addon，当需要修复上游 bug、解除内网阻断或注入防御逻辑时，必须严格遵守以下规范：
+- **不可变原则 (Immutable Build-Time)**：严禁运行时动态热补丁（彻底杜绝时序控制、状态漂移与条件竞争）；所有改动必须在 Docker 镜像构建期固化。
+- **目录隔离规范**：补丁文件必须按上游仓库名称（`version.yaml` 的 `repo` 字段名）分目录管理：`patches/<RepoName>/*.patch`（如 `patches/qd/`、`patches/Antigravity2API/`），子目录按文件名升序执行（如 `001-fix-*.patch`）。
+- **统一调用契约**：所有源码构建型 Addon 必须内置通用补丁执行器 `patches/apply-patches.sh`。Dockerfile 必须无条件声明：
+  ```dockerfile
+  # --- Apply Hot Patches ---
+  COPY patches/ /patches/
+  RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "<RepoName>" /src
+  ```
+  即使当前仓库无任何补丁，也必须保持该调用（无补丁时秒级放行 `exit 0`）。
+- **CI 链路自动感知**：`Version_Check.yml` 自动监听 `${ADDON_DIR}/patches/` 变更，触发独立构建并打上 `patches` 维护标签。
+
 ## analysis.yaml 规范格式
 
 输出并保存至 `<addon-slug>/analysis.yaml`：

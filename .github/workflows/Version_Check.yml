@@ -263,6 +263,10 @@ jobs:
                       echo "  Push file change (dockerfile): $file → addon $ADDON_DIR"
                       REASON=$(append_reason "$REASON" "dockerfile")
                       ;;
+                    "${ADDON_DIR}/patches/"*)
+                      echo "  Push file change (patches): $file → addon $ADDON_DIR"
+                      REASON=$(append_reason "$REASON" "patches")
+                      ;;
                     "${ADDON_DIR}/rootfs/"*)
                       echo "  Push file change (rootfs): $file → addon $ADDON_DIR"
                       REASON=$(append_reason "$REASON" "rootfs")
@@ -278,6 +282,12 @@ jobs:
                 if [ -n "$DF_HUMAN" ]; then
                   echo "  Cron/dispatch file change since ${FILE_SHA:0:7} (dockerfile) → addon $ADDON_DIR"
                   REASON=$(append_reason "$REASON" "dockerfile")
+                fi
+                PF_HUMAN=$(git log --format="%an" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/patches/" 2>/dev/null \
+                  | grep -vxE 'github-actions\[bot\]|actions-user' || true)
+                if [ -n "$PF_HUMAN" ]; then
+                  echo "  Cron/dispatch file change since ${FILE_SHA:0:7} (patches) → addon $ADDON_DIR"
+                  REASON=$(append_reason "$REASON" "patches")
                 fi
                 RF_HUMAN=$(git log --format="%an" "${FILE_SHA}..HEAD" -- "${ADDON_DIR}/rootfs/" 2>/dev/null \
                   | grep -vxE 'github-actions\[bot\]|actions-user' || true)
