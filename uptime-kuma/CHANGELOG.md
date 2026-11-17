@@ -1,3 +1,10 @@
+### 2.5.11-build.4 (2026-11-17)
+
+CI 工作流维护
+- feat: unify build-time hot-patching architecture and dockerfile partitioning
+
+---
+
 ### 2.5.11-build.3 (2026-11-16)
 
 Dockerfile 维护
