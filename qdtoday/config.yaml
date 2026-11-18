@@ -1,6 +1,6 @@
 name: QD-Today
 slug: qdtoday
-version: "20261108-build.15"
+version: "20261108-build.16"
 image: ghcr.io/solarflows/qdtoday
 description: "QD HTTP 请求定时任务自动执行框架（内置 HAR 抓包编辑器与全量 OCR 验证码识别栈）"
 url: https://github.com/qd-today/qd
