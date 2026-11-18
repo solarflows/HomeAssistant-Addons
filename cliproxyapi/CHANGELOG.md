@@ -1,3 +1,34 @@
+### 8.0.77 (2026-11-18)
+
+#### Changelog
+
+- feat(payload): add regex support to payload replace rules (cc1d5d78)
+- feat(payload): extend replace to system and developer roles (25501b6b)
+- fix(logging): separate local errors from upstream responses (1c0ec3ce)
+- fix(translator): emit nested input_audio for OpenAI Chat to Codex (e3d19b24)
+- test(meta): verify documented inline audio request contract (3b5de44b)
+- Merge pull request #7626 from sususu98/fix/codex-input-audio-nested (4b028c84)
+- Merge pull request #7625 from router-for-me/logging (593df327)
+- fix(translator): infer PDF media types and handle tool output media in Responses translators (f08cb931)
+- fix(translator): convert Claude text, content, and URL document blocks (e21cf8a5)
+- fix(translator): extract PDF documents and media in Claude tool_result blocks (e1384430)
+- feat(plugin): add optional executor usage attribution (687caf78)
+- Merge pull request #7628 from sususu98/feat/plugin-executor-usage-attribution (193f04f7)
+- fix(translator): relay Gemini tool result media across request translators (34d8fe0f)
+- feat(pluginhost): expose cache write TTL token counts in usage.handle (f7b3ccdf)
+- feat(payload): add path targets to payload replace rules (9f6672f5)
+- Merge pull request #7624 from router-for-me/payload (51e60958)
+- feat(codex): add GPT-6.2 models and update CLI version (a5e8f69e)
+
+
+#### What's Changed
+* fix(translator): preserve nested input_audio for Chat to Responses by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7626
+* fix(logging): separate local errors from upstream responses by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/7625
+* feat(plugin): add optional executor usage attribution by @sususu98 in https://github.com/router-for-me/CLIProxyAPI/pull/7628
+* feat(payload): add regex and system/developer targets to replace by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/7624
+
+---
+
 ### 8.0.76 (2026-11-17)
 
 #### Changelog
