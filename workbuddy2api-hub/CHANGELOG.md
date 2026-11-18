@@ -1,3 +1,18 @@
+### 2.1.3-build.1 (2026-11-18)
+
+Dockerfile 维护
+- feat(ci,addons): unify OCI/GHCR metadata & Action Summary, update workbuddy2api-hub repo & a2api patch [skip-rebuild]
+- refactor(patches): centralize apply-patches.sh via build-contexts and auto-map /src/<repo> [skip-rebuild]
+- feat: unify build-time hot-patching architecture and dockerfile partitioning
+- feat(healthcheck,skills): 全量标准化 Healthcheck 规约体系与智能体部署时序推导引擎
+- feat(s6): standardize S6-rc v3 architecture, decouple alist-tvbox services, and eliminate startup race conditions
+- fix(addons): resolve upstream runtime parameter discrepancies and configuration faults
+- refactor(addons): complete repository-wide config streamlining, zero-option TZ, and entrypoint timezone fallback
+- refactor(addons): eliminate synthetic credentials and enforce zero-default service startup
+- refactor(addons): streamline runtime configuration, adopt zero-option TZ, and migrate to supervisor socket
+
+---
+
 ### 2.1.3 (2026-11-13)
 
 - **CodeArts 并发占满改为有界排队**（#886 / #887）：单账号并发槽被占满时最多等待 `busy_wait_seconds`（默认 10 秒，范围 0–120），名额释放通过 `Condition` 立即唤醒；超时返回可重试的 429 `rate_limit_error` 并带 `reset_at`，不再误报 502「没有可用的账号」。真正空池 / 全停用 / 全冷却仍提示添加账号；多账号仍优先选空闲账号。
