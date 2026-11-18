@@ -78,13 +78,13 @@ render_plan() {
     [[ "${build_count}" =~ ^[0-9]+$ ]] || build_count=0
 
     {
-        echo "## 🔍 HomeAssistant-Addons 版本巡检与构建规划"
+        echo "## 🔍 版本检查与构建清单"
         echo ""
-        echo "> **触发源**：\`${event_name}\` · **纳管插件**：\`${total_addons}\` · **待构建**：\`${build_count}\` · **最新底包**：\`debian-base:${base_tag}\`"
+        echo "> **触发方式**：\`${event_name}\` · **检查总数**：\`${total_addons}\` · **需构建**：\`${build_count}\` · **底包版本**：\`debian-base:${base_tag}\`"
         echo ""
 
         if [ "${build_count}" -gt 0 ]; then
-            echo "| 加载项 | 触发原因 | 版本规划 | 生效补丁 | 变更说明 |"
+            echo "| 插件 | 触发原因 | 版本 | 补丁 | 说明 |"
             echo "|:---|:---|:---|:---:|:---|"
 
             printf '%s' "${matrix_json}" | jq -c '.include[]' | tr -d '\r' | while IFS= read -r item; do
@@ -127,14 +127,14 @@ render_plan() {
                 echo "| $(md_escape "${title}") | ${reasons_fmt} | ${ver_col} | ${patch_col} | ${note_col} |"
             done
         else
-            echo "> ✅ **全部 ${total_addons} 个加载项均处于最新状态，本次无需触发构建。**"
+            echo "> ✅ **全部 ${total_addons} 个插件均已是最新，无需构建。**"
         fi
 
         if [ -n "${skipped_file}" ] && [ -s "${skipped_file}" ]; then
             echo ""
-            echo "### ⚠️ 上游探测异常（已自动跳过）"
+            echo "### ⚠️ 检查失败的上游仓库（已跳过）"
             echo ""
-            echo "| 加载项 | 上游仓库 | 探测策略 | 状态说明 |"
+            echo "| 插件 | 上游仓库 | 检查方式 | 原因 |"
             echo "|:---|:---|:---:|:---|"
             while IFS='|' read -r s_addon s_repo s_strat s_msg; do
                 [ -z "${s_addon}" ] && continue
@@ -161,7 +161,7 @@ render_build() {
     local repo_full="${REPO_FULL:-${GITHUB_REPOSITORY:-solarflows/HomeAssistant-Addons}}"
 
     local status_icon="✅"
-    local status_text="构建并发布成功"
+    local status_text="构建成功"
     if [ "${job_status}" != "success" ]; then
         status_icon="❌"
         status_text="构建失败 (${job_status})"
@@ -190,26 +190,26 @@ render_build() {
             echo ""
         fi
 
-        echo "| 属性 | 详情 |"
+        echo "| 项目 | 内容 |"
         echo "|:---|:---|"
-        echo "| **镜像标签** | \`${image_ref}\` ([GHCR 包主页](${ghcr_pkg_url})) |"
+        echo "| **镜像地址** | \`${image_ref}\` ([GHCR 页面](${ghcr_pkg_url})) |"
         echo "| **触发原因** | ${reasons_fmt} |"
-        echo "| **版本变迁** | ${ver_display} |"
-        echo "| **上游来源** | ${upstream_cell} |"
+        echo "| **版本变化** | ${ver_display} |"
+        echo "| **上游仓库** | ${upstream_cell} |"
 
-        # 生效补丁清单
+        # 补丁清单
         local patches_list
         patches_list=$(list_addon_patches "${addon_dir}" || true)
         if [ -n "${patches_list}" ]; then
             local patches_inline
             patches_inline=$(printf '%s\n' "${patches_list}" | awk '{printf "%s`%s`", (NR>1 ? ", " : ""), $0}')
-            echo "| **生效补丁** | 🩹 ${patches_inline} |"
+            echo "| **已打补丁** | 🩹 ${patches_inline} |"
         elif [ -d "${addon_dir}/patches" ]; then
-            echo "| **生效补丁** | 无（纯净上游源码构建） |"
+            echo "| **已打补丁** | 无 |"
         fi
         echo ""
 
-        # 多架构镜像体积表（仅构建成功时查询）
+        # 多架构镜像大小表（仅构建成功时查询）
         if [ "${job_status}" = "success" ] && [ -n "${image_ref}" ] && command -v docker >/dev/null 2>&1; then
             local raw=""
             local i
@@ -220,7 +220,7 @@ render_build() {
             done
 
             if [ -n "${raw}" ]; then
-                echo "| 架构 | 压缩体积 |"
+                echo "| 架构 | 镜像大小 |"
                 echo "|:---|---:|"
                 printf '%s' "${raw}" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "\(.platform.os)/\(.platform.architecture)"' 2>/dev/null \
                   | while IFS= read -r platform; do
@@ -238,7 +238,7 @@ render_build() {
         fi
 
         if [ -n "${commit_msg}" ]; then
-            echo "<details><summary>📝 本次关联提交记录</summary>"
+            echo "<details><summary>📝 变更记录</summary>"
             echo ""
             printf '%s\n' "${commit_msg}"
             echo ""
