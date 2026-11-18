@@ -1,3 +1,57 @@
+### 1.2.6 (2026-11-18)
+
+#### Summary
+
+MCPHub v1.2.6 adds passkey sign-in for local accounts, personal OAuth for OpenAPI servers, and a setting for the HTTP listen address. It also fixes concurrent OAuth and PostgreSQL operations, corrects endpoint URLs in the dashboard, and uses neutral colors for zero counts.
+
+#### Features
+
+- Support personal OAuth for OpenAPI servers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1503
+- Add passkey (WebAuthn) sign-in for local accounts by @thangnm93 in https://github.com/samanhappy/mcphub/pull/1500
+- Add `MCPHUB_HOST` to configure the HTTP listen address by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1478
+
+#### Fixes
+
+- Serialize concurrent queries on each PostgreSQL QueryRunner by @samanhappy in https://github.com/samanhappy/mcphub/pull/1505
+- Use neutral colors for zero counts by @samanhappy in https://github.com/samanhappy/mcphub/pull/1504
+- Show endpoint URLs that reach the running server in the dashboard by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1480
+- Prevent concurrent OAuth flows from overwriting pending authorization by @Rahulsharma0810 in https://github.com/samanhappy/mcphub/pull/1465
+
+#### 摘要
+
+MCPHub v1.2.6 新增本地账户通行密钥登录、OpenAPI 服务器个人 OAuth，以及 HTTP 监听地址配置。本次更新还修复了 OAuth 和 PostgreSQL 的并发问题，纠正了仪表盘显示的端点 URL，并将零计数改为中性色。
+
+#### 功能
+
+- 支持 OpenAPI 服务器使用个人 OAuth 授权 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1503
+- 支持本地账户使用通行密钥（WebAuthn）登录 by @thangnm93 in https://github.com/samanhappy/mcphub/pull/1500
+- 新增 `MCPHUB_HOST`，用于配置 HTTP 监听地址 by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1478
+
+#### 修复
+
+- 将同一个 PostgreSQL QueryRunner 上的并发查询改为串行执行 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1505
+- 零计数使用中性色显示 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1504
+- 修正仪表盘中的端点 URL，使其指向正在运行的服务 by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1480
+- 防止并发 OAuth 流程覆盖待处理的授权状态 by @Rahulsharma0810 in https://github.com/samanhappy/mcphub/pull/1465
+
+#### New Contributors
+
+- @thangnm93 made their first contribution in #1500
+
+#### References
+
+- fix(db): serialize concurrent queries per postgres QueryRunner by @samanhappy in https://github.com/samanhappy/mcphub/pull/1505
+- fix(ui): use neutral colors for zero counts by @samanhappy in https://github.com/samanhappy/mcphub/pull/1504
+- feat: support personal OAuth for OpenAPI servers by @samanhappy in https://github.com/samanhappy/mcphub/pull/1503
+- refactor(mcp): split service handlers and lifecycle management by @samanhappy in https://github.com/samanhappy/mcphub/pull/1501
+- feat(auth): add passkey (WebAuthn) sign-in for local accounts by @thangnm93 in https://github.com/samanhappy/mcphub/pull/1500
+- fix(dashboard): show endpoint URLs that reach the running server by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1480
+- feat(server): add MCPHUB_HOST to set the HTTP listen address by @santal-fuego in https://github.com/samanhappy/mcphub/pull/1478
+- fix(oauth): prevent concurrent flows overwriting pendingAuthorization by @Rahulsharma0810 in https://github.com/samanhappy/mcphub/pull/1465
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.5...v1.2.6
+
+---
+
 ### 1.2.5-build.2 (2026-11-18)
 
 CI 工作流维护
