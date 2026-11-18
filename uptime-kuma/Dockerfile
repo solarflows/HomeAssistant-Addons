@@ -15,7 +15,7 @@ FROM node:22-bookworm-slim AS builder
 ARG UPTIME_KUMA_VERSION
 RUN test -n "${UPTIME_KUMA_VERSION}" || { echo "UPTIME_KUMA_VERSION is required"; exit 1; }
 
-WORKDIR /app
+WORKDIR /src/uptime-kuma
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
@@ -25,8 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
         | tar xzf - --strip-components 1
 
 # --- 1.2 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "uptime-kuma" /app
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.3 Compile & Prepare Frontend ---
 RUN npm ci --no-audit --no-fund --no-update-notifier --omit=dev \
@@ -97,7 +98,7 @@ paranoia\tno\n\
 debug-level\t0\n' > /etc/nscd.conf
 
 # --- 2.3 Application Artifacts & Native Modules Rebuild ---
-COPY --from=builder /app /opt/uptime-kuma
+COPY --from=builder /src/uptime-kuma /opt/uptime-kuma
 WORKDIR /opt/uptime-kuma
 
 RUN apt-get update \

@@ -19,15 +19,16 @@ RUN test -n "${APP_VERSION}" || { echo "APP_VERSION is required"; exit 1; }
 
 # --- 1.1 Source Fetch ---
 RUN git clone --depth 1 --branch "v${APP_VERSION}" \
-       https://github.com/owner/repo.git /src \
+       https://github.com/owner/repo.git /src/ADDON_SLUG \
     || { echo "Failed to clone repository @ v${APP_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/ADDON_SLUG
 
 # --- 1.2 Apply Hot Patches ---
-# 无论当前是否有补丁均统一调用；子目录严格按上游仓库名命名 (如 patches/repo/*.patch)
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "ADDON_SLUG" /src
+# 统一多仓库自动映射: patches/<repo_name>/*.patch -> /src/<repo_name> (全仓共用 .github/scripts/apply-patches.sh)
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.3 Compile Backend ---
 ENV GOPROXY="https://proxy.golang.org,https://goproxy.io,direct"

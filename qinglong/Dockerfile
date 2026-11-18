@@ -21,14 +21,15 @@ RUN npm i -g pnpm@8.3.1 \
 
 # --- 1.2 Source Fetch ---
 RUN git clone --depth 1 --branch "v${QINGLONG_VERSION}" \
-       https://github.com/whyour/qinglong.git /src \
+       https://github.com/whyour/qinglong.git /src/qinglong \
     || { echo "Failed to clone qinglong @ v${QINGLONG_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/qinglong
 
 # --- 1.3 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "qinglong" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.4 Dependencies & Compile ---
 RUN pnpm install --frozen-lockfile \
@@ -60,7 +61,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 2.2 Production Artifacts & Dependencies ---
-COPY --from=builder /src /ql
+COPY --from=builder /src/qinglong /ql
 RUN rm -rf /ql/node_modules
 WORKDIR /ql
 

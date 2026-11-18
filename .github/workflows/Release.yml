@@ -259,6 +259,8 @@ jobs:
           BUILDKIT_PROGRESS: plain
         with:
           context: ${{ steps.prep.outputs.addon_dir }}
+          build-contexts: |
+            common=.github/scripts
           file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ steps.prep.outputs.platforms }}
           push: true

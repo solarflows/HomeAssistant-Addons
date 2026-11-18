@@ -17,14 +17,15 @@ ARG ALIST_TVBOX_VERSION
 RUN test -n "${ALIST_TVBOX_VERSION}" || { echo "ALIST_TVBOX_VERSION is required"; exit 1; }
 
 RUN git clone --depth 1 --branch "${ALIST_TVBOX_VERSION}" \
-       https://github.com/power721/alist-tvbox.git /src \
+       https://github.com/power721/alist-tvbox.git /src/alist-tvbox \
     || { echo "Failed to clone alist-tvbox @ ${ALIST_TVBOX_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/alist-tvbox
 
 # --- Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "alist-tvbox" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # ==============================================================================
 # [Stage 2/3] Extract Spring Boot Application Layers (JAR 依赖分层提取)
@@ -64,15 +65,15 @@ COPY --from=app-builder /extracted/spring-boot-loader/ /opt/atv/spring-boot-load
 COPY --from=app-builder /extracted/application/ /opt/atv/application/
 
 # 上游脚本与静态资源
-COPY --from=source /src/docker/scripts/ /docker/scripts/
-COPY --from=source /src/data/tvbox.zip /tvbox.zip
-COPY --from=source /src/data/115.index.zip /115.index.zip
-COPY --from=source /src/data/cat.zip /cat.zip
-COPY --from=source /src/data/pg.zip /pg.zip
-COPY --from=source /src/data/zx.zip /zx.zip
-COPY --from=source /src/data/data.zip /data.zip
-COPY --from=source /src/data/base_version /base_version
-COPY --from=source /src/config/alist.json /alist.json
+COPY --from=source /src/alist-tvbox/docker/scripts/ /docker/scripts/
+COPY --from=source /src/alist-tvbox/data/tvbox.zip /tvbox.zip
+COPY --from=source /src/alist-tvbox/data/115.index.zip /115.index.zip
+COPY --from=source /src/alist-tvbox/data/cat.zip /cat.zip
+COPY --from=source /src/alist-tvbox/data/pg.zip /pg.zip
+COPY --from=source /src/alist-tvbox/data/zx.zip /zx.zip
+COPY --from=source /src/alist-tvbox/data/data.zip /data.zip
+COPY --from=source /src/alist-tvbox/data/base_version /base_version
+COPY --from=source /src/alist-tvbox/config/alist.json /alist.json
 
 # --- 3.3 HA Rootfs & Permissions ---
 COPY rootfs /

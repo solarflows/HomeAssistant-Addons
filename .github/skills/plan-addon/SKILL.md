@@ -79,12 +79,14 @@ Agent 分析上游 API 与进程特征时，必须按以下决策树自动推导
 ### 7. 构建期统一热补丁规范 (Build-Time Hot-Patching Protocol)
 针对源码构建型（`multi-stage` / `source`）Addon，当需要修复上游 bug、解除内网阻断或注入防御逻辑时，必须严格遵守以下规范：
 - **不可变原则 (Immutable Build-Time)**：严禁运行时动态热补丁（彻底杜绝时序控制、状态漂移与条件竞争）；所有改动必须在 Docker 镜像构建期固化。
-- **目录隔离规范**：补丁文件必须按上游仓库名称（`version.yaml` 的 `repo` 字段名）分目录管理：`patches/<RepoName>/*.patch`（如 `patches/qd/`、`patches/Antigravity2API/`），子目录按文件名升序执行（如 `001-fix-*.patch`）。
-- **统一调用契约**：所有源码构建型 Addon 必须内置通用补丁执行器 `patches/apply-patches.sh`。Dockerfile 必须无条件声明：
+- **全仓唯一脚本 (`build-contexts`)**：严禁在每个插件目录复制脚本！全仓唯一真理源位于 `.github/scripts/apply-patches.sh`，由 `Release.yml` 通过 BuildKit 命名上下文 `common=.github/scripts` 统一注入（本地构建加 `--build-context common=.github/scripts`）。
+- **强制多仓库自动映射规范**：所有上游源码必须克隆/解压至 `/src/<repo_name>`；补丁文件必须归档至 `patches/<repo_name>/*.patch`（如 `patches/qd/001-*.patch`）。脚本自动按 `<repo_name>` 目录映射至 `/src/<repo_name>` 并按文件名升序执行；禁止在 `patches/` 根目录散落补丁，禁止目标目录缺失（立即熔断 `exit 1`）。
+- **零参数统一调用契约**：所有源码构建型 Addon 必须保留 `patches/.gitkeep` 并在 Dockerfile 无条件声明（只读绑定挂载，零镜像层残留）：
   ```dockerfile
   # --- Apply Hot Patches ---
-  COPY patches/ /patches/
-  RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "<RepoName>" /src
+  RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+      --mount=type=bind,source=patches,target=/patches \
+      sh /tmp/apply-patches.sh
   ```
   即使当前仓库无任何补丁，也必须保持该调用（无补丁时秒级放行 `exit 0`）。
 - **CI 链路自动感知**：`Version_Check.yml` 自动监听 `${ADDON_DIR}/patches/` 变更，触发独立构建并打上 `patches` 维护标签。

@@ -19,24 +19,25 @@ RUN test -n "${WB2API_VERSION}" || { echo "WB2API_VERSION is required"; exit 1; 
 
 # --- 1.1 Source Fetch ---
 RUN git clone --depth 1 --branch "v${WB2API_VERSION}" \
-        https://github.com/ardeyouxipianyi/workbuddy2api-hub.git /src \
+        https://github.com/ardeyouxipianyi/workbuddy2api-hub.git /src/workbuddy2api-hub \
     || { echo "Failed to clone workbuddy2api-hub @ v${WB2API_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/workbuddy2api-hub
 
 # --- 1.2 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "workbuddy2api-hub" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.3 Compile Go uTLS ClientHello Bridge ---
-WORKDIR /src/tools/wb-tls-bridge
+WORKDIR /src/workbuddy2api-hub/tools/wb-tls-bridge
 ENV GOPROXY="https://proxy.golang.org,https://goproxy.io,direct"
-RUN mkdir -p /src/bin /src/licenses/wb-tls-bridge \
+RUN mkdir -p /src/workbuddy2api-hub/bin /src/workbuddy2api-hub/licenses/wb-tls-bridge \
     && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-       go build -trimpath -ldflags="-s -w" -o /src/bin/wb-tls-bridge . \
-    && cp /src/tools/wb-tls-bridge/README.md /src/licenses/wb-tls-bridge/README.md \
-    && cp -r /src/tools/wb-tls-bridge/licenses/. /src/licenses/wb-tls-bridge/ \
-    && rm -rf /src/.git /src/tests
+       go build -trimpath -ldflags="-s -w" -o /src/workbuddy2api-hub/bin/wb-tls-bridge . \
+    && cp /src/workbuddy2api-hub/tools/wb-tls-bridge/README.md /src/workbuddy2api-hub/licenses/wb-tls-bridge/README.md \
+    && cp -r /src/workbuddy2api-hub/tools/wb-tls-bridge/licenses/. /src/workbuddy2api-hub/licenses/wb-tls-bridge/ \
+    && rm -rf /src/workbuddy2api-hub/.git /src/workbuddy2api-hub/tests
 
 # ==============================================================================
 # [Stage 2/2] Runtime Environment (生产运行环境)
@@ -61,7 +62,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 2.2 Application Artifacts ---
-COPY --from=builder /src /app
+COPY --from=builder /src/workbuddy2api-hub /app
 RUN mkdir -p /app/accounts /app/usage /app/subbridge-data \
     && chmod +x /app/*.sh /app/bin/wb-tls-bridge
 

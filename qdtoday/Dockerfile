@@ -25,14 +25,15 @@ RUN apt-get update \
 # --- 1.2 Upstream Source Fetch ---
 ARG QD_VERSION
 RUN test -n "${QD_VERSION}" || { echo "QD_VERSION is required"; exit 1; }
-RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src \
+RUN git clone --depth 1 --branch "${QD_VERSION}" https://github.com/qd-today/qd.git /src/qd \
     || { echo "Failed to clone qd-today @ ${QD_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/qd
 
 # --- 1.3 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "qd" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.4 Dependencies Compilation ---
 # 使用 uv 严格从官方 uv.lock 导出包含全量 OCR 栈的依赖清单，全量安装到 /opt/qd-deps
@@ -50,7 +51,7 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 
 # --- 2.1 Artifacts & Runtime Libraries ---
 COPY --from=builder /opt/qd-deps /opt/qd-deps
-COPY --from=builder /src /usr/src/app
+COPY --from=builder /src/qd /usr/src/app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

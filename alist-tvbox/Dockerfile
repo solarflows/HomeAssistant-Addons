@@ -19,14 +19,15 @@ ARG ALIST_TVBOX_VERSION
 RUN test -n "${ALIST_TVBOX_VERSION}" || { echo "ALIST_TVBOX_VERSION is required"; exit 1; }
 
 RUN git clone --depth 1 --branch "${ALIST_TVBOX_VERSION}" \
-       https://github.com/power721/alist-tvbox.git /src \
+       https://github.com/power721/alist-tvbox.git /src/alist-tvbox \
     || { echo "Failed to clone alist-tvbox @ ${ALIST_TVBOX_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/alist-tvbox
 
 # --- Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "alist-tvbox" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # ==============================================================================
 # [Stage 2/5] Extract Spring Boot Application Layers (JAR 依赖分层提取)
@@ -50,7 +51,7 @@ FROM haroldli/alist:latest AS alist-source
 # ==============================================================================
 FROM golang:1.24 AS cli-builder
 WORKDIR /app/
-COPY --from=source /src/atv-cli/ ./
+COPY --from=source /src/alist-tvbox/atv-cli/ ./
 RUN go build -o /atv-cli
 
 # ==============================================================================
@@ -101,20 +102,20 @@ RUN mkdir -p /opt/atv/BOOT-INF/lib \
            -name 'h2-*.jar' -exec ln -sf {} /opt/atv/BOOT-INF/lib/ \;
 
 # 上游脚本与静态资源
-COPY --from=source /src/docker/scripts/ /docker/scripts/
-COPY --from=source /src/scripts/index.sh /index.sh
+COPY --from=source /src/alist-tvbox/docker/scripts/ /docker/scripts/
+COPY --from=source /src/alist-tvbox/scripts/index.sh /index.sh
 RUN chmod +x /index.sh && mkdir -p /data/index && ln -sf /data/index /index
-COPY --from=source /src/data/update.sql /update.sql
-COPY --from=source /src/data/tvbox.zip /
-COPY --from=source /src/data/115.index.zip /
-COPY --from=source /src/data/index.share.zip /
-COPY --from=source /src/data/cat.zip /
-COPY --from=source /src/data/pg.zip /
-COPY --from=source /src/data/zx.zip /
-COPY --from=source /src/data/data.zip /
-COPY --from=source /src/data/nginx.full.conf /etc/nginx/sites-enabled/alist-tvbox.conf
-COPY --from=source /src/data/base_version /
-COPY --from=source /src/config/alist.json /alist.json
+COPY --from=source /src/alist-tvbox/data/update.sql /update.sql
+COPY --from=source /src/alist-tvbox/data/tvbox.zip /
+COPY --from=source /src/alist-tvbox/data/115.index.zip /
+COPY --from=source /src/alist-tvbox/data/index.share.zip /
+COPY --from=source /src/alist-tvbox/data/cat.zip /
+COPY --from=source /src/alist-tvbox/data/pg.zip /
+COPY --from=source /src/alist-tvbox/data/zx.zip /
+COPY --from=source /src/alist-tvbox/data/data.zip /
+COPY --from=source /src/alist-tvbox/data/nginx.full.conf /etc/nginx/sites-enabled/alist-tvbox.conf
+COPY --from=source /src/alist-tvbox/data/base_version /
+COPY --from=source /src/alist-tvbox/config/alist.json /alist.json
 
 # 创建版本标记文件
 ARG ALIST_TVBOX_VERSION

@@ -59,7 +59,7 @@ The repository has no single project-wide test command. The normal local verific
 
 ## Quick Reference
 - **Base**: `debian-base:9.3.0` (S6 built-in) | **Storage**: 对象化自定义路径挂载 (`type: app_config -> upstream native path`)，严格禁止软链中转
-- **Build**: multi-stage source / upstream image adaptation / base+binary / base+JAR. 源码构建型 Addon 统一遵循构建期热补丁规范（`patches/<RepoName>/*.patch` + `apply-patches.sh`），严禁运行时动态热补丁。Dockerfile 统一采用 Markdown 级分区注释与三段式结构。Check the current Dockerfile before choosing a strategy.
+- **Build**: multi-stage source / upstream image adaptation / base+binary / base+JAR. 源码构建型 Addon 统一遵循构建期热补丁规范：全仓唯一脚本 `.github/scripts/apply-patches.sh`（经 BuildKit `build-contexts: common=.github/scripts` 挂载），强制多仓库目录自动映射 `patches/<repo_name>/*.patch -> /src/<repo_name>`，严禁运行时动态热补丁。Dockerfile 统一采用 Markdown 级分区注释与三段式结构。Check the current Dockerfile before choosing a strategy.
 - **CI**: `Version_Check (6h cron) -> Release -> multi-arch build -> ghcr.io -> independent metadata commits`; details are in [fix-ci/SKILL.md](.github/skills/fix-ci/SKILL.md).
 - **Runtime**: S6 longruns must keep the application in the foreground and `exec` the real process. `flaresolverr`, `mcphub`, and `trawl` are the upstream-image exceptions and use wrapped upstream entrypoints.
 - **Lifecycle & Healthcheck**: 四阶段生命周期（`00-init.sh` 纯本地离线播种 -> S6 声明式 DAG 依赖 `dependencies.d/legacy-cont-init` 串行拉起 -> 异步后台守护进程 -> 规范化 Docker `HEALTHCHECK`）。探活必须强制注入 `--noproxy '*'` 与 `--max-time`，并按运行时阶梯配置 `start-period`（Go: 30s, Node/Python: 60s, heavy/browser: 90~180s, JVM: 300s）。详见 [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) 与 [plan-addon/SKILL.md](.github/skills/plan-addon/SKILL.md)。

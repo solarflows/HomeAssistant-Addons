@@ -26,21 +26,22 @@ RUN apt-get update \
 
 # --- 1.2 Source Fetch ---
 RUN git clone --depth 1 --branch "v${QODER_VERSION}" \
-        https://github.com/shuishuipingan/qoder2api-hub.git /src \
+        https://github.com/shuishuipingan/qoder2api-hub.git /src/qoder2api-hub \
     || { echo "Failed to clone qoder2api-hub @ v${QODER_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/qoder2api-hub
 
 # --- 1.3 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "qoder2api-hub" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.4 Native UMID Component Extraction ---
 RUN UMID_ARCH="x64"; [ "${TARGETARCH}" = "arm64" ] && UMID_ARCH="arm64"; \
-    python3 /src/_install_umid.py --platform linux --arch "${UMID_ARCH}" --dest /src/umid \
+    python3 /src/qoder2api-hub/_install_umid.py --platform linux --arch "${UMID_ARCH}" --dest /src/qoder2api-hub/umid \
     || echo "WARN: UMID extraction failed (gateway will fall back to derived identity)"; \
-    mkdir -p /src/umid \
-    && rm -rf /src/.git /src/docs/img
+    mkdir -p /src/qoder2api-hub/umid \
+    && rm -rf /src/qoder2api-hub/.git /src/qoder2api-hub/docs/img
 
 # ==============================================================================
 # [Stage 2/2] Runtime Environment (生产运行环境)
@@ -64,7 +65,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # --- 2.2 Application Artifacts ---
-COPY --from=builder /src /app
+COPY --from=builder /src/qoder2api-hub /app
 RUN mkdir -p /app/accounts /app/logs/usage /app/usage \
     && chmod +x /app/*.sh \
     && { [ ! -f /app/umid/runtime-info ] || chmod +x /app/umid/runtime-info; }

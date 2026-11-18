@@ -19,14 +19,15 @@ RUN test -n "${BAIHU_VERSION}" || { echo "BAIHU_VERSION is required"; exit 1; }
 
 # --- 1.1 Source Fetch ---
 RUN git clone --depth 1 --branch "v${BAIHU_VERSION}" \
-       https://github.com/engigu/baihu-panel.git /src \
+       https://github.com/engigu/baihu-panel.git /src/baihu-panel \
     || { echo "Failed to clone baihu-panel @ v${BAIHU_VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/baihu-panel
 
 # --- 1.2 Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "baihu-panel" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # --- 1.3 Node.js Toolchain (Vite WebUI requires >= 20) ---
 RUN apt-get update \

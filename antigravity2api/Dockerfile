@@ -17,15 +17,16 @@ FROM alpine/git:latest AS source
 ARG VERSION
 RUN test -n "${VERSION}" || { echo "VERSION is required"; exit 1; }
 
-RUN git clone --depth 1 --branch "v${VERSION}" https://github.com/Mag1cFall/Antigravity2API.git /src \
-    || git clone --depth 1 --branch "${VERSION}" https://github.com/Mag1cFall/Antigravity2API.git /src \
+RUN git clone --depth 1 --branch "v${VERSION}" https://github.com/Mag1cFall/Antigravity2API.git /src/Antigravity2API \
+    || git clone --depth 1 --branch "${VERSION}" https://github.com/Mag1cFall/Antigravity2API.git /src/Antigravity2API \
     || { echo "Failed to clone Antigravity2API @ ${VERSION}"; exit 1; }
 
-WORKDIR /src
+WORKDIR /src/Antigravity2API
 
 # --- Apply Hot Patches ---
-COPY patches/ /patches/
-RUN chmod +x /patches/apply-patches.sh && /patches/apply-patches.sh "Antigravity2API" /src
+RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patches.sh \
+    --mount=type=bind,source=patches,target=/patches \
+    sh /tmp/apply-patches.sh
 
 # ==============================================================================
 # [Stage 2/4] Build WebUI Frontend (前端编译阶段)
@@ -34,10 +35,10 @@ FROM --platform=$BUILDPLATFORM node:22-bookworm-slim AS web-builder
 
 WORKDIR /src/web
 RUN corepack enable
-COPY --from=source /src/web/package.json /src/web/pnpm-lock.yaml /src/web/pnpm-workspace.yaml ./
+COPY --from=source /src/Antigravity2API/web/package.json /src/Antigravity2API/web/pnpm-lock.yaml /src/Antigravity2API/web/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
-COPY --from=source /src/web/ ./
-COPY --from=source /src/internal/i18n/messages/ /src/internal/i18n/messages/
+COPY --from=source /src/Antigravity2API/web/ ./
+COPY --from=source /src/Antigravity2API/internal/i18n/messages/ /src/internal/i18n/messages/
 RUN pnpm run build
 
 # ==============================================================================
@@ -57,9 +58,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
-COPY --from=source /src/go.mod /src/go.sum ./
+COPY --from=source /src/Antigravity2API/go.mod /src/Antigravity2API/go.sum ./
 RUN go mod download
-COPY --from=source /src/ ./
+COPY --from=source /src/Antigravity2API/ ./
 COPY --from=web-builder /src/internal/webui/dist ./internal/webui/dist
 
 RUN set -e; \
