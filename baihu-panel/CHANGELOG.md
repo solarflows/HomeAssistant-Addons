@@ -1,3 +1,10 @@
+### 1.7.0-build.6 (2026-11-18)
+
+CI 工作流维护
+- feat(ci,addons): unify OCI/GHCR metadata & Action Summary, update workbuddy2api-hub repo & a2api patch [skip-rebuild]
+
+---
+
 ### 1.7.0-build.5 (2026-11-18)
 
 Dockerfile + patches 维护
