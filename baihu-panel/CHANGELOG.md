@@ -1,3 +1,10 @@
+### 1.7.0-build.5 (2026-11-18)
+
+Dockerfile + patches 维护
+- refactor(patches): centralize apply-patches.sh via build-contexts and auto-map /src/<repo> [skip-rebuild]
+
+---
+
 ### 1.7.0-build.4 (2026-11-17)
 
 CI 工作流维护
