@@ -4,7 +4,7 @@
 #       wb_update_external.py / wb_update_portable.py / wb_update_request.py 实测
 ---
 upstream:
-  repo: ardeyouxipianyi/workbuddy2api-hub
+  repo: niyouqianma/workbuddy2api-hub
   description: >-
     WorkBuddy / CodeBuddy 多账号反代网关与管理面板（OpenAI + 可选 Anthropic /v1/messages
     兼容、CN/Intl 双区池化、Go uTLS ClientHello 桥接、可选订阅桥与面板内更新器）。

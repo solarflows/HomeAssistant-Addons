@@ -19,7 +19,7 @@ RUN test -n "${WB2API_VERSION}" || { echo "WB2API_VERSION is required"; exit 1; 
 
 # --- 1.1 Source Fetch ---
 RUN git clone --depth 1 --branch "v${WB2API_VERSION}" \
-        https://github.com/ardeyouxipianyi/workbuddy2api-hub.git /src/workbuddy2api-hub \
+        https://github.com/niyouqianma/workbuddy2api-hub.git /src/workbuddy2api-hub \
     || { echo "Failed to clone workbuddy2api-hub @ v${WB2API_VERSION}"; exit 1; }
 
 WORKDIR /src/workbuddy2api-hub

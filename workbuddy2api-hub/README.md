@@ -6,7 +6,7 @@
 
 ## 上游
 
-[ardeyouxipianyi/workbuddy2api-hub](https://github.com/ardeyouxipianyi/workbuddy2api-hub)（MIT）· 基于官方源码在 `ghcr.io/hassio-addons/debian-base:9.3.0` + S6 overlay 多阶段自构建（Stage 1 `golang:1.24` 编译 `wb-tls-bridge`）
+[niyouqianma/workbuddy2api-hub](https://github.com/niyouqianma/workbuddy2api-hub)（MIT）· 基于官方源码在 `ghcr.io/hassio-addons/debian-base:9.3.0` + S6 overlay 多阶段自构建（Stage 1 `golang:1.24` 编译 `wb-tls-bridge`）
 
 ## 支持架构
 

@@ -252,11 +252,23 @@ jobs:
           } >> $GITHUB_OUTPUT
           echo "Build args: $BUILD_ARGS"
 
+      - name: Generate OCI metadata & GHCR description
+        id: meta
+        env:
+          ADDON_DIR: ${{ steps.prep.outputs.addon_dir }}
+          BUILD_VERSION: ${{ steps.prep.outputs.build_version }}
+          REPO_FULL: ${{ github.repository }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          GIT_SHA: ${{ github.sha }}
+        run: bash .github/scripts/gen-oci-metadata.sh
+
       - name: Build and push Docker image
         id: build
         uses: docker/build-push-action@v7
         env:
           BUILDKIT_PROGRESS: plain
+          DOCKER_BUILD_SUMMARY: "false"
+          DOCKER_BUILD_RECORD_UPLOAD: "false"
         with:
           context: ${{ steps.prep.outputs.addon_dir }}
           build-contexts: |
@@ -265,6 +277,8 @@ jobs:
           platforms: ${{ steps.prep.outputs.platforms }}
           push: true
           build-args: ${{ steps.buildargs.outputs.build_args }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
           tags: |
             ${{ steps.prep.outputs.image }}:latest
             ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}
@@ -570,41 +584,18 @@ jobs:
       - name: Build summary
         if: always()
         continue-on-error: true
-        run: |
-          IMAGE="${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}"
-          STATUS="${{ job.status }}"
-
-          {
-            if [ "$STATUS" = "success" ]; then
-              echo "### ✅ ${{ matrix.addon }} — \`${IMAGE}\`"
-            else
-              echo "### ❌ ${{ matrix.addon }} — build failed"
-              exit 0
-            fi
-            echo ""
-          } >> $GITHUB_STEP_SUMMARY
-
-          # 获取多架构列表（过滤 attestation 层）
-          for i in 1 2 3 4 5; do
-            RAW=$(docker buildx imagetools inspect "$IMAGE" --raw 2>/dev/null)
-            [ -n "$RAW" ] && break
-            sleep 3
-          done
-
-          if [ -n "$RAW" ]; then
-            echo "| 架构 | 大小 |" >> $GITHUB_STEP_SUMMARY
-            echo "|------|------|" >> $GITHUB_STEP_SUMMARY
-            echo "$RAW" | jq -r '.manifests[]? | select(.platform.architecture != "unknown") | "\(.platform.os)/\(.platform.architecture)"' 2>/dev/null \
-              | while read -r platform; do
-                  SIZE=$(regctl manifest get "$IMAGE" --platform "$platform" --format '{{ .GetSize }}' 2>/dev/null || true)
-                  if [ -n "$SIZE" ]; then
-                    SIZE_MB=$(awk "BEGIN {printf \"%.1f MB\", $SIZE / 1000000}" 2>/dev/null || echo "N/A")
-                  else
-                    SIZE_MB="N/A"
-                  fi
-                  echo "| \`${platform}\` | ${SIZE_MB} |" >> $GITHUB_STEP_SUMMARY
-                done || true
-          else
-            echo "*(image info unavailable)*" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
+        env:
+          ADDON_DIR: ${{ steps.prep.outputs.addon_dir }}
+          ADDON_TITLE: ${{ steps.meta.outputs.title }}
+          ADDON_DESC: ${{ steps.meta.outputs.description }}
+          ADDON_LICENSE: ${{ steps.meta.outputs.license }}
+          UPSTREAM_REPO: ${{ steps.meta.outputs.upstream_repo }}
+          IMAGE_REF: ${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.build_version }}
+          JOB_STATUS: ${{ job.status }}
+          REASON: ${{ steps.prep.outputs.reason }}
+          OLD_VERSION: ${{ steps.prep.outputs.old_version }}
+          BUILD_VERSION: ${{ steps.prep.outputs.build_version }}
+          COMMIT_MSG: ${{ steps.prep.outputs.commit_msg }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_FULL: ${{ github.repository }}
+        run: bash .github/scripts/gen-summary.sh build

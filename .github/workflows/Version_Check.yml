@@ -173,6 +173,9 @@ jobs:
             fi
           }
 
+          TOTAL_ADDONS=0
+          SKIPPED_ERRORS_FILE=$(mktemp)
+
           for version_file in */version.yaml; do
             [ -f "$version_file" ] || continue
             ADDON_DIR=$(dirname "$version_file")
@@ -186,6 +189,7 @@ jobs:
             STRATEGY=$(yq eval '.strategy // .source // "release"' "$version_file")
             VERSION=$(yq eval '.version // ""' "$version_file")
             [ -z "$VERSION" ] && continue
+            TOTAL_ADDONS=$((TOTAL_ADDONS + 1))
 
             echo "Checking $ADDON_DIR (strategy: $STRATEGY): local=$VERSION"
 
@@ -193,6 +197,7 @@ jobs:
             REMOTE_VERSION=$(fetch_version "$REPO" "$STRATEGY")
             if [ -z "$REMOTE_VERSION" ]; then
               echo "  Failed to get remote version for $REPO, skipping"
+              echo "${ADDON_DIR}|${REPO}|${STRATEGY}|上游 API 无法获取最新版本" >> "$SKIPPED_ERRORS_FILE"
               continue
             fi
             echo "  Remote: $REMOTE_VERSION"
@@ -348,6 +353,15 @@ jobs:
           echo "has_changes=$HAS_CHANGES" >> $GITHUB_OUTPUT
           echo "=== Matrix ==="
           echo "$RESULT" | jq .
+
+          # 统一生成规划总览 Summary Note
+          EVENT_NAME="$EVENT_NAME" \
+          REMOTE_BASE_TAG="$REMOTE_BASE_TAG" \
+          TOTAL_ADDONS="$TOTAL_ADDONS" \
+          MATRIX_JSON="$RESULT" \
+          SKIPPED_ERRORS_FILE="$SKIPPED_ERRORS_FILE" \
+            bash .github/scripts/gen-summary.sh plan || true
+          rm -f "$SKIPPED_ERRORS_FILE"
 
       - name: Delete old workflow runs (>30 days)
         env:

@@ -1,0 +1,100 @@
+From 008142f3f7ea3296e97d7aff327928b7bde40834 Mon Sep 17 00:00:00 2001
+From: Husky <hyiy666@gmail.com>
+Date: Mon, 16 Nov 2026 16:47:56 +0800
+Subject: [PATCH] =?UTF-8?q?fix:=20=E8=B4=A6=E6=88=B7=E6=97=A0=20Remote=20A?=
+ =?UTF-8?q?gents=20=E6=97=B6=E5=81=9C=E6=AD=A2=E8=BF=9C=E7=A8=8B=E5=88=97?=
+ =?UTF-8?q?=E8=A1=A8=E8=BD=AE=E8=AF=A2?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+首次返回 REMOTE_AGENT_NOT_AVAILABLE 后记下该账户不可用，pollRemote 不再按 5–60s 无限重试，避免 403 日志刷屏。
+
+Co-Authored-By: Claude Code <[EMAIL]>
+---
+ internal/antigravity/companion.go | 33 +++++++++++++++++++++++++++----
+ internal/antigravity/hub.go       |  3 +++
+ 2 files changed, 32 insertions(+), 4 deletions(-)
+
+diff --git a/internal/antigravity/companion.go b/internal/antigravity/companion.go
+index 3bc0096..5e8691e 100644
+--- a/internal/antigravity/companion.go
++++ b/internal/antigravity/companion.go
+@@ -153,7 +153,7 @@ var loginLists = []string{remoteProjects, remoteConversations}
+ // marketplaceDelays 为登录序列界面渲染后到读取插件市场目录的两种间隔（毫秒），官方 2.31.1 与 2.31.2 登录现场各出现一次
+ var marketplaceDelays = [2][2]int{{17, 21}, {178, 184}}
+ 
+-// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists
++// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists；任一列表返回 REMOTE_AGENT_NOT_AVAILABLE 时记下账户没有远程 agent
+ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+ 	c.mu.Lock()
+ 	c.hub.remote = true
+@@ -164,18 +164,31 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+ 		}
+ 		var group sync.WaitGroup
+ 		for _, list := range lists {
+-			group.Go(func() { c.get(ctx, endpointAICode+"/v1alpha/"+list, nil) })
++			group.Go(func() {
++				if remoteUnavailable(c.get(ctx, endpointAICode+"/v1alpha/"+list, nil)) {
++					c.mu.Lock()
++					c.hub.remoteBlocked = true
++					c.mu.Unlock()
++				}
++			})
+ 		}
+ 		group.Wait()
+ 	}()
+ }
+ 
++// remoteUnavailable 判断远程列表请求是否因账户没有 Remote Agents 而永久不可用：该错误重试不会恢复，继续轮询只会产生 403 噪声
++func remoteUnavailable(err error) bool {
++	upstream, ok := errors.AsType[*UpstreamError](err)
++	return ok && (upstream.Reason() == "REMOTE_AGENT_NOT_AVAILABLE" ||
++		strings.Contains(string(upstream.Body), "REMOTE_AGENT_NOT_AVAILABLE"))
++}
++
+ // jitter 返回 d 上下 20% 内均匀分布的时长
+ func jitter(d time.Duration) time.Duration {
+ 	return d - d/5 + rand.N(2*(d/5)+1)
+ }
+ 
+-// pollRemote 在启动读取之后按官方节奏重新读取一个远程列表：成功后等 period，失败后从 remoteBackoff 起每次翻倍到 remoteBackoffLimit，每次等待都上下浮动 20%；ctx 结束时返回
++// pollRemote 在启动读取之后按官方节奏重新读取一个远程列表：成功后等 period，失败后从 remoteBackoff 起每次翻倍到 remoteBackoffLimit，每次等待都上下浮动 20%；账户没有远程 agent 时停止轮询；ctx 结束时返回
+ func (c *Client) pollRemote(ctx context.Context, list string, period time.Duration) {
+ 	wait, backoff := period, remoteBackoff
+ 	for {
+@@ -184,7 +197,19 @@ func (c *Client) pollRemote(ctx context.Context, list string, period time.Durati
+ 		case <-ctx.Done():
+ 			return
+ 		}
+-		if c.get(ctx, endpointAICode+"/v1alpha/"+list, nil) != nil {
++		c.mu.Lock()
++		blocked := c.hub.remoteBlocked
++		c.mu.Unlock()
++		if blocked {
++			return
++		}
++		if err := c.get(ctx, endpointAICode+"/v1alpha/"+list, nil); err != nil {
++			if remoteUnavailable(err) {
++				c.mu.Lock()
++				c.hub.remoteBlocked = true
++				c.mu.Unlock()
++				return
++			}
+ 			wait, backoff = backoff, min(2*backoff, remoteBackoffLimit)
+ 			continue
+ 		}
+diff --git a/internal/antigravity/hub.go b/internal/antigravity/hub.go
+index 7bc1304..cede245 100644
+--- a/internal/antigravity/hub.go
++++ b/internal/antigravity/hub.go
+@@ -61,6 +61,9 @@ type hub struct {
+ 	remote    bool
+ 	shift     stackShift
+ 	goroutine int
++
++	// remoteBlocked 表示账户没有 Remote Agents，远程列表不再轮询
++	remoteBlocked bool
+ }
+ 
+ // eventShape 表示 clearcut 事件的外层形态：blank 为真时公共参数留空，flags 为真时附实验开关，empty 为真时附空的开关字段，ui 为真时带界面会话与事件时刻，env 为真时载荷带客户端环境，compared 为真时开关取对照用的 listExperiments 开关

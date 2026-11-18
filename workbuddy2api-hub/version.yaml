@@ -1,7 +1,7 @@
 # workbuddy2api-hub 版本检查配置
 version: "2.1.3"
 source: github
-repo: ardeyouxipianyi/workbuddy2api-hub
+repo: niyouqianma/workbuddy2api-hub
 build_args:
   WB2API_VERSION: "${version}"
 changelog:

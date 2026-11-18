@@ -2,7 +2,7 @@ name: FileBrowser Quantum
 slug: filebrowser-quantum
 version: "2.0.2-stable-build.12"
 image: ghcr.io/solarflows/filebrowser-quantum
-description: "Modern, responsive web-based file manager with multi-source support and advanced authentication"
+description: "现代化 Web 文件管理器，支持多存储源挂载、在线媒体预览与细粒度权限认证"
 url: https://github.com/gtsteffaniak/filebrowser
 init: false
 arch:

@@ -91,6 +91,11 @@ Agent 分析上游 API 与进程特征时，必须按以下决策树自动推导
   即使当前仓库无任何补丁，也必须保持该调用（无补丁时秒级放行 `exit 0`）。
 - **CI 链路自动感知**：`Version_Check.yml` 自动监听 `${ADDON_DIR}/patches/` 变更，触发独立构建并打上 `patches` 维护标签。
 
+### 8. 统一 OCI 元数据、GHCR Description 与 Actions Summary 规范
+全仓由 `.github/scripts/gen-oci-metadata.sh` 与 `.github/scripts/gen-summary.sh` 统一生成发布文案与构建报告，严禁在各 `Dockerfile` 散落重复维护：
+- **单一真理源**：`config.yaml` 的 `name` 与 `description`（必须为精炼、规范的中文专业描述，避免裸英文与半角逗号）直接作为 HA Add-on 商店简介、GHCR 包描述（同步注入 `labels` 与多架构 `index:org.opencontainers.image.*` `annotations`）以及 Actions Summary 卡片文案的唯一来源；
+- **License 规范**：`analysis.yaml` 必须声明 `upstream.license`（如 `MIT`、`Apache-2.0`、`AGPL-3.0`、`Proprietary`），生成器会自动清洗并写入 `org.opencontainers.image.licenses`。
+
 ## analysis.yaml 规范格式
 
 输出并保存至 `<addon-slug>/analysis.yaml`：

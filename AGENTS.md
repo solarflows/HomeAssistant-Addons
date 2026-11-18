@@ -35,8 +35,9 @@ The repository has no single project-wide test command. The normal local verific
 | cliproxyapi-cpamp | same | binary download (+CPAMP manager server) | 8317, 18317 | yes |
 | mcphub | samanhappy/mcphub | upstream image | 3000 | no |
 | trawl | germondai/trawl | upstream image | 8191, 8192 | no |
-| workbuddy2api-hub | ardeyouxipianyi/workbuddy2api-hub | Python + Go src build | 8788 | yes |
+| workbuddy2api-hub | niyouqianma/workbuddy2api-hub | Python + Go src build | 8788 | yes |
 | qoder2api-hub | shuishuipingan/qoder2api-hub | Python + UMID src build | 8790 | yes |
+| antigravity2api | Mag1cFall/Antigravity2API | Node + Go (BoringCrypto) src build | 8017 | yes |
 
 ### Version prefixes
 
@@ -56,11 +57,12 @@ The repository has no single project-wide test command. The normal local verific
 | trawl | "v" | v1.8.0 | 1.8.0 |
 | workbuddy2api-hub | "v" | v2.1.1 | 2.1.1 |
 | qoder2api-hub | "v" | v1.9.8 | 1.9.8 |
+| antigravity2api | "v" | v0.1.9 | 0.1.9 |
 
 ## Quick Reference
 - **Base**: `debian-base:9.3.0` (S6 built-in) | **Storage**: 对象化自定义路径挂载 (`type: app_config -> upstream native path`)，严格禁止软链中转
 - **Build**: multi-stage source / upstream image adaptation / base+binary / base+JAR. 源码构建型 Addon 统一遵循构建期热补丁规范：全仓唯一脚本 `.github/scripts/apply-patches.sh`（经 BuildKit `build-contexts: common=.github/scripts` 挂载），强制多仓库目录自动映射 `patches/<repo_name>/*.patch -> /src/<repo_name>`，严禁运行时动态热补丁。Dockerfile 统一采用 Markdown 级分区注释与三段式结构。Check the current Dockerfile before choosing a strategy.
-- **CI**: `Version_Check (6h cron) -> Release -> multi-arch build -> ghcr.io -> independent metadata commits`; details are in [fix-ci/SKILL.md](.github/skills/fix-ci/SKILL.md).
+- **CI & Metadata**: `Version_Check (6h cron) -> Release -> multi-arch build -> ghcr.io -> independent metadata commits`; OCI 标签/GHCR Description 由 `.github/scripts/gen-oci-metadata.sh` 从 `config.yaml` + `version.yaml` + `analysis.yaml` 单一真理源统一注入（同步写入镜像 `labels` 与多架构 `index:` `annotations`）；Actions Summary Note 由 `.github/scripts/gen-summary.sh` 统一渲染。details are in [fix-ci/SKILL.md](.github/skills/fix-ci/SKILL.md).
 - **Runtime**: S6 longruns must keep the application in the foreground and `exec` the real process. `flaresolverr`, `mcphub`, and `trawl` are the upstream-image exceptions and use wrapped upstream entrypoints.
 - **Lifecycle & Healthcheck**: 四阶段生命周期（`00-init.sh` 纯本地离线播种 -> S6 声明式 DAG 依赖 `dependencies.d/legacy-cont-init` 串行拉起 -> 异步后台守护进程 -> 规范化 Docker `HEALTHCHECK`）。探活必须强制注入 `--noproxy '*'` 与 `--max-time`，并按运行时阶梯配置 `start-period`（Go: 30s, Node/Python: 60s, heavy/browser: 90~180s, JVM: 300s）。详见 [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) 与 [plan-addon/SKILL.md](.github/skills/plan-addon/SKILL.md)。
 - **Troubleshooting**: [addon-troubleshooting.instructions.md](.github/instructions/addon-troubleshooting.instructions.md) is auto-loaded for Dockerfiles, Shell, `config.yaml`, and `version.yaml`.

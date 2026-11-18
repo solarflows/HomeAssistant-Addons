@@ -2,7 +2,7 @@
 
 WorkBuddy / CodeBuddy 多账号池化反代网关与管理面板，基于上游源码在 Home Assistant `debian-base` + S6 环境下从头自构建。
 
-- 上游仓库：[ardeyouxipianyi/workbuddy2api-hub](https://github.com/ardeyouxipianyi/workbuddy2api-hub)
+- 上游仓库：[niyouqianma/workbuddy2api-hub](https://github.com/niyouqianma/workbuddy2api-hub)
 - 开源协议：MIT
 
 ---

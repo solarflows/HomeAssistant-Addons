@@ -1,0 +1,47 @@
+# antigravity2api/analysis.yaml
+---
+upstream:
+  repo: Mag1cFall/Antigravity2API
+  description: Google Antigravity Agent 模型转 OpenAI/Claude/Gemini API 网关（支持 BoringCrypto 原生 TLS 模拟）
+  license: MIT
+
+build:
+  strategy: multi-stage
+  builder_image: golang:1.27-bookworm
+  apt_build_deps:
+    - gcc
+    - libc6-dev
+    - gcc-aarch64-linux-gnu
+    - libc6-dev-arm64-cross
+  build_steps:
+    - Stage 1 (alpine/git): clone Mag1cFall/Antigravity2API to /src/Antigravity2API and apply hot patches via .github/scripts/apply-patches.sh
+    - Stage 2 (node:22-bookworm-slim): pnpm install --frozen-lockfile && pnpm run build (WebUI)
+    - Stage 3 (golang:1.27-bookworm): cross-compile CGO_ENABLED=1 GOEXPERIMENT=boringcrypto -> /out/antigravity2api
+    - Stage 4 (debian-base:9.3.0): install runtime tools and S6 overlay v3 supervision
+
+runtime:
+  apt_deps:
+    - ca-certificates
+    - tzdata
+    - curl
+    - jq
+    - procps
+  ports:
+    - 8017/tcp
+  env:
+    LISTEN: "0.0.0.0:8017"
+    AUTH_DIR: "/config/auth"
+    RUNTIME_DIR: "/data/runtime"
+  storage:
+    - type: app_config
+      path: /config
+      read_only: false
+    - type: homeassistant_config
+      path: /legacy_ha
+      read_only: false
+  healthcheck:
+    endpoint: http://127.0.0.1:8017/api/status
+    interval: 30s
+    start_period: 60s
+    timeout: 5s
+    retries: 3
