@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Unified OCI Metadata & GHCR Description Generator
+# Unified OCI Metadata Generator
 # 从各 Addon 的 config.yaml / version.yaml / analysis.yaml 单一真理源
 # 统一生成 docker/build-push-action 所需的 labels 与多架构 OCI index annotations
+# 注: 不向 GHCR 注入 org.opencontainers.image.description（GHCR 版本页仅支持纯文本无 Markdown，
+#     观感较差）；description 仅作为 step output 供 Actions Summary Note 卡片展示。
 # ==============================================================================
 set -euo pipefail
 
@@ -53,7 +55,6 @@ DOCS_URL="https://github.com/${REPO_FULL}/blob/main/${ADDON_DIR}/DOCS.md"
 # 4. 生成镜像 Config Labels（供 docker inspect 读取）
 LABELS=$(cat <<EOF
 org.opencontainers.image.title=${TITLE}
-org.opencontainers.image.description=${DESCRIPTION}
 org.opencontainers.image.authors=${REPO_OWNER}
 org.opencontainers.image.vendor=${REPO_OWNER}
 org.opencontainers.image.source=${SOURCE_URL}
@@ -66,10 +67,9 @@ org.opencontainers.image.licenses=${LICENSE}
 EOF
 )
 
-# 5. 生成多架构 OCI Index Annotations（供 GHCR 包首页展示 Description / 链接 / 许可）
+# 5. 生成多架构 OCI Index Annotations（供 GHCR 关联仓库 / 许可 / 文档链接，不注入纯文本 description）
 ANNOTATIONS=$(cat <<EOF
 index:org.opencontainers.image.title=${TITLE}
-index:org.opencontainers.image.description=${DESCRIPTION}
 index:org.opencontainers.image.authors=${REPO_OWNER}
 index:org.opencontainers.image.vendor=${REPO_OWNER}
 index:org.opencontainers.image.source=${SOURCE_URL}
