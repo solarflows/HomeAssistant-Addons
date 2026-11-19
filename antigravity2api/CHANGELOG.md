@@ -1,3 +1,96 @@
+### 0.1.10 (2026-11-19)
+
+#### 下载
+
+| 系统 | 推荐 | 其他 |
+| --- | --- | --- |
+| Windows 10 及以上 | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-v0.1.10-windows-amd64.zip) | — |
+| macOS（Apple 芯片与 Intel） | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-desktop-v0.1.10-darwin-universal.tar.gz) | — |
+| Linux 桌面 | [x64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-desktop-v0.1.10-linux-amd64.tar.gz) · [ARM64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-desktop-v0.1.10-linux-arm64.tar.gz) | — |
+| Linux 服务器 | [x64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-v0.1.10-linux-amd64.tar.gz) · [ARM64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-v0.1.10-linux-arm64.tar.gz) | Docker 镜像 ghcr.io/mag1cfall/antigravity2api:v0.1.10 |
+| macOS 命令行 | [Apple 芯片](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-v0.1.10-darwin-arm64.tar.gz) · [Intel](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.10/antigravity2api-v0.1.10-darwin-amd64.tar.gz) | — |
+
+桌面版与命令行版启动后都在 `http://127.0.0.1:8017` 提供管理页面与 API，解压即用。
+
+#### 修复
+
+- 刷新额度或启动时遇到违反服务条款或需要验证的账户，停用或标为需要验证（[#2](https://github.com/Mag1cFall/Antigravity2API/issues/2)）
+- 上游只输出了思考就断开时重新生成；长输出续接后断开时从断点续接（[#5](https://github.com/Mag1cFall/Antigravity2API/issues/5)）
+- 上游以“账户受限”通知拒绝请求时，通知不再作为回答输出，该账户停用并换账户回答
+- 个别账户对某个模型返回 404 时换账户回答
+- 两个独立账户在同一时刻开始计时被当成共用额度，一个用完时另一个也被冷却
+- 本地时区变化后启动时请求账本重建卡住
+- 重试后被丢弃的尝试的用量重复计入账本
+- 函数调用缺少必填参数或调用了未声明的函数时重新生成；最后一次仍缺参数时原样交给客户端处理
+- 完整的函数调用之后上游以内容策略原因结束时，这次调用被丢弃并重新生成；现在按正常完成交付
+- Gemini 流式响应的心跳改为官方 SDK 会跳过的空帧，Google Gen AI Go SDK 长时间等待后不再断开
+- 客户端改写过上一轮函数调用的对话，计数多算上一轮的思考
+- 用量页筛选不出账户为空的记录
+- 通过 HTTP 远程访问管理端时复制按钮没有反应
+- 管理端与服务的连接断开重连后日志页被清空
+- 窄屏下搜索框的清空按钮压住输入的文字
+- 窗口所在的显示器断开后，从托盘打开的窗口仍在原位置，看不到
+
+#### 拒绝句规则
+
+- 上游会拒绝的句子放在规则文件 `rules/rejected.txt`，服务启动时与每小时从 GitHub 取用最新版本，规则更新不需要升级软件；设置页可以查看当前规则、立即检查更新，并添加自己的规则
+- 补入 omp 打开全部工具后的 3 句与 OpenCode 使用 Claude 模型时的 1 句，这些客户端的请求不再返回 429
+
+#### 会话与调度
+
+- 原样重发、回退改写、改写中间消息，以及中途改变系统提示或工具声明（omp 挂载技能、压缩上下文）的请求都留在原会话，上游缓存继续命中（[#6](https://github.com/Mag1cFall/Antigravity2API/issues/6)、[#7](https://github.com/Mag1cFall/Antigravity2API/pull/7)）
+- 同一会话的下一轮使用上一轮成功生成的账户
+- 新会话的伴随请求在后台进行，生成请求不等它们
+- 原请求与备用请求中先返回的一方在给出内容前断开时，由另一方接管
+- 跟进官方客户端 2.33.0：版本号、各主机的 HTTP 版本与会话事件
+
+#### 协议
+
+- Gemini Live API（WebSocket）：转写模型实时转写语音，Agent 模型以官方语音模式对话并输出 24 kHz 语音（[#4](https://github.com/Mag1cFall/Antigravity2API/issues/4)）
+- Gemini 接口在 `/v1` 下同样可用，Google Gen AI SDK 的默认配置可以直接使用
+- 公开接口的错误统一为英文，不含账户邮箱；管理端请求记录保留完整原因
+- 内容策略拦截的错误写明拦截发生的时刻与拦截前已输出的内容
+- 新会话第一轮的计数与上游相差 0.05%（v0.1.9 少算 15.5%）；Gemini 多轮请求的计数计入思考签名
+- 函数声明中 `allOf` 里数组的 `items`、没有类型的数字枚举与字符串上的数值约束按原意发给上游
+- 重新生成时，Responses 与 Interactions 流先结束已发出的思考项，最终结果只保留最后一次生成；Gemini 流的首段正文收到即写出
+
+#### 管理端
+
+- 单个账户导出与导入 JSON：导出前选择账户、可按账户分文件，导入前先识别文件中的账户
+- 账户详情列出该账户可用的模型，以及与它共用额度的账户
+- 用量页自定义时间范围，在日历上点选某天即为这一整天
+- 请求趋势图悬停查看各时段数据，拖选放大
+- 请求详情显示首个输出的耗时
+- 下载、文件保存与选择、确认与下拉都使用产品自己的界面；桌面版右键菜单提供剪切、复制、粘贴与全选
+
+#### 性能
+
+会话与调度：
+
+| 项目 | v0.1.9 | v0.1.10 |
+| --- | --- | --- |
+| 中途改变系统提示后第二轮的上游缓存 | 0 token | 15952 token |
+| 同一会话下一轮（上一轮换过账户） | 6.55 s | 1.64 s |
+| 新会话生成请求的前台等待 | 286–537 ms | 3–5 ms |
+| 启动后第一个新会话 | 1850 ms | 1533 ms |
+
+请求处理与管理端：
+
+| 项目 | v0.1.9 | v0.1.10 |
+| --- | --- | --- |
+| 720 KB 请求的编码 | 2.16 ms、1.98 MB | 0.96 ms、0.83 MB |
+| 启动时读取额度快照（12 个账户） | 21706 行、24.4 ms | 42 行、0.12 ms |
+| 时区变化后启动的账本重建 | 卡住 | 0.56 s |
+| 100 个请求 10 秒内结束时管理端每页重新读取 | 100 次 | 12 次 |
+
+#### 贡献者
+
+- @XUANJI233（[#7](https://github.com/Mag1cFall/Antigravity2API/pull/7)）
+
+**完整变更**：[v0.1.9...v0.1.10](https://github.com/Mag1cFall/Antigravity2API/compare/v0.1.9...v0.1.10)
+
+---
+
 ### 0.1.9-build.4 (2026-11-18)
 
 CI 工作流维护
