@@ -1,3 +1,19 @@
+### 8.0.79-1.14.10 (2026-11-19)
+
+#### Changelog
+
+- fix(antigravity): update Hub changelists to 2.33.0 and pin unmapped versions (f2b00303)
+- feat(home): enable home-backed codex continuity (edab7750)
+- Merge pull request #7693 from router-for-me/home (eff9e4c3)
+- fix(antigravity): enforce HTTP/1.1 without ALPN in model probe (d0c90bb5)
+- fix(codex): strip uniqueItems keyword from tool parameter schemas (6faa8d20)
+
+
+#### What's Changed
+* feat(home): enable home-backed codex continuity by @hkfires in https://github.com/router-for-me/CLIProxyAPI/pull/7693
+
+---
+
 ### 8.0.78-1.14.10 (2026-11-19)
 
 #### Changelog
