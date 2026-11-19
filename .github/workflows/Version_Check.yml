@@ -20,9 +20,11 @@ on:
       - main
     paths:
       - '**/Dockerfile'
+      - '**/patches/**'
       - '**/rootfs/**'
       - '**/config.yaml'
       - '**/version.yaml'
+      - '.github/scripts/**'
       - '.github/workflows/Release.yml'
       - '.github/workflows/Version_Check.yml'
 
