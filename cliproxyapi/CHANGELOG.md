@@ -1,3 +1,21 @@
+### 8.0.78 (2026-11-19)
+
+#### Changelog
+
+- fix(claude): defer OAuth token refresh during macOS maintenance wakes (5002fe72)
+- fix(translator): preserve non-string type schemas when converting Gemini tools to Claude (9b4f3f30)
+- fix(translator): preserve complete interactions calls in gemini streams (65864c04)
+- fix(translator): reassemble streamed interactions function arguments (9d60b36f)
+- fix(pluginhost): move reload test constructors out of cgo preamble (76bae1fe)
+- fix(config): emit v8 migration warnings only when persisted (61a4c5d0)
+- feat(claude): make OAuth org:create_api_key scope configurable (d0ee9ca7)
+- feat(plugin): add explicit Kind field to ResponseInterceptRequest (bd2e0a98)
+- fix(codex): convert Interactions system instructions to developer messages (56ab1549)
+- feat(models): add Gemini 4 Neon XHigh model registry entry (88ef67a1)
+- feat(codex): manage session instructions across requests (db7f177d)
+
+---
+
 ### 8.0.77-build.1 (2026-11-18)
 
 CI 工作流维护
