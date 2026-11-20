@@ -1,3 +1,37 @@
+### 2.2.0 (2026-11-20)
+
+- **OpenAI 兼容语音接口**：新增 `POST /v1/audio/speech` 与 `POST /v1/audio/transcriptions`。TTS 支持 WAV / PCM（上游不提供 MP3，请求 MP3 会明确返回 400），ASR 支持 multipart `file` / `audio` 字段与 3 MB 上限；`15052` 返回 413，`15053` 返回 400。
+- **音频能力开关**：媒体页新增「语音合成 TTS」「语音转写 ASR」，两者默认关闭；开启后使用文本号池账号，遵守 API Key 白名单、指定账号和号池边界。
+- **音频记账**：TTS / ASR 成功与失败行分别记录 `kind=tts/asr`、`cost_policy=audio`，运行日志也按对应 tag 归类。
+- **流内错误按失败终态处理**：Chat 流在已输出正文后收到上游 error 时，只发送错误帧，不再补正常 finish / usage / `[DONE]`；Responses 发送 `response.failed`；Anthropic Messages 发送原生 error 事件并记录失败。
+- **设备 token 请求头安全处理**：含 Unicode、换行或非法字符的设备 token 会被忽略，避免 `UnicodeEncodeError` 或请求头注入导致整个账号不可用。
+- **运营任务补全**：补齐星巴克协作、记者节福利、真实技能分享渠道、模板四事件组；技能分享必须拿到 `channel_id`、`share_code` 与链接，进度确认后才领奖。任务页将「本期 Buddy 加油站活动」改名为「Buddy 加油站签到」。
+- **文档精简**：README 的版本更新段只保留 `docs/CHANGELOG.md` 入口。
+- 全量测试：**312 个套件：234 个 Python + 78 个 JS，`312 passed, 0 failed, 0 skipped`**。
+
+<!-- release-download-block -->
+#### 下载说明
+
+- `workbuddy2api-hub-v2.2.0.zip`
+  - 通用便携版（Python 源码 + 看板 + 启动脚本）
+  - Windows / macOS / Linux
+  - 需要 Python 3.9+
+  - 内置 Windows amd64、macOS 与 Linux amd64 / arm64 的 Go/uTLS bridge
+  - 未设置 TLS 模式时默认 auto；桥不可用时自动回退 Python，无需安装 Go
+  - 解压后使用对应平台的启动脚本
+
+- `workbuddy2api_2.2.0-1_all.ipk`
+  - OpenWrt 的 opkg 系安装包
+  - 适用于对应受支持的旧版 OpenWrt 路线
+
+- `workbuddy2api-2.2.0-r1.apk`
+  - OpenWrt 25.x+ 的 apk-tools 安装包
+
+- `SHA256SUMS`
+  - Release 资产的 SHA-256 校验值
+
+---
+
 ### 2.1.3-build.2 (2026-11-18)
 
 CI 工作流维护
