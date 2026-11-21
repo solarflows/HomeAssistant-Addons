@@ -1,3 +1,10 @@
+### 1.133.0-build.2 (2026-11-21)
+
+Dockerfile + rootfs 维护
+- refactor(alist-tvbox): revert jlink to standard JRE for instant CDS startup & retain Xss256k with virtual threads
+
+---
+
 ### 1.133.0-build.1 (2026-11-21)
 
 Dockerfile + rootfs 维护
