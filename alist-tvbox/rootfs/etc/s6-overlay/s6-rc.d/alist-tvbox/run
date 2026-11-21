@@ -30,13 +30,13 @@ fi
 # 启动 Java 应用（前台运行，作为 S6 管理的主进程）
 LOW_MEMORY=$(bashio::config 'LOW_MEMORY' 'true')
 if [ "${LOW_MEMORY}" = "true" ]; then
-    # 低内存模式：SerialGC 规避多线程 GC 堆外开销，C1 JIT 规避 CodeCache 膨胀，Xss256k 压缩线程栈，开启字符串去重
-    JVM_OPTS="-Xms64M -Xmx512M -Xss256k -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=160M -XX:+UseStringDeduplication -XX:+ExitOnOutOfMemoryError"
-    bashio::log.info "AList-TvBox JVM 运行于低内存优化模式 (SerialGC, C1 JIT, Xss256k, StringDedup, Heap: 64M-512M)"
+    # 低内存模式：SerialGC 规避多线程 GC 堆外开销，C1 JIT 规避 CodeCache 膨胀，Xss256k 缩减线程栈
+    JVM_OPTS="-Xms64M -Xmx512M -Xss256k -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=160M -XX:+ExitOnOutOfMemoryError"
+    bashio::log.info "AList-TvBox JVM 运行于低内存优化模式 (SerialGC, C1 JIT, Xss256k, Heap: 64M-512M)"
 else
-    # 标准模式：允许更高堆上限与完整分层编译，优化线程栈与字符串去重
-    JVM_OPTS="-Xms128M -Xmx1024M -Xss384k -XX:+UseStringDeduplication -XX:+ExitOnOutOfMemoryError"
-    bashio::log.info "AList-TvBox JVM 运行于标准模式 (Xss384k, StringDedup, Heap: 128M-1024M)"
+    # 标准模式：允许更高堆上限与完整分层编译，Xss384k 优化线程栈
+    JVM_OPTS="-Xms128M -Xmx1024M -Xss384k -XX:+ExitOnOutOfMemoryError"
+    bashio::log.info "AList-TvBox JVM 运行于标准模式 (Xss384k, Heap: 128M-1024M)"
 fi
 
 USER_JVM_OPTS=$(bashio::config 'JVM_OPTS' '')

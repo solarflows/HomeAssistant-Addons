@@ -30,41 +30,15 @@ RUN --mount=type=bind,from=common,source=apply-patches.sh,target=/tmp/apply-patc
     sh /tmp/apply-patches.sh
 
 # ==============================================================================
-# [Stage 2/5] Extract Spring Boot Application Layers & Build Custom Micro-JRE
+# [Stage 2/5] Extract Spring Boot Application Layers (JAR 依赖分层提取)
 # ==============================================================================
-FROM eclipse-temurin:21-jdk AS app-builder
+FROM eclipse-temurin:21-jre AS app-builder
 
 ARG ALIST_TVBOX_VERSION
 
 ADD https://github.com/power721/alist-tvbox/releases/download/${ALIST_TVBOX_VERSION}/alist-tvbox-1.0.jar /tmp/app.jar
 RUN java -Djarmode=tools -jar /tmp/app.jar extract --layers --launcher --destination /extracted 2>/dev/null \
  || java -Djarmode=layertools -jar /tmp/app.jar extract --destination /extracted
-
-# 自动化依赖分析与轻量定制 JRE 构建 (jdeps 静态扫描 + 核心安全/网络协议基石兜底)
-RUN set -e; \
-    echo "=== Running jdeps automatic dependency analysis ==="; \
-    DETECTED_MODULES=$(jdeps \
-        --multi-release 21 \
-        --ignore-missing-deps \
-        --print-module-deps \
-        --class-path '/extracted/dependencies/BOOT-INF/lib/*:/extracted/snapshot-dependencies/BOOT-INF/lib/*' \
-        --recursive \
-        /extracted/application/BOOT-INF/classes 2>/dev/null || true); \
-    echo "--- jdeps detected modules: ${DETECTED_MODULES} ---"; \
-    SAFE_EXTRAS="jdk.crypto.ec,jdk.crypto.cryptoki,jdk.localedata,jdk.management,jdk.naming.dns,jdk.unsupported"; \
-    if [ -n "${DETECTED_MODULES}" ]; then \
-        MODULES="${DETECTED_MODULES},${SAFE_EXTRAS}"; \
-    else \
-        MODULES="java.base,java.compiler,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.transaction.xa,java.xml,${SAFE_EXTRAS}"; \
-    fi; \
-    echo "--- Building custom JRE via jlink with modules: ${MODULES} ---"; \
-    jlink \
-        --add-modules "${MODULES}" \
-        --strip-debug \
-        --no-man-pages \
-        --no-header-files \
-        --compress=2 \
-        --output /opt/jre
 
 # ==============================================================================
 # [Stage 3/5] Extract AList Binary & Base Data (AList 内核提取)
@@ -90,9 +64,10 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 
 ARG TARGETARCH
 
-# --- 5.1 System Packages & Custom JRE ---
+# --- 5.1 System Packages & JRE ---
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        openjdk-21-jre-headless \
         nginx \
         curl \
         wget \
@@ -105,11 +80,9 @@ RUN apt-get update \
     && rm -f /etc/nginx/sites-enabled/default \
     && (nginx -t && nginx -s stop 2>/dev/null || true)
 
-# 复制 Stage 2 自动裁剪的 Micro-JRE 并桥接路径（兼容上游硬编码 /jre/bin/java）
-COPY --from=app-builder /opt/jre /opt/jre
+# 上游 init-xiaoya.sh 硬编码 /jre/bin/java 和 /h2-2.1.214.jar
 RUN mkdir -p /jre/bin \
-    && ln -sf /opt/jre/bin/java /jre/bin/java \
-    && ln -sf /opt/jre/bin/java /usr/local/bin/java \
+    && ln -sf /usr/lib/jvm/java-21-openjdk-${TARGETARCH}/bin/java /jre/bin/java \
     && curl -fsSL "https://repo1.maven.org/maven2/com/h2database/h2/2.1.214/h2-2.1.214.jar" -o /h2-2.1.214.jar
 
 # --- 5.2 Application Artifacts & Binaries ---
@@ -155,7 +128,7 @@ RUN chmod a+x /etc/cont-init.d/*.sh /etc/s6-overlay/s6-rc.d/*/run /etc/s6-overla
     && chmod +x /docker/scripts/*.sh
 
 # --- 5.4 Network & Healthcheck ---
-ENV JAVA_HOME=/opt/jre \
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-${TARGETARCH} \
     MEM_OPT="-Xmx512M" \
     ALIST_PORT=5344 \
     INSTALL=xiaoya
