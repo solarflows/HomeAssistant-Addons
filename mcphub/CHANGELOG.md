@@ -1,3 +1,53 @@
+### 1.3.0 (2026-11-21)
+
+#### Summary
+
+MCPHub v1.3.0 introduces two major capabilities. **🧩 Agent Skills** lets administrators import and publish multi-file skills on global or group MCP endpoints, where compatible clients can discover and load them. **📁 File Staging** lets supported stdio tools work with uploaded client files and return generated files through one-time download links. This release also adds server tags with search and filtering and fixes bearer key scope enforcement on OpenAPI routes.
+
+#### Features
+
+- **🧩 Agent Skills over MCP** — Import skills from local folders, GitHub, or skills.sh and publish them to global or group MCP endpoints. by @samanhappy in https://github.com/samanhappy/mcphub/pull/1508
+- **📁 File Staging** — Upload files through browser links, manage staging in the dashboard, and access staging tools through $smart. by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1513
+- feat: add server tags with search and a tag filter by @cogalanemre in https://github.com/samanhappy/mcphub/pull/1507
+
+#### Fixes
+
+- fix: honor bearer key scopes on OpenAPI routes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1510
+- fix(staging): resolve shared credential targets before runtime version by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1512
+- fix(ui): keep language menu labels on one line by @samanhappy in https://github.com/samanhappy/mcphub/pull/1515
+
+#### 摘要
+
+MCPHub v1.3.0 带来两项主要能力。**🧩 Agent Skills** 支持管理员导入多文件技能，并发布到全局或分组 MCP 端点，供兼容客户端发现和加载。**📁 File Staging（文件暂存）** 让受支持的 stdio 工具处理客户端上传的文件，并通过一次性下载链接交付生成的文件。本版本还新增了服务器标签搜索与筛选，并修复了 OpenAPI 路由的 Bearer Key 权限校验。
+
+#### 功能
+
+- **🧩 Agent Skills**：从本地目录、GitHub 或 skills.sh 导入技能，并发布到全局或分组 MCP 端点。 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1508
+- **📁 File Staging（文件暂存）**：支持通过浏览器链接上传文件，在管理界面配置暂存，并通过 `$smart` 调用暂存工具。 by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1513
+- 新增服务器标签，支持搜索和按标签筛选 by @cogalanemre in https://github.com/samanhappy/mcphub/pull/1507
+
+#### 修复
+
+- 让 OpenAPI 路由遵守 Bearer Key 的权限范围 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1510
+- 在确定运行时版本前解析 Staging 的共享凭据目标 by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1512
+- 语言菜单标签保持单行显示 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1515
+
+#### New Contributors
+
+- @cogalanemre made their first contribution in #1507
+
+#### References
+
+- fix(ui): keep language menu labels on one line by @samanhappy in https://github.com/samanhappy/mcphub/pull/1515
+- feat(staging): browser upload links, settings UI, and $smart exposure (#1056) by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1513
+- fix(staging): resolve shared credential targets before runtime version by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1512
+- fix: honor bearer key scopes on OpenAPI routes by @samanhappy in https://github.com/samanhappy/mcphub/pull/1510
+- feat: host and publish Agent Skills over MCP by @samanhappy in https://github.com/samanhappy/mcphub/pull/1508
+- feat: add server tags with search and a tag filter by @cogalanemre in https://github.com/samanhappy/mcphub/pull/1507
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.2.6...v1.3.0
+
+---
+
 ### 1.2.6 (2026-11-18)
 
 #### Summary
