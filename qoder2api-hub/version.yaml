@@ -1,5 +1,5 @@
 # qoder2api-hub 版本检查配置
-version: "1.9.12"
+version: "1.9.13"
 source: github
 repo: shuishuipingan/qoder2api-hub
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "01ecd569d1586563ad7a5fa26d2aff043f8b1309"
+  file_sha: "c544780186434db3fe3927ac18f0aadc2505426a"
   build_num: 0
