@@ -1,3 +1,10 @@
+### 1.133.0-build.1 (2026-11-21)
+
+Dockerfile + rootfs 维护
+- feat(alist-tvbox): integrate jdeps auto-scan + jlink custom Micro-JRE and optimize JVM runtime footprint
+
+---
+
 ### 1.133.0 (2026-11-18)
 
 #### Release Notes - 1.133.0
