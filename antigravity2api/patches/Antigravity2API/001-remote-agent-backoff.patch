@@ -12,24 +12,24 @@ Content-Transfer-Encoding: 8bit
 
 Co-Authored-By: Claude Code <[EMAIL]>
 ---
- internal/antigravity/companion.go | 33 +++++++++++++++++++++++++++----
+ internal/antigravity/companion.go | 31 ++++++++++++++++++++++++++-----
  internal/antigravity/hub.go       |  3 +++
- 2 files changed, 32 insertions(+), 4 deletions(-)
+ 2 files changed, 29 insertions(+), 5 deletions(-)
 
 diff --git a/internal/antigravity/companion.go b/internal/antigravity/companion.go
-index 6ce9722..ed2872d 100644
+index 58e66fe..6ab5e1b 100644
 --- a/internal/antigravity/companion.go
 +++ b/internal/antigravity/companion.go
-@@ -149,7 +149,7 @@ const (
+@@ -151,7 +151,7 @@ const (
  // loginLists 为官方 language_server 登录后读完模型目录并发读取的远程项目与会话列表
  var loginLists = []string{remoteProjects, remoteConversations}
  
--// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists 与插件市场目录（官方 2.33.0 登录序列），目录读完后记录读取事件
-+// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists 与插件市场目录（官方 2.33.0 登录序列），目录读完后记录读取事件；任一列表返回 REMOTE_AGENT_NOT_AVAILABLE 时记下账户没有远程 agent
+-// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists 与插件市场目录（官方 2.34.0 登录序列），目录读完后记录读取事件
++// listRemotes 记下本虚拟进程轮询远程列表，并在后台于 32–112 ms 后并发读取 lists 与插件市场目录（官方 2.34.0 登录序列），目录读完后记录读取事件；任一列表返回 REMOTE_AGENT_NOT_AVAILABLE 时记下账户没有远程 agent
  func (c *Client) listRemotes(ctx context.Context, lists []string) {
  	c.mu.Lock()
  	c.hub.remote = true
-@@ -160,7 +160,13 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+@@ -162,19 +162,32 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
  		}
  		var group sync.WaitGroup
  		for _, list := range lists {
@@ -42,9 +42,8 @@ index 6ce9722..ed2872d 100644
 +				}
 +			})
  		}
- 		group.Go(func() {
- 			if c.readMarketplaces(ctx) {
-@@ -171,12 +177,19 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+ 		group.Go(func() { c.warmMarketplaces(ctx) })
+ 		group.Wait()
  	}()
  }
  
@@ -65,7 +64,7 @@ index 6ce9722..ed2872d 100644
  func (c *Client) pollRemote(ctx context.Context, list string, period time.Duration) {
  	wait, backoff := period, remoteBackoff
  	for {
-@@ -185,7 +198,19 @@ func (c *Client) pollRemote(ctx context.Context, list string, period time.Durati
+@@ -183,7 +196,19 @@ func (c *Client) pollRemote(ctx context.Context, list string, period time.Durati
  		case <-ctx.Done():
  			return
  		}
@@ -87,7 +86,7 @@ index 6ce9722..ed2872d 100644
  			continue
  		}
 diff --git a/internal/antigravity/hub.go b/internal/antigravity/hub.go
-index 10bc55d..0bd1fdc 100644
+index 44923cc..42d1cca 100644
 --- a/internal/antigravity/hub.go
 +++ b/internal/antigravity/hub.go
 @@ -64,6 +64,9 @@ type hub struct {
