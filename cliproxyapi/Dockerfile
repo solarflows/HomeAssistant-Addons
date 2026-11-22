@@ -15,11 +15,12 @@ LABEL org.opencontainers.image.source="https://github.com/solarflows/HomeAssista
 
 ARG TARGETARCH
 
-# 运行时依赖: curl(健康检查/下载)
+# 运行时依赖: curl(健康检查/下载), ca-certificates, haproxy(Ingress轻量反代)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
         ca-certificates \
+        haproxy \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- 层1: CPAMP 管理面板种子（仅 PANEL_VERSION 变更时重建此层）----
@@ -35,7 +36,8 @@ RUN test -n "${PANEL_VERSION}" || { echo "PANEL_VERSION is required"; exit 1; } 
         || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://ghfast.top/${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
         || curl -fsSL -A "Mozilla/5.0" --connect-timeout 20 --max-time 180 --retry 3 --retry-delay 5 "https://mirror.ghproxy.com/${PANEL_URL}" -o /opt/cliproxyapi-seed/management.html \
     ) \
-    && test -s /opt/cliproxyapi-seed/management.html
+    && test -s /opt/cliproxyapi-seed/management.html \
+    && sed -i 's|ss=()=>{try{let{protocol:e,hostname:t,port:n}=window.location;return rs(`${e}//${t}${n?`:${n}`:``}`)}|ss=()=>{try{let{protocol:e,hostname:t,port:n,pathname:m}=window.location;let p=m.replace(/\\/management\\.html.*/i,``);return rs(`${e}//${t}${n?`:${n}`:``}${p}`)}|g' /opt/cliproxyapi-seed/management.html
 
 # ---- 层2: CPA 二进制（CPA_VERSION 变更频繁，放最后：上游发版仅重建此层及之后）----
 # 默认 Linux 构建：支持动态插件，GLIBC 2.17 基线
@@ -70,8 +72,8 @@ ENV WRITABLE_PATH=/data/cliproxyapi
 # 管理面板缓存目录（持久化到 /data，跨 addon 更新保留）
 ENV MANAGEMENT_STATIC_PATH=/data/cliproxyapi/static
 
-# 端口
-EXPOSE 8317/tcp
+# 端口 (8317=原生API/直连面板, 8071=Ingress轻量反代)
+EXPOSE 8317/tcp 8071/tcp
 
 # Healthcheck（上游原生 /healthz 端点）
 HEALTHCHECK --interval=30s --start-period=30s --timeout=5s --retries=3 \

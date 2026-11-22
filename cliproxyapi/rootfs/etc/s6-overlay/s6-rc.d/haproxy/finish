@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# HAProxy 退出处理
+# ==============================================================================
+EXIT_CODE="${1:-0}"
+SIGNAL="${2:-0}"
+bashio::log.info "HAProxy exited with code ${EXIT_CODE} (signal: ${SIGNAL})"

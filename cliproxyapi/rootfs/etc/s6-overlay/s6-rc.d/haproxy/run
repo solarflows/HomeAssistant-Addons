@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# HAProxy Ingress 反向代理轻量服务 (S6 longrun)
+# ==============================================================================
+bashio::log.info "Starting HAProxy Ingress router on port 8071..."
+exec haproxy -f /etc/haproxy/haproxy.cfg -db

@@ -12,6 +12,8 @@ arch:
   - aarch64
   - amd64
 webui: "[PROTO:http]://[HOST]:[PORT:8317]/management.html"
+ingress: true
+ingress_port: 8071
 ports:
   8317/tcp: 8317
   1455/tcp: null

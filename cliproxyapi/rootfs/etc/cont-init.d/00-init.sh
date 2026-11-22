@@ -272,4 +272,9 @@ if [ ! -s "${DATA_DIR}/static/management.html" ]; then
     bashio::log.info "已从镜像种子恢复 CPAMP 管理面板（联网后将自动检查更新）"
 fi
 
+# 适配 Ingress 动态子路径（检测并修正前端获取相对 Base 路径，兼容直接端口直连）
+if [ -s "${DATA_DIR}/static/management.html" ]; then
+    sed -i 's|ss=()=>{try{let{protocol:e,hostname:t,port:n}=window.location;return rs(`${e}//${t}${n?`:${n}`:``}`)}|ss=()=>{try{let{protocol:e,hostname:t,port:n,pathname:m}=window.location;let p=m.replace(/\\/management\\.html.*/i,``);return rs(`${e}//${t}${n?`:${n}`:``}${p}`)}|g' "${DATA_DIR}/static/management.html" 2>/dev/null || true
+fi
+
 bashio::log.info "CLIProxyAPI initialization completed"
