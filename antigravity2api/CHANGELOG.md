@@ -1,3 +1,70 @@
+### 0.1.11 (2026-11-22)
+
+#### 下载
+
+| 系统 | 推荐 | 其他 |
+| --- | --- | --- |
+| Windows 10 及以上 | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-v0.1.11-windows-amd64.zip) | — |
+| macOS（Apple 芯片与 Intel） | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-desktop-v0.1.11-darwin-universal.tar.gz) | — |
+| Linux 桌面 | [x64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-desktop-v0.1.11-linux-amd64.tar.gz) · [ARM64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-desktop-v0.1.11-linux-arm64.tar.gz) | — |
+| Linux 服务器 | [x64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-v0.1.11-linux-amd64.tar.gz) · [ARM64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-v0.1.11-linux-arm64.tar.gz) | Docker 镜像 ghcr.io/mag1cfall/antigravity2api:v0.1.11 |
+| macOS 命令行 | [Apple 芯片](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-v0.1.11-darwin-arm64.tar.gz) · [Intel](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.11/antigravity2api-v0.1.11-darwin-amd64.tar.gz) | — |
+
+桌面版与命令行版启动后都在 `http://127.0.0.1:8017` 提供管理页面与 API，解压即用。
+
+#### 修复
+
+- Live 语音模式把问题转交智能体时服务崩溃退出（[#8](https://github.com/Mag1cFall/Antigravity2API/issues/8)）
+- 回答输出一部分后上游断开或异常结束时，以已输出的内容为前缀续写，客户端收到一份连贯的回答
+- 原请求与备用请求中先返回的一方被过滤时由另一方接管；重新生成时先换到其他空闲账户
+- 读额度时上游答复账户缺少产品许可，该账户停止接收请求并在管理端显示原因，之后读额度成功时自动恢复
+- 每周额度用完的额度组不再按 5 小时额度继续调度
+- 函数结果按调用 ID 对应到调用的函数名；换账户后为该账户另起会话
+- 发给 Claude 模型的超大图片（单边超过 8000 像素或超过 5 MiB）先缩小再发送，透明背景铺白
+- 函数参数与结果中的大整数 ID 原样发给上游
+- 账户受限通知出现后，同一请求不再发到其他账户
+- 上游按请求内容拒绝的 429 改为 400，并说明不是额度或限速问题
+
+#### 拒绝句规则
+
+- 补入 Hermes、pi、WorkBuddy、Claude Code（交互模式与不带逗号的身份句）、OpenCode 与结对编程提示中上游会拒绝的句子，这些客户端的请求不再返回 429
+- 以 `。`、`！`、`？` 结尾的句子和 Windows 换行（CRLF）的文本按整句删除
+
+#### 协议与客户端
+
+- Codex 的 `tool_search`（客户端执行）可用，加载的工具并入本次请求的声明
+- Anthropic 请求中 user 与 assistant 消息里的工具增删块（`tool_addition`、`tool_removal`）与 system 消息中的一样生效
+- Claude Code 与 OpenCode 以请求头给出的会话标识用于归入同一会话
+- 上下文超出模型上限时 Responses 返回 `context_length_exceeded`，Codex 据此自动压缩
+- 接受 gzip 与 zstd 压缩的请求体
+- 模型名带 `[1m]` 等上下文窗口后缀时按基础模型处理
+- Claude 模型不接受的函数调用 ID（含不允许的字符、过长或重复）自动改写，函数结果随之对应
+
+#### 管理端
+
+- 请求列表的失败记录写明原因类别（容量不足、额度用完、需要验证、内容被拒）与已试过的账户数
+- 在线更新前显示新版本的更新内容
+- 接入页 Claude Code 可单独指定 Fable 对应的模型；导出的 OpenCode 与 pi 配置带各模型可选的思考档位
+- 添加账户时可指定登录使用的代理，命令行为 `login --proxy`
+- API key 可设备注名，key 列表、接入页、用量与请求详情显示备注名
+- 从其他电脑访问管理端时，导出的文件由浏览器下载
+- 模型映射与代理池列表限高，可滚动
+
+#### 桌面版与命令行
+
+- 切换官方客户端账户时先正常关闭官方客户端，再以原参数重新打开
+- 命令行 `import` 读取官方 agy CLI 保存的凭据
+- 检查更新最多等待 10 秒；更新后新版本没有启动时提示查看日志目录；上次运行异常退出时，启动日志写出崩溃原因与 `crash.log` 路径
+
+#### 官方客户端对齐
+
+- 跟进官方客户端新版本的 Orchestrator 会话事件与智能体监控配置
+- macOS 上的终端命令自动执行策略与系统名与官方客户端一致
+
+**完整变更**：[v0.1.10...v0.1.11](https://github.com/Mag1cFall/Antigravity2API/compare/v0.1.10...v0.1.11)
+
+---
+
 ### 0.1.10 (2026-11-19)
 
 #### 下载
