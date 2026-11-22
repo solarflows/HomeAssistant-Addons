@@ -1,3 +1,10 @@
+### 8.1.0-build.2 (2026-11-22)
+
+rootfs 维护
+- fix(cliproxyapi): auto-generate api key to prevent safe-mode block and redirect ingress to panel
+
+---
+
 ### 8.1.0-build.1 (2026-11-22)
 
 Dockerfile + rootfs 维护
