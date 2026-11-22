@@ -1,6 +1,6 @@
 name: AList-TvBox
 slug: alist-tvbox
-version: "1.134.0"
+version: "1.136.0"
 image: ghcr.io/solarflows/alist-tvbox
 description: "AList-TvBox 影视聚合与内置 AList 内核一体化服务（支持网盘挂载、播单管理、多源搜索与 Nginx 网关）"
 url: https://github.com/power721/alist-tvbox
