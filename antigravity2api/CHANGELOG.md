@@ -1,3 +1,52 @@
+### 0.1.12 (2026-11-22)
+
+#### 下载
+
+| 系统 | 推荐 | 其他 |
+| --- | --- | --- |
+| Windows 10 及以上 | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-v0.1.12-windows-amd64.zip) | — |
+| macOS（Apple 芯片与 Intel） | [桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-desktop-v0.1.12-darwin-universal.tar.gz) | — |
+| Linux 桌面 | [x64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-desktop-v0.1.12-linux-amd64.tar.gz) · [ARM64 桌面版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-desktop-v0.1.12-linux-arm64.tar.gz) | — |
+| Linux 服务器 | [x64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-v0.1.12-linux-amd64.tar.gz) · [ARM64 命令行版](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-v0.1.12-linux-arm64.tar.gz) | Docker 镜像 ghcr.io/mag1cfall/antigravity2api:v0.1.12 |
+| macOS 命令行 | [Apple 芯片](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-v0.1.12-darwin-arm64.tar.gz) · [Intel](https://github.com/Mag1cFall/Antigravity2API/releases/download/v0.1.12/antigravity2api-v0.1.12-darwin-amd64.tar.gz) | — |
+
+桌面版与命令行版启动后都在 `http://127.0.0.1:8017` 提供管理页面与 API，解压即用。
+
+#### 修复
+
+- Windows 上“切换官方客户端账户”不再等满 10 秒，重启后的官方客户端保持原来的启动参数（适配官方客户端 2.32 起的无窗口 sidecar 进程）
+- 流式输出正文之后，缺少必填参数的函数调用原样交给客户端，不再以 502 结束（v0.1.10 起的回归）
+- 备用请求胜出或接管时，请求记录中的账户、会话与步序取自同一次尝试
+- `MODEL_MAPPING` 别名带 `[1m]` 这类上下文窗口后缀时可以正常匹配
+- 代理或网络无响应时更快判定上游连接失效
+- 更新确认框中的列表符号与行内代码圆角正常显示
+
+#### 协议与客户端
+
+- Gemini 接口输出 `citationMetadata.citationSources`
+- `/v1/images/edits` 接受 JSON 请求体，三种图片来源的遮罩都接受 GIF
+- 工具 Schema 兼容 Draft-07 元组 `items`、`$ref` 与同级约束，以及 Claude 族不接受的属性键
+- 首字超时备用请求的默认模型加入 `gemini-4-carbon`
+
+#### 官方客户端对齐
+
+- 跟进官方客户端 2.34.0：更新客户端版本、构建号、登录前与会话伴随事件、系统提示原文与实时描述符，冷启动时预读插件市场目录，同步新增的 `fetchLicenses` 伴随请求
+
+#### 性能
+
+| 场景 | v0.1.11 | v0.1.12 |
+| --- | --- | --- |
+| 切换官方客户端账户（Windows，官方 2.34.0 带常驻 sidecar） | 10.9 s | 3.1 s |
+| 代理无响应时判定上游连接失效 | 165 s | 45 s |
+
+#### 文档
+
+- 重写中英文 README 与四份开发文档，拆分长段与长表格，内容与当前实现一致
+
+**完整变更**：[v0.1.11...v0.1.12](https://github.com/Mag1cFall/Antigravity2API/compare/v0.1.11...v0.1.12)
+
+---
+
 ### 0.1.11 (2026-11-22)
 
 #### 下载
