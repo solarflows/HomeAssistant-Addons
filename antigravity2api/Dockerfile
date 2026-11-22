@@ -35,7 +35,7 @@ FROM --platform=$BUILDPLATFORM node:22-bookworm-slim AS web-builder
 
 WORKDIR /src/web
 RUN corepack enable
-COPY --from=source /src/Antigravity2API/web/package.json /src/Antigravity2API/web/pnpm-lock.yaml /src/Antigravity2API/web/pnpm-workspace.yaml ./
+COPY --from=source /src/Antigravity2API/web/package.json /src/Antigravity2API/web/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY --from=source /src/Antigravity2API/web/ ./
 COPY --from=source /src/Antigravity2API/internal/i18n/messages/ /src/internal/i18n/messages/

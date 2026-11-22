@@ -17,10 +17,10 @@ Co-Authored-By: Claude Code <[EMAIL]>
  2 files changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/internal/antigravity/companion.go b/internal/antigravity/companion.go
-index c45fad9..a4ab485 100644
+index 6ce9722..ed2872d 100644
 --- a/internal/antigravity/companion.go
 +++ b/internal/antigravity/companion.go
-@@ -146,7 +146,7 @@ const (
+@@ -149,7 +149,7 @@ const (
  // loginLists 为官方 language_server 登录后读完模型目录并发读取的远程项目与会话列表
  var loginLists = []string{remoteProjects, remoteConversations}
  
@@ -29,7 +29,7 @@ index c45fad9..a4ab485 100644
  func (c *Client) listRemotes(ctx context.Context, lists []string) {
  	c.mu.Lock()
  	c.hub.remote = true
-@@ -157,7 +157,13 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+@@ -160,7 +160,13 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
  		}
  		var group sync.WaitGroup
  		for _, list := range lists {
@@ -44,7 +44,7 @@ index c45fad9..a4ab485 100644
  		}
  		group.Go(func() {
  			if c.readMarketplaces(ctx) {
-@@ -168,12 +174,19 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
+@@ -171,12 +177,19 @@ func (c *Client) listRemotes(ctx context.Context, lists []string) {
  	}()
  }
  
@@ -65,7 +65,7 @@ index c45fad9..a4ab485 100644
  func (c *Client) pollRemote(ctx context.Context, list string, period time.Duration) {
  	wait, backoff := period, remoteBackoff
  	for {
-@@ -182,7 +195,19 @@ func (c *Client) pollRemote(ctx context.Context, list string, period time.Durati
+@@ -185,7 +198,19 @@ func (c *Client) pollRemote(ctx context.Context, list string, period time.Durati
  		case <-ctx.Done():
  			return
  		}
@@ -87,10 +87,10 @@ index c45fad9..a4ab485 100644
  			continue
  		}
 diff --git a/internal/antigravity/hub.go b/internal/antigravity/hub.go
-index 8ed5285..128d7d9 100644
+index 10bc55d..0bd1fdc 100644
 --- a/internal/antigravity/hub.go
 +++ b/internal/antigravity/hub.go
-@@ -62,6 +62,9 @@ type hub struct {
+@@ -64,6 +64,9 @@ type hub struct {
  	market    []marketplaceEvent
  	plugins   bool
  	remote    bool
@@ -99,6 +99,6 @@ index 8ed5285..128d7d9 100644
 +	remoteBlocked bool
  }
  
- // eventShape 表示 clearcut 事件的外层形态：blank 为真时公共参数留空，flags 为真时附实验开关，empty 为真时附空的开关字段，ui 为真时带界面会话与事件时刻，env 为真时载荷带客户端环境，compared 为真时开关取对照用的 listExperiments 开关
+ // eventShape 控制 clearcut 事件扩展的公共参数、实验开关、界面字段与环境字段
 -- 
 2.54.0.windows.1
