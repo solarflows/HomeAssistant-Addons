@@ -149,6 +149,11 @@ if [ "${FIRST_START}" = "1" ]; then
         bashio::log.warning "已生成随机管理密钥: ${MANAGEMENT_KEY}（保存在 ${CONFIG_DIR}/management_key.txt，用于登录管理面板）"
     fi
 
+    INITIAL_API_KEY="sk-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    printf '%s' "${INITIAL_API_KEY}" > "${CONFIG_DIR}/api_key.txt"
+    chmod 600 "${CONFIG_DIR}/api_key.txt"
+    bashio::log.info "已生成随机客户端 API Key: ${INITIAL_API_KEY}（保存在 ${CONFIG_DIR}/api_key.txt，解除安全模式）"
+
     # YAML 双引号字符串转义（防注入/解析失败）
     MANAGEMENT_KEY_ESC=${MANAGEMENT_KEY//\\/\\\\}
     MANAGEMENT_KEY_ESC=${MANAGEMENT_KEY_ESC//\"/\\\"}
@@ -178,10 +183,12 @@ YAML
         printf '  secret-key: "%s"\n' "${MANAGEMENT_KEY_ESC}"
         cat << 'YAML'
 
-# 客户端访问密钥（占位符会触发 CPA 安全模式，请在管理面板中替换为真实密钥）
+# 客户端访问密钥（自动注入强密钥以解除安全拦截模式，可在管理面板按需维护）
 access:
   api-keys:
-    - "your-api-key-1"
+YAML
+        printf '    - "%s"\n' "${INITIAL_API_KEY}"
+        cat << 'YAML'
 
 # OAuth/文件凭据目录（持久化，随 HA 备份）
 oauth:
@@ -217,6 +224,18 @@ HAS_PORT=$(awk '
 if [ -z "${HAS_PORT}" ]; then
     set_yaml_scalar "${CONFIG_FILE}" server port 8317
     bashio::log.info "已补写 server.port: 8317（修复 :0 随机端口绑定）"
+fi
+
+################
+# SAFE MODE HEAL #
+################
+# 存量配置自愈：若仍包含模板密钥 your-api-key-1，自动生成随机强密钥替换以解除 Safe Mode 阻断
+if grep -q 'your-api-key-1' "${CONFIG_FILE}" 2>/dev/null; then
+    AUTO_API_KEY="sk-$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    sed -i "s/your-api-key-1/${AUTO_API_KEY}/g" "${CONFIG_FILE}"
+    printf '%s' "${AUTO_API_KEY}" > "${CONFIG_DIR}/api_key.txt"
+    chmod 600 "${CONFIG_DIR}/api_key.txt"
+    bashio::log.warning "检测到模板密钥 your-api-key-1，已自动自愈替换为: ${AUTO_API_KEY}（安全拦截模式已自动解除）"
 fi
 
 ################
