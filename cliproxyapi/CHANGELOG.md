@@ -1,3 +1,10 @@
+### 8.1.0-build.1 (2026-11-22)
+
+Dockerfile + rootfs 维护
+- feat(cliproxyapi): add lightweight haproxy ingress support while preserving direct native ports
+
+---
+
 ### 8.1.0 (2026-11-21)
 
 #### Changelog
