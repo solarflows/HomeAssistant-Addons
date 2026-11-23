@@ -1,3 +1,43 @@
+### 2.2.2 (2026-11-23)
+
+- **CodeArts 余额汇总接口**：新增 `GET /v1/balance-summary`，支持 `Authorization: Bearer` 与 `?key=`，仅合计该 Key 允许使用的启用账号缓存积分（快照缺失返回 `null`，不主动打上游刷新）。
+- **国内版出站身份与面板默认值**：国内版桌面与内置 CLI 默认版本同步至 `WorkBuddy 5.11.3 / CLI 2.176.0`，设置页分别显示国内与国际内置 CLI 默认值；已有用户覆盖保持不变。
+- **计费头宽松清洗增强**：开启 `WB_SANITIZE_LOOSE_BILLING=1` 时，首行超过 400 字符但以 `x-anthropic-billing-(?:header|hdr):` 开头时，只剥离行首计费头与紧随的 `cc_*/cch=` 键值对，保留同行子代理提示词正文；默认严格模式维持不变。
+- **控制台交互与密码框修复**：登录与修改密码确认框在隐藏时保持 `disabled` 且离开设置页自动关闭并清空；导航与页面将「自动化」更名为「自动化任务」、签到与活跃记录迁入「自动化任务」、号池工具默认折叠、账号/模型表格表头吸顶、模型清单支持保存勾选与 Pro Only 账号自适应默认勾选、每日任务拍平展示，并修复 `MODELS_DATA` 隔离读取。
+- **语音接口**：TTS 缺少结束帧时按截断处理。ASR 支持 `response_format=json/text`，其他格式返回 400。
+- **Responses 回放**：合并同轮说明、可见思考和工具调用，尊重最终回复及压缩边界。跳过托管工具回执和不可解的压缩密文，并限制转发摘要的大小。
+- **上游错误**：流内 `11102` 按请求错误处理，非流式接口返回 400，流式接口发送对应协议的终止错误。
+- **工具 Schema 与错误分类**：保留正则约束并转换 Go 校验器不识别的 Unicode 转义。`11103`、`11152` 按请求错误处理，网页抓取的 `15021`、`15022` 分别报告目标站策略拒绝和连接失败。
+- **网页工具统计**：搜索、抓取和组合接口记入请求台账，带请求 ID、Key 标识、状态和耗时，积分记为 0。
+- **便携更新**：下载完整后才原子替换更新包，下载中断自动清理临时文件。
+- **启动预热刷新全部账号**（PR #21）：余额刷新器首次 tick 改为 `warm_sweep()`，逐个（默认间隔 2 秒）异步刷新全部可用账号并跳过禁用/冷却账号，停止等待可中断；`WB_CREDITS_WARM_START=0` 关闭预热并保留原首轮单账号刷新行为。
+- **免费模型低余额保留线豁免**（PR #20）：在保留账号层 `free_models` fail-closed 边界的前提下，`free_models_by_realm()` 按 `CONFIRMED_FREE_MODEL_IDS`（`hy4flash-free` / `hy4free`）→ 内置快照 → 桌面缓存 → 活目录优先级叠加并支持更高层显式非零价格覆盖移除免费豁免，账号层大小写无关匹配 `self.free_models`。
+- **归档日志缓存修复**：修复 Windows NTFS 同刻时间片下 `wb_usage_io.rotate()` 新增段后未失效归档目录缓存导致的冷重建段遗漏。
+- 全量测试：**313 个套件：235 个 Python + 78 个 JS**。
+
+<!-- release-download-block -->
+#### 下载说明
+
+- `workbuddy2api-hub-v2.2.2.zip`
+  - 通用便携版（Python 源码 + 看板 + 启动脚本）
+  - Windows / macOS / Linux
+  - 需要 Python 3.9+
+  - 内置 Windows amd64、macOS 与 Linux amd64 / arm64 的 Go/uTLS bridge
+  - 未设置 TLS 模式时默认 auto；桥不可用时自动回退 Python，无需安装 Go
+  - 解压后使用对应平台的启动脚本
+
+- `workbuddy2api_2.2.2-1_all.ipk`
+  - OpenWrt 的 opkg 系安装包
+  - 适用于对应受支持的旧版 OpenWrt 路线
+
+- `workbuddy2api-2.2.2-r1.apk`
+  - OpenWrt 25.x+ 的 apk-tools 安装包
+
+- `SHA256SUMS`
+  - Release 资产的 SHA-256 校验值
+
+---
+
 ### 2.2.1 (2026-11-21)
 
 - **修复 Docker 镜像缺少 `wb_webgateway/`**：Dockerfile 只复制了 `wb_*.py`，网页工具网关在容器里会因 `No module named 'wb_webgateway'` 静默降级，`/health` 仍返回 200。镜像现在显式复制整个子包，并新增 Dockerfile 回归断言。
