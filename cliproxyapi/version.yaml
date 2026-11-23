@@ -1,7 +1,7 @@
 # cliproxyapi 版本检查配置
 # 主版本跟踪: router-for-me/CLIProxyAPI releases (tag_prefix "v")
 # dependencies: 支持监控任意 N 个副仓库组件，自动更新 build_args
-version: "8.1.1"
+version: "8.1.2"
 source: github
 repo: router-for-me/CLIProxyAPI
 build_args:
@@ -16,5 +16,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: ""
-  file_sha: "6d3e2d06b5105f06fb3952c56f939c2ef132e6db"
+  file_sha: "6a9521e389eea19a708eec62d26933ee3d02d4ba"
   build_num: 0
