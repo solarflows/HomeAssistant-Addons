@@ -1,3 +1,33 @@
+### 1.12.0 (2026-11-23)
+
+#### Highlights
+
+- **More supported challenges:** AWS WAF audio, Baxia NC sliders and DataDome audio, with bounded retries and clearance checks. The DataDome slider remains experimental and opt-in.
+- **Clearer CAPTCHA metrics:** per-solver attempts, solved, failed and success rate in the dashboard, plus CAPTCHA results on recent activity and failures.
+- **More reliable proxy and sessions:** sessionless `/v1` requests honor the configured proxy pool, repeated proxy requests reuse their browser session, Redis reconnects automatically, and disconnected proxy clients cancel scrape work.
+
+#### Major changes
+
+- 47c14b7: add AWS WAF audio CAPTCHA handling (#283).
+- ad66a79, f21d460: add Baxia NC support and handle access walls in default requests (#285, #305).
+- 3b9f013: add DataDome audio handling and language-aware transcription (#291).
+- 120aed2: show CAPTCHA results per solver in the dashboard (#286).
+- 077659e, 25c480f, 99150c6: preserve proxy routing, isolate MITM listener state and cancel disconnected scrapes (#295, #299, #306, #307).
+- 93ea0db, a4a3eee, 08d2a2c: restore Redis connectivity, reuse explicit-proxy sessions and flush MITM downloads before closing (#293, #296, #298, #300, #301, #304).
+- e5e39a7, f456126: include page content in structured MCP results and expose session-cache health and metrics (#294, #297, #302, #303).
+- 38e4b21, c0cfe6a: allow an explicit GeoIP address at startup and increase the default browser acquisition wait (#288, #289, #290).
+- 891c915: update compatible dependencies, apply node-forge/Nginx security patches and prepare release metadata.
+
+No data migration is required. Recreate the container and retain existing data volumes. Sessionless `/v1` requests now use `PROXY_URL` when configured; unavailable proxies do not fall back to direct traffic. The default browser acquisition wait increases from 15 to 30 seconds. The client remains at 0.1.0 and is not published to npm by this release.
+
+With the optional `wreq` transport, cancelling a stalled body read can leave its connection open until the request timeout. The separate upstream fix is not included; Bun remains the default transport.
+
+Thanks to @opastorello for the solvers, CAPTCHA dashboard and build/test improvements, and to @pbranly (#288), @thirstyraven (#293), @dolaresko (#294), @Hani-K (#295) and @hammamboumou (#296, #297, #298) for the reports and suggestions.
+
+**Full changelog:** https://github.com/germondai/trawl/compare/v1.11.1...v1.12.0
+
+---
+
 ### 1.11.1-build.5 (2026-11-18)
 
 CI 工作流维护
