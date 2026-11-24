@@ -1,3 +1,15 @@
+### 1.10.0 (2026-11-24)
+
+#### v1.10.0 — 独立网页抓取与 Anthropic 思考输出
+
+- 合并修正后的 PR #169（感谢 @blowingwind05）：WebFetch 可独立选用网关直连、Qoder 官方或管理员配置的 HTTP JSON 服务；默认沿用原行为。外部服务须报告实际最终 URL，并负责每次连接和重定向的公网限制。更换端点来源不会沿用旧密钥，临时环境覆盖不会写入持久设置。
+- 合并修正后的 PR #170（感谢 @zjzhang-cn）：普通和托管 Anthropic Messages 统一思考输出策略和用量；新增 `thinking_tokens` 并保留 `reasoning_tokens`。SSE 提前结束思考块再发送正文或工具，不为了迟来的思考阻塞首字。兼容块的空签名不是 Anthropic 原生签名。
+- 修复 #171 的网关侧缺陷：明确的 `Cannot find model` 模型解析拒绝不再重放、轮换或冷却账号；HTTP 与 SSE 都会保留失败结果，诊断不记录请求正文。没有修改用户或系统提示。
+
+[完整变更](https://github.com/shuishuipingan/qoder2api-hub/compare/v1.9.14...v1.10.0)
+
+---
+
 ### 1.9.14 (2026-11-23)
 
 #### v1.9.14 — Anthropic 网关联网工具
