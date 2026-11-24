@@ -1,5 +1,5 @@
 # workbuddy2api-hub 版本检查配置
-version: "2.2.2"
+version: "2.2.3"
 source: github
 repo: niyouqianma/workbuddy2api-hub
 build_args:
@@ -9,5 +9,5 @@ changelog:
   mode: prepend
 tracking:
   base_tag: "9.5.2"
-  file_sha: "6a9521e389eea19a708eec62d26933ee3d02d4ba"
+  file_sha: "013a0c8bac7fa014a6e8bc5ee53355dd738273f7"
   build_num: 0
