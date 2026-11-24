@@ -14,7 +14,8 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '17 */3 * * *'  # 每3小时运行一次（17分避开整点调度拥堵高峰）
+    # 每3小时运行一次（17分避开整点调度拥堵高峰）
+    - cron: '17 */3 * * *'
   push:
     branches:
       - main
