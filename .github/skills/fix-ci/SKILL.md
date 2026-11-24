@@ -13,7 +13,7 @@ Version_Check (3h 定时巡检 / push 变更触发 / 手动 dispatch) → workfl
 ## 工作流关键契约
 
 ### Version_Check.yml
-- **触发源**：`push`（限定核心构建文件与 workflow 路径）、定时任务（`cron: 0 */3 * * *`）与手动调度（`workflow_dispatch`）。
+- **触发源**：`push`（限定核心构建文件与 workflow 路径）、定时任务（`cron: 17 */3 * * *`）与手动调度（`workflow_dispatch`）。
 - **职责**：侦测上游 Release/Tag/Date/Commit/Asset 变更、多依赖组件更新、debian-base 底包变动及各插件自身构建文件改动，生成构建 matrix JSON。
 - **权限需求**：`contents: write, actions: write, packages: write`。
 - **防滚木死循环红线（独立指针隔离）**：
