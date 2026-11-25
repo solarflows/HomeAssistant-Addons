@@ -14,8 +14,8 @@ on:
         type: boolean
         default: false
   schedule:
-    # 每3小时运行一次（17分避开整点调度拥堵高峰）
-    - cron: '17 */3 * * *'
+    # 每8小时运行一次（UTC 01:17, 09:17, 17:17 -> 北京时间 09:17, 17:17, 01:17，避开整点拥堵）
+    - cron: '17 1,9,17 * * *'
   push:
     branches:
       - main
