@@ -1,3 +1,65 @@
+### 1.3.1 (2026-11-25)
+
+#### Summary
+
+MCPHub v1.3.1 makes the MCPHub Registry the default Market catalog, adds personal upstream OAuth during client sign-in, and ships a redesigned settings page, server add/edit modal, and navigation. It also fixes Market paging and Registry card polish, and stabilizes capability snapshot fingerprints.
+
+#### Features
+
+- Use MCPHub Registry as the default Market catalog by @samanhappy in https://github.com/samanhappy/mcphub/pull/1519
+- Redesign settings UI/UX with draft state and context split by @samanhappy in https://github.com/samanhappy/mcphub/pull/1521
+- Highlight newly discovered tools on the server list by @ykakade in https://github.com/samanhappy/mcphub/pull/1522
+- Complete personal upstream OAuth during client sign-in by @samanhappy in https://github.com/samanhappy/mcphub/pull/1546
+- Redesign server add/edit modal with segmented navigation by @samanhappy in https://github.com/samanhappy/mcphub/pull/1547
+- Reorganize sidebar menus, account popover, route guards, and modal portals by @samanhappy in https://github.com/samanhappy/mcphub/pull/1548
+
+#### Fixes
+
+- Refresh bundled market catalog and Elasticsearch settings by @samanhappy in https://github.com/samanhappy/mcphub/pull/1517
+- Persist Market page size preference across reloads by @samanhappy in https://github.com/samanhappy/mcphub/pull/1545
+- Polish Registry cards and pagination by @samanhappy in https://github.com/samanhappy/mcphub/pull/1549
+- Ignore inherited HOSTNAME in capability snapshot fingerprints by @11113127 in https://github.com/samanhappy/mcphub/pull/1551
+
+#### 摘要
+
+MCPHub v1.3.1 将 MCPHub Registry 设为默认的 Market 目录，支持在客户端登录时完成个人上游 OAuth，并带来重新设计的设置页面、服务器添加/编辑弹窗和导航。同时修复了 Market 分页与 Registry 卡片细节，并稳定了能力快照指纹。
+
+#### 功能
+
+- 使用 MCPHub Registry 作为默认 Market 目录 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1519
+- 重新设计设置页面的 UI/UX，支持草稿状态并拆分上下文 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1521
+- 在服务器列表中高亮新发现的工具 by @ykakade in https://github.com/samanhappy/mcphub/pull/1522
+- 在客户端登录时完成个人上游 OAuth by @samanhappy in https://github.com/samanhappy/mcphub/pull/1546
+- 重新设计服务器添加/编辑弹窗，采用分段导航 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1547
+- 重组侧边栏菜单、账户弹出层、路由守卫和弹窗挂载 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1548
+
+#### 修复
+
+- 刷新内置 Market 目录和 Elasticsearch 设置 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1517
+- 在刷新后保留 Market 每页数量偏好 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1545
+- 优化 Registry 卡片和分页 by @samanhappy in https://github.com/samanhappy/mcphub/pull/1549
+- 在能力快照指纹中忽略继承的 HOSTNAME by @11113127 in https://github.com/samanhappy/mcphub/pull/1551
+
+#### New Contributors
+
+- @ykakade made their first contribution in #1522
+
+#### References
+
+- fix: ignore inherited HOSTNAME in capability snapshot fingerprints by @11113127 in https://github.com/samanhappy/mcphub/pull/1551
+- fix(market): polish Registry cards and pagination by @samanhappy in https://github.com/samanhappy/mcphub/pull/1549
+- refactor(nav): reorganize sidebar menus, account popover, route guards, and modal portals by @samanhappy in https://github.com/samanhappy/mcphub/pull/1548
+- feat(servers): redesign server add/edit modal with segmented navigation by @samanhappy in https://github.com/samanhappy/mcphub/pull/1547
+- feat(oauth): complete personal upstream OAuth during client sign-in by @samanhappy in https://github.com/samanhappy/mcphub/pull/1546
+- fix(market): persist Market page size preference across reloads by @samanhappy in https://github.com/samanhappy/mcphub/pull/1545
+- feat(ui): highlight newly discovered tools on the server list by @ykakade in https://github.com/samanhappy/mcphub/pull/1522
+- feat(settings): redesign settings UI/UX, draft state, and context split by @samanhappy in https://github.com/samanhappy/mcphub/pull/1521
+- feat: use MCPHub Registry as the default Market catalog by @samanhappy in https://github.com/samanhappy/mcphub/pull/1519
+- fix: refresh bundled market catalog and Elasticsearch settings by @samanhappy in https://github.com/samanhappy/mcphub/pull/1517
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.3.0...v1.3.1
+
+---
+
 ### 1.3.0 (2026-11-21)
 
 #### Summary
