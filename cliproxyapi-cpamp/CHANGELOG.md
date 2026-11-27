@@ -1,3 +1,13 @@
+### 8.1.7-1.14.10 (2026-11-27)
+
+#### Changelog
+
+- test(pluginhost): align unix plugin reload test with fresh-image contract (830b9cac)
+- fix(gemini): place merged follow-up user parts before function responses (7fa52365)
+- fix(pluginhost): preserve scheduler routing across reconfigure, hot reload, and dir errors (47f18e4d)
+
+---
+
 ### 8.1.4-1.14.10 (2026-11-25)
 
 #### Changelog
