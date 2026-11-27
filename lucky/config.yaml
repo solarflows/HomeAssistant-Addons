@@ -1,6 +1,6 @@
 name: Lucky(万吉)
 slug: lucky
-version: "3.5.0-build.13"
+version: "3.5.0-build.14"
 image: ghcr.io/solarflows/lucky
 description: "全能内网穿透与网络工具箱（IPv6/IPv4 端口转发、动态域名 DDNS、反向代理、STUN 穿透与自动证书）"
 url: https://github.com/gdy666/lucky
