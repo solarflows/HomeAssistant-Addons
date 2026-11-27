@@ -1,6 +1,6 @@
 name: Uptime Kuma
 slug: uptime-kuma
-version: "2.5.12-build.2"
+version: "2.5.12-build.3"
 image: ghcr.io/solarflows/uptime-kuma
 description: "自托管服务可用性与状态页监控工具（内置 Chromium 浏览器检测、MariaDB 与多渠道告警通知）"
 url: https://github.com/louislam/uptime-kuma
