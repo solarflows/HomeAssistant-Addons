@@ -1,3 +1,39 @@
+### 2.2.7 (2026-11-27)
+
+- **全量备份与恢复**：在「设置 → 系统与维护」下载 ZIP，包含账号、网关设置、API Key、完整用量流水及历史归档、订阅桥数据。导入会校验 ZIP，确认后在下次重启时恢复。恢复前的数据会保留，中断或写入失败可回退。
+- **按模型估算积分消耗**：用量明细显示每百万 Token 的积分消耗、每积分对应的 Token 和扣分样本数。按所选区间内同时记录实际扣分与 Token 的成功对话计算，继续使用增量用量聚合。
+- **账号表列宽**：桌面账号列收窄为 184px，余量分给出口和积分列。
+- **网页签到测试**：固定重试测试使用的模型候选，避免模型目录缓存的变化造成 CI 误报。
+
+- **Claude 桌面版直连（PR #37）**：新增默认关闭的 `claude-*` 模型名前缀映射（`claude-opus*` → `deepseek-v4-pro`，`claude-sonnet*` / `claude-haiku*` → `deepseek-v4.1-flash`），覆盖 `/v1/messages`、`/v1/messages/count_tokens`、`/v1/responses`、`/v1/chat/completions` 四条入口；回显真实模型 ID，未知模型仍返回 400，API Key 白名单同时认客户端名与解析后的名。映射表可用 `CLAUDE_ALIAS_OPUS/SONNET/HAIKU`、`WB_CLAUDE_ALIASES` 或设置里的 `claude_aliases` 覆盖，`off` 关闭。
+- **推理强度归一化（默认关闭）**：客户端发来的 `xhigh` / `ultra` 归一化为上游的 `max`（Responses 的 `reasoning.effort` 与 Chat 的 `reasoning_effort` / `reasoningEffort` 都覆盖；模型自己声明该档位时保持原样，避免 `deepseek-v4-pro` 的 `xhigh` 被降级），Anthropic `thinking.budget_tokens` 的档位换算写在文档里；日志新增 `effort_from` / `effort_to`。表可用 `WB_EFFORT_ALIASES` 或设置里的 `effort_aliases` 覆盖，`off` 关闭。
+- 新增 `tests/_test_claude_model_alias.py`、`tests/_test_effort_alias.py` 与一键验收脚本 `scripts/acceptance_claude_effort.py`（假上游 + 真实网关链路，18 项断言）。文档见 [CLAUDE-DIRECT-AND-EFFORT.md](CLAUDE-DIRECT-AND-EFFORT.md)。
+- **API Key 累计积分额度（PR #39）**：在 Key 编辑区设置总额度或按剩余额度填，默认不限。统计增量读取归档和当前用量日志，已入账积分达到上限后，新对话、音频及图像 / 视频请求返回 403。已在途的请求可能超额，统计异常时放行。可用 `WB_KEY_CREDIT_TOTALS=0` 关闭统计。
+- 全量测试：**319 个套件：241 个 Python + 78 个 JS**。
+
+<!-- release-download-block -->
+#### 下载说明
+
+- `workbuddy2api-hub-v2.2.7.zip`
+  - 通用便携版（Python 源码 + 看板 + 启动脚本）
+  - Windows / macOS / Linux
+  - 需要 Python 3.9+
+  - 内置 Windows amd64、macOS 与 Linux amd64 / arm64 的 Go/uTLS bridge
+  - 未设置 TLS 模式时默认 auto；桥不可用时自动回退 Python，无需安装 Go
+  - 解压后使用对应平台的启动脚本
+
+- `workbuddy2api_2.2.7-1_all.ipk`
+  - OpenWrt 的 opkg 系安装包
+  - 适用于对应受支持的旧版 OpenWrt 路线
+
+- `workbuddy2api-2.2.7-r1.apk`
+  - OpenWrt 25.x+ 的 apk-tools 安装包
+
+- `SHA256SUMS`
+  - Release 资产的 SHA-256 校验值
+
+---
+
 ### 2.2.4 (2026-11-26)
 
 - **全新控制台壳层与 10 页面重构**：侧栏收拢为 3 组（核心运行 / 能力与任务 / 系统），顶栏升级可交互版本切换器，移除页内重复标题与冗余锚点条；设置页重分为 6 组二级导航并支持全分组检索；账号、用量、媒体、接口、智能体、自动化任务与日志同步优化操作层级与移动端响应式适配。
