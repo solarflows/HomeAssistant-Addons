@@ -1,3 +1,31 @@
+### 2.2.9 (2026-11-28)
+
+- **媒体页结构修复**：修复 `pageMedia` 提前闭合导致「图片去水印」「文本嵌入」「MCP 服务」三块落入「用量」页的问题；三块重新只属于媒体页，并新增容器闭合回归测试。
+- 全量测试：**324 个套件：245 个 Python + 79 个 JS，324 passed, 0 failed, 0 skipped**。
+
+<!-- release-download-block -->
+#### 下载说明
+
+- `workbuddy2api-hub-v2.2.9.zip`
+  - 通用便携版（Python 源码 + 看板 + 启动脚本）
+  - Windows / macOS / Linux
+  - 需要 Python 3.9+
+  - 内置 Windows amd64、macOS 与 Linux amd64 / arm64 的 Go/uTLS bridge
+  - 未设置 TLS 模式时默认 auto；桥不可用时自动回退 Python，无需安装 Go
+  - 解压后使用对应平台的启动脚本
+
+- `workbuddy2api_2.2.9-1_all.ipk`
+  - OpenWrt 的 opkg 系安装包
+  - 适用于对应受支持的旧版 OpenWrt 路线
+
+- `workbuddy2api-2.2.9-r1.apk`
+  - OpenWrt 25.x+ 的 apk-tools 安装包
+
+- `SHA256SUMS`
+  - Release 资产的 SHA-256 校验值
+
+---
+
 ### 2.2.7 (2026-11-27)
 
 - **全量备份与恢复**：在「设置 → 系统与维护」下载 ZIP，包含账号、网关设置、API Key、完整用量流水及历史归档、订阅桥数据。导入会校验 ZIP，确认后在下次重启时恢复。恢复前的数据会保留，中断或写入失败可回退。
