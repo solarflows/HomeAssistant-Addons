@@ -1,3 +1,32 @@
+### 8.1.8 (2026-11-28)
+
+#### Changelog
+
+- test(auth): run session cache TTL refresh checks on virtual time (e1e87409)
+- fix(registry): isolate empty model header overrides (402d4586)
+- fix(codex): fail over in-stream billing quota errors during bootstrap buffering (b2e33162)
+- fix(auth): reconcile disabled-era and orphaned unavailable flags (42b13fff)
+- fix(translator): group and align split Gemini functionResponse turns (13e06420)
+- Merge pull request #5689 from cookerpapa/test/session-cache-virtual-time (e3795562)
+- Merge pull request #5698 from cookerpapa/fix/model-header-snapshot (91619936)
+- fix(util): strip empty, whitespace-only, and null enum values in Gemini schema cleaners (#8571) (54ed2ba2)
+- fix(auth): write auth files atomically via temp file, sync, and rename (6021aba9)
+- feat(pluginhost,auth): propagate request cancellation to scheduler.pick plugins (7b4b3503)
+- test(cliproxy): unregister snapshot test auths from global model registry (1cf870b4)
+- fix(auth,cliproxy): wait for in-flight auto-refresh saves during shutdown (32c0c459)
+- fix(gemini): emit Google RPC APIError JSON for post-commit SSE stream errors (249ea68d)
+- perf(antigravity): reduce allocations when normalizing Gemini tool responses (66f3ad17)
+- fix(auth): release active credential_quota cooldown on completed operator verify (37caab7d)
+- fix(cliproxy): validate absent auth file snapshots under mutation lock (ee8b3f0c)
+- fix(watcher): keep watching config.yaml across atomic rename replacements (dbe641f2)
+
+
+#### What's Changed
+* test(auth): use virtual time for session cache TTL refresh by @cookerpapa in https://github.com/router-for-me/CLIProxyAPI/pull/5689
+* fix(registry): isolate empty model header overrides by @cookerpapa in https://github.com/router-for-me/CLIProxyAPI/pull/5698
+
+---
+
 ### 8.1.7 (2026-11-27)
 
 #### Changelog
