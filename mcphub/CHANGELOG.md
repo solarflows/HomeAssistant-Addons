@@ -1,3 +1,86 @@
+### 1.3.2 (2026-11-28)
+
+#### Summary
+
+v1.3.2 hardens authentication and container security while shipping the first phase of an opt-in Code Mode sandbox for smart routing. Sessions are now bound strictly by `ssoUserId`, refreshed OAuth tokens persist reliably outside request transactions, and critical CVEs in dependencies and the Docker image are resolved. On the product side, the dashboard gains per-server and per-tool file staging editors, bearer API keys support expiry with isolated last-used tracking, servers can declare repository and documentation links, and on-demand servers with an empty tool cache now wake correctly on `tools/call`.
+
+#### Features
+
+- Add an opt-in Code Mode JavaScript sandbox (Phase 1) to smart routing.
+- Add per-server and per-tool file staging editors to the dashboard.
+- Add expiry and isolated last-used tracking for bearer API keys.
+- Add optional repository and documentation links for servers.
+- Unify issue and pull request coordination skills into a single local-first workflow.
+
+#### Fixes
+
+- Bind Better Auth sessions strictly by `ssoUserId` to prevent cross-user session access.
+- Persist refreshed OAuth tokens outside the request transaction so refreshes survive rollbacks.
+- Resolve critical CVEs in dependencies and the Docker image build.
+- Wake unambiguous empty-cache on-demand servers on `tools/call`.
+- Harden built-in prompt substitution and clean up proxychains temporary configuration files.
+- Explain the HTTPS and domain requirement for passkeys instead of reporting no browser support.
+- Centralize embedding sync scheduling for more reliable background synchronization.
+- Polish authenticated loading states in the UI.
+
+#### 摘要
+
+v1.3.2 强化了认证与容器安全，并交付了智能路由中可选的 Code Mode 沙箱第一阶段。会话现在严格按 `ssoUserId` 绑定，刷新后的 OAuth 令牌会可靠地持久化到请求事务之外，依赖与 Docker 镜像中的严重 CVE 也已修复。产品侧，仪表盘新增了按服务端与按工具的文件暂存编辑器，Bearer API 密钥支持过期时间并隔离记录最后使用时间，服务端可以声明仓库与文档链接，而工具缓存为空的按需服务端在收到 `tools/call` 时能够正确唤醒。
+
+#### 功能
+
+- 智能路由新增可选的 Code Mode JavaScript 沙箱（第一阶段）。
+- 仪表盘新增按服务端和按工具的文件暂存编辑器。
+- Bearer API 密钥支持过期时间，并隔离记录最后使用时间。
+- 服务端可以声明可选的仓库与文档链接。
+- 将 Issue 与 Pull Request 协调技能统一为本地优先的单一流程。
+
+#### 修复
+
+- 严格按 `ssoUserId` 绑定 Better Auth 会话，防止跨用户会话访问。
+- 将刷新后的 OAuth 令牌持久化到请求事务之外，避免回滚导致刷新丢失。
+- 修复依赖与 Docker 镜像构建中的严重 CVE。
+- 工具缓存为空的按需服务端在 `tools/call` 时能够正确唤醒。
+- 加固内置提示词替换，并清理 proxychains 临时配置文件。
+- 对 passkey 明确说明 HTTPS 与域名要求，而不是报告浏览器不支持。
+- 统一嵌入同步调度，提升后台同步的可靠性。
+- 优化登录后的加载状态显示。
+
+#### New Contributors
+
+- @p1ngouin-bga made their first contribution in #1552
+- @Goldloli made their first contribution in #1520
+
+#### References
+
+- fix: harden built-in prompt substitution and proxychains temp config cleanup by @samanhappy in https://github.com/samanhappy/mcphub/pull/1584
+- fix(passkeys): explain HTTPS and domain requirement instead of reporting no browser support by @samanhappy in https://github.com/samanhappy/mcphub/pull/1581
+- feat(auth): add bearer key expiry and isolated last-used tracking by @samanhappy in https://github.com/samanhappy/mcphub/pull/1580
+- refactor(embeddings): centralize embedding sync scheduling by @samanhappy in https://github.com/samanhappy/mcphub/pull/1579
+- docs(agents): tighten owner:decision gate and expand standing PR approval by @samanhappy in https://github.com/samanhappy/mcphub/pull/1578
+- fix(test): synchronize Code Mode concurrency test by @samanhappy in https://github.com/samanhappy/mcphub/pull/1576
+- chore: add read-only GitHub queue inspection by @samanhappy in https://github.com/samanhappy/mcphub/pull/1575
+- fix(ui): polish authenticated loading states by @samanhappy in https://github.com/samanhappy/mcphub/pull/1574
+- docs(skills): refine coordinator guardrails, UI screenshot gate, and deduplicate SKILL.md by @samanhappy in https://github.com/samanhappy/mcphub/pull/1573
+- feat(smart-routing): add opt-in Code Mode JS sandbox (Phase 1) by @samanhappy in https://github.com/samanhappy/mcphub/pull/1572
+- docs(skills): refine github-coordinator and github-worker workflow by @samanhappy in https://github.com/samanhappy/mcphub/pull/1571
+- feat(staging): add per-server and per-tool file staging dashboard editors by @samanhappy in https://github.com/samanhappy/mcphub/pull/1570
+- fix(mcp): wake unambiguous empty-cache on-demand servers on tools/call by @samanhappy in https://github.com/samanhappy/mcphub/pull/1569
+- fix(auth): bind Better Auth sessions strictly by ssoUserId by @samanhappy in https://github.com/samanhappy/mcphub/pull/1568
+- fix(docker): resolve critical CVEs in dependencies and image build by @samanhappy in https://github.com/samanhappy/mcphub/pull/1566
+- refactor(skills): simplify github coordination for local-first workflow by @samanhappy in https://github.com/samanhappy/mcphub/pull/1564
+- feat(skills): unify issue and pull request coordination by @samanhappy in https://github.com/samanhappy/mcphub/pull/1561
+- feat(skills): add issue coordinator and end-to-end worker by @samanhappy in https://github.com/samanhappy/mcphub/pull/1560
+- docs: organize issue workflow by next-action owner by @samanhappy in https://github.com/samanhappy/mcphub/pull/1559
+- docs(staging): align the guide with the shipped settings panel by @SAXEM1997 in https://github.com/samanhappy/mcphub/pull/1557
+- docs: reserve needs-owner for actionable maintainer decisions by @samanhappy in https://github.com/samanhappy/mcphub/pull/1554
+- docs: establish human-agent issue triage and execution workflow by @samanhappy in https://github.com/samanhappy/mcphub/pull/1553
+- fix(oauth): persist refreshed tokens outside the request transaction by @p1ngouin-bga in https://github.com/samanhappy/mcphub/pull/1552
+- feat(servers): add optional repository and documentation links by @Goldloli in https://github.com/samanhappy/mcphub/pull/1520
+- Full changelog: https://github.com/samanhappy/mcphub/compare/v1.3.1...v1.3.2
+
+---
+
 ### 1.3.1 (2026-11-25)
 
 #### Summary
